@@ -124,6 +124,11 @@ export default function Acoustic() {
         } catch {}
 
         if (!res.ok) {
+          // Если 404 - это нормально, description может отсутствовать
+          if (res.status === 404) {
+            setDescription("");
+            return;
+          }
           const msg =
             json?.message || json?.error || text || `HTTP ${res.status}`;
           throw new Error(msg);

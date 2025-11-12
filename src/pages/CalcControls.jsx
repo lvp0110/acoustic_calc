@@ -406,7 +406,7 @@ export default function CalcControls(props) {
             onClick={onDownloadExcel}
           >
             <img 
-              src="/Excel_icon.png" 
+              src={`${import.meta.env.BASE_URL}Excel_icon.png`}
               alt="Скачать Excel" 
               style={{ width: 40, height: 40 }}
             />
