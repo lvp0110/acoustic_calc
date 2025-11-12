@@ -5,16 +5,19 @@ import { useSearchParams } from "react-router-dom";
 const getBaseUrl = () => {
   // 1. Используем переменную окружения, если она задана (приоритет)
   if (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) {
-    const url = import.meta.env.VITE_API_URL.trim();
-    if (url) return url;
+    const url = String(import.meta.env.VITE_API_URL).trim();
+    // Если URL не пустой и не равен 'undefined' или 'null' (строки)
+    if (url && url !== 'undefined' && url !== 'null') {
+      return url;
+    }
   }
   
-  // 2. В production (на GitHub Pages) 
-  // Если API на том же домене - используем относительный путь (пустая строка)
-  // Если API на другом домене - нужно задать VITE_API_URL через GitHub Secrets
+  // 2. В production (на GitHub Pages)
   if (import.meta.env?.MODE === 'production') {
-    // Возвращаем пустую строку для относительных путей (если API на том же домене)
-    // Иначе нужно задать VITE_API_URL через GitHub Secrets
+    // Если API на том же домене - используем относительный путь (пустая строка)
+    // Если API на другом домене - нужно задать VITE_API_URL через GitHub Secrets
+    // В этом случае вернется пустая строка, что приведет к использованию относительных путей
+    // Если нужен другой домен, обязательно задайте VITE_API_URL через GitHub Secrets
     return "";
   }
   
