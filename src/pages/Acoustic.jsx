@@ -53,7 +53,7 @@ export default function Acoustic() {
   // Компонент-обертка для выбора правильного селекта
   const SelectComponent = ({ paramType, value, onChange, options }) => {
     const hasImages = hasImagesInOptions(options);
-    
+
     if (hasImages) {
       return (
         <SelectWithImages
@@ -94,7 +94,7 @@ export default function Acoustic() {
               <div style={{ color: "crimson" }}>Ошибка: {brandsError}</div>
             )}
             {!brandsLoading && !brandsError && hasBrands && (
-              <div style={{ marginBottom: 12 }}>
+              <div style={{ marginBottom: 8 }}>
                 <SelectText
                   paramType="brand"
                   value={brand}
@@ -114,7 +114,7 @@ export default function Acoustic() {
               <div style={{ color: "crimson" }}>Ошибка: {paramsError}</div>
             )}
             {brand && !paramsLoading && !paramsError && hasModels && (
-              <div style={{ marginBottom: 12 }}>
+              <div>
                 <SelectComponent
                   paramType="model"
                   value={model}
@@ -172,7 +172,7 @@ export default function Acoustic() {
           {/* Блок 3: Калькулятор */}
           {brand && model && !depLoading && !depError && hasAnyDependent && (
             <div className="block-3">
-              <CalcControls 
+              <CalcControls
                 onTableDataChange={(calcData, calcRows) => {
                   setTableCalcData(calcData);
                   setTableCalcRows(calcRows);
