@@ -15,6 +15,7 @@ export default function Acoustic() {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const {
     BASE_URL,
+    isReady,
     brandsLoading,
     brandsError,
     brands,
@@ -153,17 +154,26 @@ export default function Acoustic() {
     return () => controller.abort();
   }, [brand, BASE_URL]);
 
+  // Пока не готовы (не прочитан URL) — ничего не показываем
+  if (!isReady) {
+    return (
+      <div className="brands-container">
+        <div style={{ padding: 20 }}>Загрузка...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="brands-container">
       <div className="acoustic-content">
         <div className="acoustic-left-column">
           {/* Блок 1: Бренды и Модели */}
           <div className="block-1">
-            {brandsLoading && <div>Загрузка брендов…</div>}
+            {brandsLoading && !brand && <div>Загрузка брендов…</div>}
             {brandsError && (
               <div style={{ color: "crimson" }}>Ошибка: {brandsError}</div>
             )}
-            {!brandsLoading && !brandsError && hasBrands && (
+            {(!brandsLoading || brand) && !brandsError && (hasBrands || brand) && (
               <div style={{ marginBottom: 8 }}>
                 <SelectText
                   paramType="brand"
@@ -179,11 +189,11 @@ export default function Acoustic() {
               </div>
             )}
 
-            {brand && paramsLoading && <div>Загрузка моделей…</div>}
+            {brand && paramsLoading && !model && <div>Загрузка моделей…</div>}
             {brand && paramsError && (
               <div style={{ color: "crimson" }}>Ошибка: {paramsError}</div>
             )}
-            {brand && !paramsLoading && !paramsError && hasModels && (
+            {brand && (!paramsLoading || model) && !paramsError && (hasModels || model) && (
               <div>
                 <SelectComponent
                   paramType="model"
