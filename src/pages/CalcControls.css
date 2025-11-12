@@ -1,0 +1,108 @@
+.calc-components {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  height: 70px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.calc-components button {
+  flex: 1 0 10%;
+  height: 70px !important;
+  background-color: #ffffff;
+  border-radius: 5px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.calc-components > div {
+  flex: 0 0 35%;
+  height: 70px;
+}
+
+.calc-components > div button {
+  height: 70px !important;
+  min-height: 70px !important;
+  box-sizing: border-box;
+}
+
+.calc-sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  height: 70px;
+  margin-top: 10px;
+}
+
+.calc-sizes input {
+  width: 48%;
+  background-color: #ffffff;
+  border-radius: 5px;
+  text-align: center;
+  height: inherit;
+  color: black;
+  border: none;
+}
+
+.calc-area {
+  width: 100%;
+  justify-content: start;
+  height: 70px;
+}
+
+.calc-area input {
+  width: 100%;
+  background-color: #ffffff;
+  border-radius: 5px;
+  text-align: center;
+  height: inherit;
+  color: black;
+  border: none;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.table-components {
+  display: grid;
+  grid-template-columns: 49% 70px 70px;
+  margin-top: 10px;
+  gap: 10px;
+  width: 100%;
+}
+
+.table-components button {
+  width: 100%;
+  background-color: #ffffff;
+  border-radius: 5px;
+  height: 70px;
+}
+
+.calc-table-block {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.calc-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+@media (max-width: 550px) {
+  .calc-sizes input {
+    width: 100%;
+  }
+  .calc-area input {
+    width: 100%;
+  }
+}
