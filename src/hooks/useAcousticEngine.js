@@ -81,6 +81,21 @@ const extractByCodeFromArray = (dataArr, code) => {
   return pickArray(p, ["list", "values", "options"]) || (Array.isArray(p) ? p : undefined);
 };
 
+// Helper для правильного формирования URL
+const buildApiUrl = (path) => {
+  // Убираем начальный слеш из path, если он есть
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  
+  if (!BASE_URL || BASE_URL === '') {
+    // Если BASE_URL пустой, используем относительный путь
+    return `/${cleanPath}`;
+  }
+  
+  // Убираем завершающий слеш из BASE_URL, если он есть
+  const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+  return `${cleanBase}/${cleanPath}`;
+};
+
 const getImageUrl = (option) => {
   if (!option) return null;
   const imageFile =
@@ -93,7 +108,7 @@ const getImageUrl = (option) => {
     option?.filename;
 
   if (!imageFile || String(imageFile).trim() === "") return null;
-  if (!String(imageFile).startsWith("http")) return `${BASE_URL}/api/v1/constr/${imageFile}`;
+  if (!String(imageFile).startsWith("http")) return buildApiUrl(`api/v1/constr/${imageFile}`);
   return imageFile;
 };
 
@@ -146,7 +161,7 @@ export function useAcousticEngine() {
   const lastQS = useRef("");
   const urlValuesFromInit = useRef({ color: "", size: "", perf: "", edge: "" }); // сохраняем значения из URL при инициализации
 
-  const brandsUrl = useMemo(() => `${BASE_URL}/api/v1/AcousticCategories`, []);
+  const brandsUrl = useMemo(() => buildApiUrl('api/v1/AcousticCategories'), []);
   const hasBrands = brands.length > 0;
   const hasModels = paramOptions.model.length > 0;
   const hasColor = paramOptions.color.length > 0;
@@ -157,14 +172,12 @@ export function useAcousticEngine() {
 
   const paramsUrl = useMemo(() => {
     if (!brand) return null;
-    return `${BASE_URL}/api/v1/brandParams/${encodeURIComponent(brand)}`;
+    return buildApiUrl(`api/v1/brandParams/${encodeURIComponent(brand)}`);
   }, [brand]);
 
   const modelParamsUrl = useMemo(() => {
     if (!brand || !model) return null;
-    return `${BASE_URL}/api/v1/brandParams/${encodeURIComponent(
-      brand
-    )}?model=${encodeURIComponent(model)}`;
+    return buildApiUrl(`api/v1/brandParams/${encodeURIComponent(brand)}?model=${encodeURIComponent(model)}`);
   }, [brand, model]);
 
   // ——— 1) Гидратация из URL при первом рендере ———

@@ -148,11 +148,20 @@ export default function CalcControls(props) {
   }, [width, height, mode]);
 
   const v2Urls = useMemo(() => {
-    const base = BASE_URL || "http://localhost:3005";
+    // Helper для правильного формирования URL
+    const buildApiUrl = (path) => {
+      const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+      if (!BASE_URL || BASE_URL === '') {
+        return `/${cleanPath}`;
+      }
+      const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+      return `${cleanBase}/${cleanPath}`;
+    };
+
     return {
-      params: `${base}/api/v2/constr/calc/params`,
-      calcBase: `${base}/api/v2/constr/calc`,
-      excel: `${base}/api/v2/constr/calc/excel`,
+      params: buildApiUrl('api/v2/constr/calc/params'),
+      calcBase: buildApiUrl('api/v2/constr/calc'),
+      excel: buildApiUrl('api/v2/constr/calc/excel'),
     };
   }, [BASE_URL]);
 
