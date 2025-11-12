@@ -3,21 +3,37 @@ import { useSearchParams } from "react-router-dom";
 
 // Определение BASE_URL с учетом окружения
 const getBaseUrl = () => {
+  const mode = import.meta.env?.MODE || 'development';
+  const envUrl = import.meta.env?.VITE_API_URL;
+  
+  // Логирование для отладки (только в development или если URL не задан)
+  if (mode === 'development' || !envUrl) {
+    console.log('[BASE_URL Debug]', {
+      mode,
+      hasVITE_API_URL: !!envUrl,
+      VITE_API_URL_value: envUrl ? `${envUrl.substring(0, 20)}...` : 'not set',
+      VITE_API_URL_full: envUrl
+    });
+  }
+  
   // 1. Используем переменную окружения, если она задана (приоритет)
-  if (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) {
-    const url = String(import.meta.env.VITE_API_URL).trim();
+  if (envUrl) {
+    const url = String(envUrl).trim();
     // Если URL не пустой и не равен 'undefined' или 'null' (строки)
-    if (url && url !== 'undefined' && url !== 'null') {
+    if (url && url !== 'undefined' && url !== 'null' && url !== '') {
       return url;
     }
   }
   
   // 2. В production (на GitHub Pages)
-  if (import.meta.env?.MODE === 'production') {
+  if (mode === 'production') {
     // Если API на том же домене - используем относительный путь (пустая строка)
     // Если API на другом домене - нужно задать VITE_API_URL через GitHub Secrets
     // В этом случае вернется пустая строка, что приведет к использованию относительных путей
     // Если нужен другой домен, обязательно задайте VITE_API_URL через GitHub Secrets
+    console.error('[BASE_URL] VITE_API_URL is not set in production! API requests will fail.');
+    console.error('[BASE_URL] Please set VITE_API_URL secret in GitHub repository settings:');
+    console.error('[BASE_URL] Settings → Secrets and variables → Actions → New repository secret');
     return "";
   }
   
@@ -26,6 +42,11 @@ const getBaseUrl = () => {
 };
 
 const BASE_URL = getBaseUrl();
+
+// Логируем финальный BASE_URL для отладки
+if (import.meta.env?.MODE === 'production') {
+  console.log('[BASE_URL] Final value:', BASE_URL || '(empty - will use relative paths)');
+}
 
 const URL_PARAM_KEYS = ["brand", "model", "color", "size", "perf", "edge"];
 
@@ -91,7 +112,9 @@ const buildApiUrl = (path) => {
     // и нужно задать VITE_API_URL через GitHub Secrets
     // В production нельзя использовать относительные пути для внешнего API
     if (import.meta.env?.MODE === 'production') {
-      console.error('VITE_API_URL is not set! API requests will fail. Please set VITE_API_URL secret in GitHub repository settings.');
+      const errorMsg = `[buildApiUrl] BASE_URL is empty! Cannot build URL for: ${cleanPath}`;
+      console.error(errorMsg);
+      console.error('[buildApiUrl] VITE_API_URL secret must be set in GitHub repository settings.');
       // Возвращаем пустую строку, чтобы запрос явно провалился
       // Это лучше, чем делать запрос на неправильный URL
       return '';
@@ -102,7 +125,14 @@ const buildApiUrl = (path) => {
   
   // Убираем завершающий слеш из BASE_URL, если он есть
   const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
-  return `${cleanBase}/${cleanPath}`;
+  const finalUrl = `${cleanBase}/${cleanPath}`;
+  
+  // Логируем в development для отладки
+  if (import.meta.env?.MODE === 'development') {
+    console.log(`[buildApiUrl] ${cleanPath} → ${finalUrl}`);
+  }
+  
+  return finalUrl;
 };
 
 const getImageUrl = (option) => {
