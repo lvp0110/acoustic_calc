@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAcoustic } from "../context/AcousticContext.jsx";
 import SelectWithImages from "../components/SelectWithImages.jsx";
 import SelectText from "../components/SelectText.jsx";
@@ -9,7 +9,12 @@ import "./Acoustic.css";
 export default function Acoustic() {
   const [tableCalcData, setTableCalcData] = useState(null);
   const [tableCalcRows, setTableCalcRows] = useState([]);
+  const [description, setDescription] = useState("");
+  const [descriptionLoading, setDescriptionLoading] = useState(false);
+  const [descriptionError, setDescriptionError] = useState("");
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const {
+    BASE_URL,
     brandsLoading,
     brandsError,
     brands,
@@ -82,6 +87,66 @@ export default function Acoustic() {
 
   // Преобразование brands из { code, name } в { id, name } для SelectText
   const brandOptions = brands.map((b) => ({ id: b.code, name: b.name }));
+
+  // Helper для правильного формирования URL
+  const buildApiUrl = (path) => {
+    const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+    if (!BASE_URL || BASE_URL === "") {
+      return `/${cleanPath}`;
+    }
+    const cleanBase = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL;
+    return `${cleanBase}/${cleanPath}`;
+  };
+
+  // Загрузка description из api/v1/brandParams
+  useEffect(() => {
+    if (!brand) {
+      setDescription("");
+      setDescriptionError("");
+      return;
+    }
+
+    const controller = new AbortController();
+    (async () => {
+      try {
+        setDescriptionLoading(true);
+        setDescriptionError("");
+        setDescription("");
+
+        const url = buildApiUrl(
+          `api/v1/brandParams/${encodeURIComponent(brand)}`
+        );
+        const res = await fetch(url, { signal: controller.signal });
+        const text = await res.text();
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch {}
+
+        if (!res.ok) {
+          const msg =
+            json?.message || json?.error || text || `HTTP ${res.status}`;
+          throw new Error(msg);
+        }
+
+        // Пытаемся получить description из разных возможных мест в ответе
+        const desc =
+          json?.description ||
+          json?.data?.description ||
+          json?.Description ||
+          "";
+        setDescription(desc || "");
+      } catch (e) {
+        if (e.name !== "AbortError") {
+          setDescriptionError(e.message || "Ошибка загрузки описания");
+        }
+      } finally {
+        setDescriptionLoading(false);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [brand, BASE_URL]);
 
   return (
     <div className="brands-container">
@@ -178,6 +243,40 @@ export default function Acoustic() {
                   setTableCalcRows(calcRows);
                 }}
               />
+            </div>
+          )}
+
+          {/* Блок с описанием (description) */}
+          {brand && (
+            <div
+              className={`block-description ${
+                isDescriptionExpanded ? "expanded" : ""
+              }`}
+              onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+            >
+              {descriptionLoading && <div>Загрузка описания…</div>}
+              {descriptionError && (
+                <div style={{ color: "crimson" }}>
+                  Ошибка: {descriptionError}
+                </div>
+              )}
+              {/* Временный lorem текст для проверки */}
+              <div className="description-content">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
+                in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+                nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+                sunt in culpa qui officia deserunt mollit anim id est laborum.
+                Sed ut perspiciatis unde omnis iste natus error sit voluptatem
+                accusantium doloremque laudantium, totam rem aperiam, eaque ipsa
+                quae ab illo inventore veritatis et quasi architecto beatae vitae
+                dicta sunt explicabo.
+              </div>
+              {!descriptionLoading && !descriptionError && description && (
+                <div className="description-content">{description}</div>
+              )}
             </div>
           )}
         </div>
