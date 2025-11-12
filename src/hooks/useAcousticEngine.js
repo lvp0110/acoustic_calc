@@ -248,6 +248,15 @@ export function useAcousticEngine() {
     // Сохраняем значения из URL для последующего восстановления после загрузки опций
     urlValuesFromInit.current = { color: c, size: s, perf: p, edge: e };
 
+    // Инициализируем lastQS из текущего URL, чтобы избежать ложных срабатываний синхронизации
+    const initParams = new URLSearchParams(searchParams);
+    for (const key of URL_PARAM_KEYS) {
+      if (!initParams.get(key)) {
+        initParams.delete(key);
+      }
+    }
+    lastQS.current = initParams.toString();
+
     if (b) {
       setBrand(b);
       skipNextBrandReset.current = true;
@@ -270,13 +279,26 @@ export function useAcousticEngine() {
     if (!isReady) return;
 
     const cur = new URLSearchParams(searchParams);
-    // Сохраняем посторонние параметры, но обновим наши
-    for (const key of URL_PARAM_KEYS) cur.delete(key);
-
+    
+    // Проверяем, нужно ли обновлять URL
+    let needsUpdate = false;
     const kv = { brand, model, color, size, perf, edge };
-    Object.entries(kv).forEach(([k, v]) => {
-      if (v) cur.set(k, v);
-    });
+    
+    // Проверяем каждый параметр
+    for (const [key, value] of Object.entries(kv)) {
+      const urlValue = cur.get(key);
+      if (value && urlValue !== value) {
+        cur.set(key, value);
+        needsUpdate = true;
+      } else if (!value && urlValue) {
+        // Удаляем только если значение действительно пустое
+        cur.delete(key);
+        needsUpdate = true;
+      }
+    }
+
+    // Если изменений нет, не обновляем URL
+    if (!needsUpdate) return;
 
     const nextQS = cur.toString();
     if (nextQS === lastQS.current) return;
