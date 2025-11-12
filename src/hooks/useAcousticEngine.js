@@ -5,22 +5,33 @@ import { useSearchParams } from "react-router-dom";
 const getBaseUrl = () => {
   const mode = import.meta.env?.MODE || 'development';
   const envUrl = import.meta.env?.VITE_API_URL;
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
   
-  // Логирование для отладки (только в development или если URL не задан)
-  if (mode === 'development' || !envUrl) {
-    console.log('[BASE_URL Debug]', {
-      mode,
-      hasVITE_API_URL: !!envUrl,
-      VITE_API_URL_value: envUrl ? `${envUrl.substring(0, 20)}...` : 'not set',
-      VITE_API_URL_full: envUrl
-    });
-  }
+  // Логирование для отладки
+  console.log('[BASE_URL Debug]', {
+    mode,
+    hasVITE_API_URL: !!envUrl,
+    VITE_API_URL_value: envUrl ? `${String(envUrl).substring(0, 50)}...` : 'not set',
+    currentOrigin
+  });
   
   // 1. Используем переменную окружения, если она задана (приоритет)
   if (envUrl) {
     const url = String(envUrl).trim();
     // Если URL не пустой и не равен 'undefined' или 'null' (строки)
     if (url && url !== 'undefined' && url !== 'null' && url !== '') {
+      // Проверяем, что URL не указывает на текущий сайт (GitHub Pages)
+      if (currentOrigin && url.includes(currentOrigin)) {
+        console.error('[BASE_URL] ERROR: VITE_API_URL points to the same domain as the site!');
+        console.error('[BASE_URL] VITE_API_URL should point to your API server, not to GitHub Pages.');
+        console.error('[BASE_URL] Current VITE_API_URL:', url);
+        console.error('[BASE_URL] Current site origin:', currentOrigin);
+        console.error('[BASE_URL] Please set VITE_API_URL to your actual API server URL (e.g., https://api.yourdomain.com)');
+        // В production это критическая ошибка
+        if (mode === 'production') {
+          return ""; // Вернем пустую строку, чтобы запросы явно провалились
+        }
+      }
       return url;
     }
   }
@@ -34,6 +45,8 @@ const getBaseUrl = () => {
     console.error('[BASE_URL] VITE_API_URL is not set in production! API requests will fail.');
     console.error('[BASE_URL] Please set VITE_API_URL secret in GitHub repository settings:');
     console.error('[BASE_URL] Settings → Secrets and variables → Actions → New repository secret');
+    console.error('[BASE_URL] The secret should contain your API server URL (e.g., https://api.yourdomain.com)');
+    console.error('[BASE_URL] NOT the GitHub Pages URL!');
     return "";
   }
   
@@ -46,6 +59,10 @@ const BASE_URL = getBaseUrl();
 // Логируем финальный BASE_URL для отладки
 if (import.meta.env?.MODE === 'production') {
   console.log('[BASE_URL] Final value:', BASE_URL || '(empty - will use relative paths)');
+  if (!BASE_URL) {
+    console.error('[BASE_URL] ⚠️  API requests will fail because BASE_URL is empty!');
+    console.error('[BASE_URL] Set VITE_API_URL secret to your API server URL.');
+  }
 }
 
 const URL_PARAM_KEYS = ["brand", "model", "color", "size", "perf", "edge"];
