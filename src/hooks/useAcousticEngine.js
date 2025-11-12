@@ -1,9 +1,28 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
-const BASE_URL =
-  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
-  "http://localhost:3005";
+// Определение BASE_URL с учетом окружения
+const getBaseUrl = () => {
+  // 1. Используем переменную окружения, если она задана (приоритет)
+  if (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) {
+    const url = import.meta.env.VITE_API_URL.trim();
+    if (url) return url;
+  }
+  
+  // 2. В production (на GitHub Pages) 
+  // Если API на том же домене - используем относительный путь (пустая строка)
+  // Если API на другом домене - нужно задать VITE_API_URL через GitHub Secrets
+  if (import.meta.env?.MODE === 'production') {
+    // Возвращаем пустую строку для относительных путей (если API на том же домене)
+    // Иначе нужно задать VITE_API_URL через GitHub Secrets
+    return "";
+  }
+  
+  // 3. По умолчанию для разработки
+  return "http://localhost:3005";
+};
+
+const BASE_URL = getBaseUrl();
 
 const URL_PARAM_KEYS = ["brand", "model", "color", "size", "perf", "edge"];
 
