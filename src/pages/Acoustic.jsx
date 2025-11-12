@@ -85,100 +85,102 @@ export default function Acoustic() {
 
   return (
     <div className="brands-container">
-      <div style={{ width: "100%", maxWidth: 600 }}>
-        {/* Блок 1: Бренды и Модели */}
-        <div className="block-1">
-          {brandsLoading && <div>Загрузка брендов…</div>}
-          {brandsError && (
-            <div style={{ color: "crimson" }}>Ошибка: {brandsError}</div>
+      <div className="acoustic-content">
+        <div className="acoustic-left-column">
+          {/* Блок 1: Бренды и Модели */}
+          <div className="block-1">
+            {brandsLoading && <div>Загрузка брендов…</div>}
+            {brandsError && (
+              <div style={{ color: "crimson" }}>Ошибка: {brandsError}</div>
+            )}
+            {!brandsLoading && !brandsError && hasBrands && (
+              <div style={{ marginBottom: 12 }}>
+                <SelectText
+                  paramType="brand"
+                  value={brand}
+                  onChange={setBrand}
+                  options={brandOptions}
+                  SECTION_TITLES={{
+                    ...SECTION_TITLES,
+                    brand: { acc: "бренд", gen: "бренда" },
+                  }}
+                  capitalize={capitalize}
+                />
+              </div>
+            )}
+
+            {brand && paramsLoading && <div>Загрузка моделей…</div>}
+            {brand && paramsError && (
+              <div style={{ color: "crimson" }}>Ошибка: {paramsError}</div>
+            )}
+            {brand && !paramsLoading && !paramsError && hasModels && (
+              <div style={{ marginBottom: 12 }}>
+                <SelectComponent
+                  paramType="model"
+                  value={model}
+                  onChange={setModel}
+                  options={paramOptions.model}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Блок 2: Опции модели (размеры, цвета, кромки, перфорация) */}
+          {brand && model && depLoading && <div>Загрузка опций модели…</div>}
+          {brand && model && depError && (
+            <div style={{ color: "crimson" }}>Ошибка: {depError}</div>
           )}
-          {!brandsLoading && !brandsError && hasBrands && (
-            <div style={{ marginBottom: 12 }}>
-              <SelectText
-                paramType="brand"
-                value={brand}
-                onChange={setBrand}
-                options={brandOptions}
-                SECTION_TITLES={{
-                  ...SECTION_TITLES,
-                  brand: { acc: "бренд", gen: "бренда" },
-                }}
-                capitalize={capitalize}
-              />
+          {brand && model && !depLoading && !depError && hasAnyDependent && (
+            <div className="block-2">
+              <div className="options-grid">
+                {hasSize && (
+                  <SelectComponent
+                    paramType="size"
+                    value={size}
+                    onChange={setSize}
+                    options={paramOptions.size}
+                  />
+                )}
+                {hasColor && (
+                  <SelectComponent
+                    paramType="color"
+                    value={color}
+                    onChange={setColor}
+                    options={paramOptions.color}
+                  />
+                )}
+                {hasPerf && (
+                  <SelectComponent
+                    paramType="perf"
+                    value={perf}
+                    onChange={setPerf}
+                    options={paramOptions.perf}
+                  />
+                )}
+                {hasEdge && (
+                  <SelectComponent
+                    paramType="edge"
+                    value={edge}
+                    onChange={setEdge}
+                    options={paramOptions.edge}
+                  />
+                )}
+              </div>
             </div>
           )}
 
-          {brand && paramsLoading && <div>Загрузка моделей…</div>}
-          {brand && paramsError && (
-            <div style={{ color: "crimson" }}>Ошибка: {paramsError}</div>
-          )}
-          {brand && !paramsLoading && !paramsError && hasModels && (
-            <div style={{ marginBottom: 12 }}>
-              <SelectComponent
-                paramType="model"
-                value={model}
-                onChange={setModel}
-                options={paramOptions.model}
+          {/* Блок 3: Калькулятор */}
+          {brand && model && !depLoading && !depError && hasAnyDependent && (
+            <div className="block-3">
+              <CalcControls 
+                onTableDataChange={(calcData, calcRows) => {
+                  setTableCalcData(calcData);
+                  setTableCalcRows(calcRows);
+                }}
               />
             </div>
           )}
         </div>
-
-        {/* Блок 2: Опции модели (размеры, цвета, кромки, перфорация) */}
-        {brand && model && depLoading && <div>Загрузка опций модели…</div>}
-        {brand && model && depError && (
-          <div style={{ color: "crimson" }}>Ошибка: {depError}</div>
-        )}
-        {brand && model && !depLoading && !depError && hasAnyDependent && (
-          <div className="block-2">
-            <div className="options-grid">
-              {hasSize && (
-                <SelectComponent
-                  paramType="size"
-                  value={size}
-                  onChange={setSize}
-                  options={paramOptions.size}
-                />
-              )}
-              {hasColor && (
-                <SelectComponent
-                  paramType="color"
-                  value={color}
-                  onChange={setColor}
-                  options={paramOptions.color}
-                />
-              )}
-              {hasPerf && (
-                <SelectComponent
-                  paramType="perf"
-                  value={perf}
-                  onChange={setPerf}
-                  options={paramOptions.perf}
-                />
-              )}
-              {hasEdge && (
-                <SelectComponent
-                  paramType="edge"
-                  value={edge}
-                  onChange={setEdge}
-                  options={paramOptions.edge}
-                />
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Блок 3: Калькулятор */}
-        {brand && model && !depLoading && !depError && hasAnyDependent && (
-          <div className="block-3">
-            <CalcControls 
-              onTableDataChange={(calcData, calcRows) => {
-                setTableCalcData(calcData);
-                setTableCalcRows(calcRows);
-              }}
-            />
-          </div>
-        )}
 
         {/* Блок 4: Таблица результатов */}
         {(tableCalcData || (tableCalcRows && tableCalcRows.length > 0)) && (

@@ -8,11 +8,23 @@
   box-sizing: border-box;
 }
 
+.acoustic-content {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+.acoustic-left-column {
+  width: 100%;
+}
+
 /* Блок 1: Бренды и Модели */
 .block-1 {
   margin-bottom: 20px;
   padding: 15px;
-  background-color: #f5f5f5;
+  /* background-color: #f5f5f5; */
+  border: #f5f5f5 1px solid;
   border-radius: 8px;
 }
 
@@ -20,7 +32,9 @@
 .block-2 {
   margin-bottom: 20px;
   padding: 15px;
-  background-color: #f5f5f5;
+  /* background-color: #f5f5f5; */
+  border: #f5f5f5 1px solid;
+
   border-radius: 8px;
 }
 
@@ -34,7 +48,8 @@
 .block-3 {
   margin-bottom: 20px;
   padding: 15px;
-  background-color: #f5f5f5;
+  /* background-color: #f5f5f5; */
+  border: #f5f5f5 1px solid;
   border-radius: 8px;
 }
 
@@ -42,8 +57,29 @@
 .block-4 {
   margin-bottom: 20px;
   padding: 15px;
-  background-color: #f5f5f5;
+  /* background-color: #f5f5f5; */
+  border: #f5f5f5 1px solid;
   border-radius: 8px;
+}
+
+@media (min-width: 1025px) {
+  .acoustic-content {
+    flex-direction: row;
+    max-width: none;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  .acoustic-left-column {
+    width: 100%;
+    max-width: 600px;
+    flex-shrink: 0;
+  }
+
+  .block-4 {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 @media (max-width: 550px) {
