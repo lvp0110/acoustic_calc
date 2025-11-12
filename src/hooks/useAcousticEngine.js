@@ -87,7 +87,16 @@ const buildApiUrl = (path) => {
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   
   if (!BASE_URL || BASE_URL === '') {
-    // Если BASE_URL пустой, используем относительный путь
+    // Если BASE_URL пустой в production, это означает что API на другом домене
+    // и нужно задать VITE_API_URL через GitHub Secrets
+    // В production нельзя использовать относительные пути для внешнего API
+    if (import.meta.env?.MODE === 'production') {
+      console.error('VITE_API_URL is not set! API requests will fail. Please set VITE_API_URL secret in GitHub repository settings.');
+      // Возвращаем пустую строку, чтобы запрос явно провалился
+      // Это лучше, чем делать запрос на неправильный URL
+      return '';
+    }
+    // В development используем относительный путь (будет проксироваться через vite)
     return `/${cleanPath}`;
   }
   
