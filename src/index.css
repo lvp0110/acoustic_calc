@@ -11,14 +11,17 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-html, body { height: 100%; }
+html,
+body {
+  height: 100%;
+}
 
 body {
   margin: 0;
   height: 100vh;
-  background-color: #242424;
+  background-color: #f5f5f7;
 }
-
+/* #F5F5F7  242424 */
 a {
   font-weight: 500;
   color: #646cff;
@@ -35,16 +38,21 @@ h1 {
 
 select {
   height: 100px;
-  border-radius:5px;
+  border-radius: 16px;
   /* text-align: center; */
   font-size: large;
+  
 }
 
- button {
+button {
   color: rgb(82, 81, 81);
-  font-size: large;  
-  font-family: 'montsserat',sans-serif;
-} 
+  border: none;
+  font-size: large;
+  font-family: "montsserat", sans-serif;
+}
+input {
+  border: none;
+}
 
 table {
   color: rgb(184, 181, 181);

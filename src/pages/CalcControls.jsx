@@ -330,14 +330,20 @@ export default function CalcControls(props) {
         <button
           type="button"
           onClick={() => setMode("sizes")}
-          style={{ backgroundColor: mode === "sizes" ? "#e3f2fd" : undefined }}
+          style={{ 
+            backgroundColor: mode === "sizes" ? "#006BCF" : undefined,
+            color: mode === "sizes" ? "#fff" : undefined
+          }}
         >
           размеры
         </button>
         <button
           type="button"
           onClick={() => setMode("area")}
-          style={{ backgroundColor: mode === "area" ? "#e3f2fd" : undefined }}
+          style={{ 
+            backgroundColor: mode === "area" ? "#006BCF" : undefined,
+            color: mode === "area" ? "#fff" : undefined
+          }}
         >
           площадь
         </button>
@@ -397,6 +403,10 @@ export default function CalcControls(props) {
           type="button"
           onClick={onCalculate}
           disabled={!hasValidInput || calcLoading}
+          style={{
+            backgroundColor: hasValidInput ? "#006BCF" : undefined,
+            color: hasValidInput ? "#fff" : undefined,
+          }}
         >
           Расчёт
         </button>

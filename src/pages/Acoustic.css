@@ -25,7 +25,7 @@
   padding: 10px;
   /* background-color: #f5f5f5; */
   border: #f5f5f5 1px solid;
-  border-radius: 8px;
+  border-radius: 16px;
 }
 
 /* Блок 2: Опции модели */
@@ -35,7 +35,7 @@
   /* background-color: #f5f5f5; */
   border: #f5f5f5 1px solid;
 
-  border-radius: 8px;
+  border-radius: 16px;
 }
 
 .options-grid {
@@ -50,17 +50,17 @@
   padding: 10px;
   /* background-color: #f5f5f5; */
   border: #f5f5f5 1px solid;
-  border-radius: 8px;
+  border-radius: 16px;
 }
 
 /* Блок с описанием (description) */
 .block-description {
   margin-bottom: 10px;
   padding: 10px;
-  color: antiquewhite;
+  color: gray;
   /* background-color: #f5f5f5; */
   border: #f5f5f5 1px solid;
-  border-radius: 8px;
+  border-radius: 16px;
   transition: all 0.3s ease;
 }
 
@@ -107,7 +107,7 @@
   padding: 10px;
   /* background-color: #f5f5f5; */
   border: #f5f5f5 1px solid;
-  border-radius: 8px;
+  border-radius: 16px;
 }
 
 @media (min-width: 1025px) {
