@@ -21,6 +21,7 @@ export default function CalcControls(props) {
   const [calcError, setCalcError] = useState("");
   const [calcRows, setCalcRows] = useState([]);
   const [calcData, setCalcData] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const debounceTimer = useRef(null);
   const isInitialized = useRef(false);
   const lastCalcParams = useRef("");
@@ -225,10 +226,12 @@ export default function CalcControls(props) {
         json = JSON.parse(text);
       } catch {}
       if (!res.ok) {
-        const msg =
-          res.status === 404
-            ? `Данные для расчёта не найдены (GET ${url})`
-            : json?.message || json?.error || text || `HTTP ${res.status}`;
+        if (res.status === 404) {
+          setShowModal(true);
+          setCalcLoading(false);
+          return;
+        }
+        const msg = json?.message || json?.error || text || `HTTP ${res.status}`;
         throw new Error(msg);
       }
 
@@ -427,6 +430,28 @@ export default function CalcControls(props) {
       {calcLoading && <div style={{ marginTop: 8 }}>Расчёт…</div>}
       {calcError && (
         <div style={{ marginTop: 8, color: "crimson" }}>{calcError}</div>
+      )}
+      
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Выберите все данные для расчета</h3>
+              <button 
+                className="modal-close" 
+                onClick={() => setShowModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>Выберите все данные для расчета</p>
+            </div>
+            <div className="modal-footer">
+              <button onClick={() => setShowModal(false)}>Закрыть</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

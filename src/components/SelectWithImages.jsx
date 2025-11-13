@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 
 export default function SelectWithImages({
   paramType,
@@ -11,6 +11,10 @@ export default function SelectWithImages({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [q, setQ] = useState("");
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({ right: 0, bottom: 0 });
+  const spanRef = useRef(null);
+  const containerRef = useRef(null);
   const selectedOption = options.find((opt) => opt.id === value);
   const sectionAcc = SECTION_TITLES[paramType]?.acc || "опцию";
 
@@ -24,8 +28,19 @@ export default function SelectWithImages({
     );
   }, [options, q]);
 
+  useEffect(() => {
+    if (showTooltip && spanRef.current && containerRef.current) {
+      const spanRect = spanRef.current.getBoundingClientRect();
+      const containerRect = containerRef.current.getBoundingClientRect();
+      setTooltipPosition({
+        right: containerRect.right - spanRect.right,
+        bottom: containerRect.bottom - spanRect.top + 8,
+      });
+    }
+  }, [showTooltip]);
+
   return (
-    <div style={{ position: "relative", width: "100%" }}>
+    <div ref={containerRef} style={{ position: "relative", width: "100%" }}>
       <button
         onClick={() => setIsOpen((v) => !v)}
         style={{
@@ -66,17 +81,21 @@ export default function SelectWithImages({
               }}
             />
             <span
+              ref={spanRef}
               style={{
                 position: "relative",
                 zIndex: 2,
                 marginLeft: "auto",
                 marginTop: "auto",
-                padding: "3px 7px",
+                padding: "4px 5px",
                 borderRadius: 16,
                 fontSize: 14,
-                marginRight: 2,
-                marginBottom: 2,
+                marginRight: 4,
+                marginBottom: 4,
+                background: "#f5f5f7",
               }}
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
             >
               {selectedOption?.name}
             </span>
@@ -87,6 +106,43 @@ export default function SelectWithImages({
           </span>
         )}
       </button>
+
+      {showTooltip && selectedOption?.description && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: tooltipPosition.bottom,
+            right: tooltipPosition.right,
+            padding: "8px 12px",
+            backgroundColor: "#333",
+            color: "#fff",
+            borderRadius: 8,
+            fontSize: 12,
+            zIndex: 1000,
+            width: "max-content",
+            maxWidth: "300px",
+            whiteSpace: "normal",
+            wordWrap: "break-word",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+            pointerEvents: "none",
+          }}
+        >
+          {selectedOption.description}
+          <div
+            style={{
+              position: "absolute",
+              top: "100%",
+              right: 12,
+              marginTop: -1,
+              width: 0,
+              height: 0,
+              borderLeft: "6px solid transparent",
+              borderRight: "6px solid transparent",
+              borderTop: "6px solid #333",
+            }}
+          />
+        </div>
+      )}
 
       {isOpen && (
         <div
@@ -179,9 +235,9 @@ export default function SelectWithImages({
                       alt={opt.name}
                       onError={(e) => (e.currentTarget.style.display = "none")}
                       style={{
-                        width: "100%",
-                        height: "100%",
-                        // objectFit: "cover",
+                        width: "96%",
+                        height: "96%",
+                        padding: "4px",
                         display: "block",
                       }}
                     />
