@@ -134,4 +134,7 @@
   .options-grid {
     grid-template-columns: 1fr;
   }
+  .brands-container {
+    padding: 0;
+  }
 }

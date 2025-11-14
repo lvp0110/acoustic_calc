@@ -180,6 +180,7 @@ export default function SelectWithImages({
               boxSizing: "border-box",
               fontSize: 14,
               background: "#f7f7f9",
+              color: "black",
             }}
           />
 
@@ -201,12 +202,7 @@ export default function SelectWithImages({
                     setIsOpen(false);
                   }}
                   style={{
-                    // было: обычная карточка на 1 колонку
-                    // width: "100%",
-
-                    // стало: карточка растягивается на 2 колонки грида (вдвое больше родительской ячейки)
                     gridColumn: "span 2",
-
                     width: "100%",
                     padding: 8,
                     border: "none",
@@ -222,7 +218,6 @@ export default function SelectWithImages({
                 >
                   <div
                     style={{
-                      // увеличим превью, чтобы визуально карточка стала крупнее
                       width: "100%",
                       aspectRatio: "32 / 32", // было 16/9
                       borderRadius: 16,

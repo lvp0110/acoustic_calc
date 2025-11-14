@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAcoustic } from "../context/AcousticContext.jsx";
 import SelectWithImages from "../components/SelectWithImages.jsx";
 import SelectText from "../components/SelectText.jsx";
@@ -7,12 +8,15 @@ import CalcTable from "../components/CalcTable.jsx";
 import "./Acoustic.css";
 
 export default function Acoustic() {
+  const [searchParams] = useSearchParams();
   const [tableCalcData, setTableCalcData] = useState(null);
   const [tableCalcRows, setTableCalcRows] = useState([]);
   const [description, setDescription] = useState("");
   const [descriptionLoading, setDescriptionLoading] = useState(false);
   const [descriptionError, setDescriptionError] = useState("");
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const tableDataRestored = useRef(false);
+  const initialBrandRef = useRef(null);
   const {
     BASE_URL,
     isReady,
@@ -98,6 +102,70 @@ export default function Acoustic() {
     const cleanBase = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL;
     return `${cleanBase}/${cleanPath}`;
   };
+
+  // Функции для декодирования данных таблицы из base64
+  const decodeTableData = (encoded) => {
+    try {
+      if (!encoded) return { calcData: null, calcRows: [] };
+      // Правильное декодирование: сначала из base64, потом из UTF-8
+      const utf8 = atob(encoded);
+      const json = decodeURIComponent(escape(utf8));
+      const data = JSON.parse(json);
+      return {
+        calcData: data.calcData || null,
+        calcRows: data.calcRows || [],
+      };
+    } catch (e) {
+      console.error("Ошибка декодирования данных таблицы:", e, e.message);
+      return { calcData: null, calcRows: [] };
+    }
+  };
+
+  // Восстановление данных таблицы из URL при загрузке
+  useEffect(() => {
+    if (!isReady || tableDataRestored.current) return;
+    
+    const tableDataEncoded = searchParams.get("tableData");
+    if (tableDataEncoded) {
+      const { calcData: restoredCalcData, calcRows: restoredCalcRows } =
+        decodeTableData(tableDataEncoded);
+      if (restoredCalcData || (restoredCalcRows && restoredCalcRows.length > 0)) {
+        setTableCalcData(restoredCalcData);
+        setTableCalcRows(restoredCalcRows);
+        tableDataRestored.current = true;
+      }
+    }
+  }, [isReady, searchParams]);
+
+  // Инициализация начального бренда
+  useEffect(() => {
+    if (isReady && initialBrandRef.current === null) {
+      initialBrandRef.current = brand;
+    }
+  }, [isReady, brand]);
+
+  // Сброс всех данных при смене бренда
+  useEffect(() => {
+    if (!isReady) return; // Не сбрасываем при первой инициализации
+    
+    // Не сбрасываем данные при первой инициализации (когда бренд устанавливается из URL)
+    if (initialBrandRef.current === null || initialBrandRef.current === brand) {
+      return;
+    }
+    
+    // Проверяем, есть ли данные таблицы в URL - если есть, не сбрасываем их
+    const tableDataEncoded = searchParams.get("tableData");
+    if (!tableDataEncoded) {
+      // Сбрасываем данные таблицы только если их нет в URL
+      setTableCalcData(null);
+      setTableCalcRows([]);
+    }
+    
+    // Сбрасываем описание
+    setDescription("");
+    setDescriptionError("");
+    setIsDescriptionExpanded(false);
+  }, [brand, isReady, searchParams]);
 
   // Загрузка description из api/v1/brandParams
   useEffect(() => {
