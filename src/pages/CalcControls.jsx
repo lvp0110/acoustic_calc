@@ -604,7 +604,7 @@ export default function CalcControls(props) {
           (calcData && Array.isArray(calcData.rows))) && (
           <button type="button" onClick={onDownloadExcel}>
             <img
-              src="public/Excel_icon.png"
+              src="https://constrtodo.ru:3005/api/v1/constr/Excel_icon.png"
               alt="Скачать Excel"
               style={{ width: 40, height: 40 }}
             />
