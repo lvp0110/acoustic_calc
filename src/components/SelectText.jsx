@@ -8,6 +8,7 @@ export default function SelectText({
   SECTION_TITLES,
   capitalize,
   showClearButton = true,
+  showArrow = true,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const selectedOption = options.find((opt) => opt.id === value);
@@ -22,6 +23,7 @@ export default function SelectText({
         style={{
           width: "100%",
           padding: "10px 12px",
+          paddingRight: showArrow ? "40px" : "12px",
           border: "none",
           borderRadius: "16px",
           backgroundColor: selectedOption && paramType === "surface" ? "#006BCF" : "#fff",
@@ -29,12 +31,44 @@ export default function SelectText({
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
+          justifyContent: "space-between",
           textAlign: "left",
           minHeight: "70px",
+          position: "relative",
         }}
         aria-label={`Выберите ${sectionAcc}`}
       >
         <span>{selectedOption?.name || `Выберите ${capitalize(sectionAcc)}`}</span>
+        {showArrow && (
+          <span
+            style={{
+              position: "absolute",
+              right: "12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "transform 0.3s ease",
+              transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+              pointerEvents: "none",
+            }}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5 7.5L10 12.5L15 7.5"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+        )}
       </button>
 
       {isOpen && (

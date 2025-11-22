@@ -85,12 +85,12 @@ export default function SelectWithImages({
               style={{
                 position: "relative",
                 zIndex: 2,
-                marginLeft: "auto",
+                // marginLeft: "auto",
                 marginTop: "auto",
                 padding: "4px 5px",
                 borderRadius: 16,
                 fontSize: 14,
-                marginRight: 4,
+                marginLeft: 4,
                 marginBottom: 4,
                 background: "#f5f5f7",
               }}
@@ -99,11 +99,75 @@ export default function SelectWithImages({
             >
               {selectedOption?.name}
             </span>
+            <span
+              style={{
+                position: "absolute",
+                right: "12px",
+                top: "50%",
+                transform: `translateY(-50%) ${isOpen ? "rotate(180deg)" : "rotate(0deg)"}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "transform 0.3s ease",
+                zIndex: 3,
+                pointerEvents: "none",
+                backgroundColor: "rgba(245, 245, 247, 0.9)",
+                borderRadius: "50%",
+                width: "24px",
+                height: "24px",
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 7.5L10 12.5L15 7.5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
           </>
         ) : (
-          <span style={{ padding: "10px 12px" }}>
-            {`Выберите ${capitalize(sectionAcc)}`}
-          </span>
+          <>
+            <span style={{ padding: "10px 12px" }}>
+              {`Выберите ${capitalize(sectionAcc)}`}
+            </span>
+            <span
+              style={{
+                position: "absolute",
+                right: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "transform 0.3s ease",
+                transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                pointerEvents: "none",
+              }}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 7.5L10 12.5L15 7.5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          </>
         )}
       </button>
 

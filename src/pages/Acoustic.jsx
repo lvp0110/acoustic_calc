@@ -16,7 +16,6 @@ export default function Acoustic() {
   const [descriptionError, setDescriptionError] = useState("");
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const tableDataRestored = useRef(false);
-  const initialBrandRef = useRef(null);
   const {
     BASE_URL,
     isReady,
@@ -93,6 +92,22 @@ export default function Acoustic() {
   // Преобразование brands из { code, name } в { id, name } для SelectText
   const brandOptions = brands.map((b) => ({ id: b.code, name: b.name }));
 
+  // Обертка для setBrand, которая сбрасывает таблицу при смене бренда
+  const handleBrandChange = (newBrand) => {
+    if (isReady && brand && newBrand !== brand && newBrand) {
+      // Сбрасываем данные таблицы при смене бренда
+      setTableCalcData(null);
+      setTableCalcRows([]);
+      tableDataRestored.current = false;
+      
+      // Сбрасываем описание
+      setDescription("");
+      setDescriptionError("");
+      setIsDescriptionExpanded(false);
+    }
+    setBrand(newBrand);
+  };
+
   // Helper для правильного формирования URL
   const buildApiUrl = (path) => {
     const cleanPath = path.startsWith("/") ? path.slice(1) : path;
@@ -137,35 +152,6 @@ export default function Acoustic() {
     }
   }, [isReady, searchParams]);
 
-  // Инициализация начального бренда
-  useEffect(() => {
-    if (isReady && initialBrandRef.current === null) {
-      initialBrandRef.current = brand;
-    }
-  }, [isReady, brand]);
-
-  // Сброс всех данных при смене бренда
-  useEffect(() => {
-    if (!isReady) return; // Не сбрасываем при первой инициализации
-    
-    // Не сбрасываем данные при первой инициализации (когда бренд устанавливается из URL)
-    if (initialBrandRef.current === null || initialBrandRef.current === brand) {
-      return;
-    }
-    
-    // Проверяем, есть ли данные таблицы в URL - если есть, не сбрасываем их
-    const tableDataEncoded = searchParams.get("tableData");
-    if (!tableDataEncoded) {
-      // Сбрасываем данные таблицы только если их нет в URL
-      setTableCalcData(null);
-      setTableCalcRows([]);
-    }
-    
-    // Сбрасываем описание
-    setDescription("");
-    setDescriptionError("");
-    setIsDescriptionExpanded(false);
-  }, [brand, isReady, searchParams]);
 
   // Загрузка description из api/v1/brandParams
   useEffect(() => {
@@ -246,13 +232,14 @@ export default function Acoustic() {
                 <SelectText
                   paramType="brand"
                   value={brand}
-                  onChange={setBrand}
+                  onChange={handleBrandChange}
                   options={brandOptions}
                   SECTION_TITLES={{
                     ...SECTION_TITLES,
                     brand: { acc: "бренд", gen: "бренда" },
                   }}
                   capitalize={capitalize}
+                  showArrow={false}
                 />
               </div>
             )}
@@ -322,8 +309,13 @@ export default function Acoustic() {
             <div className="block-3">
               <CalcControls
                 onTableDataChange={(calcData, calcRows) => {
+                  console.log("Получены данные таблицы в Acoustic:", { 
+                    calcData: calcData ? { title: calcData.title, columnsCount: calcData.columns?.length, rowsCount: calcData.rows?.length } : null,
+                    calcRowsLength: calcRows?.length || 0 
+                  });
                   setTableCalcData(calcData);
                   setTableCalcRows(calcRows);
+                  console.log("Состояние обновлено, tableCalcData:", calcData !== null, "tableCalcRows:", calcRows?.length || 0);
                 }}
               />
             </div>
@@ -365,11 +357,19 @@ export default function Acoustic() {
         </div>
 
         {/* Блок 4: Таблица результатов */}
-        {(tableCalcData || (tableCalcRows && tableCalcRows.length > 0)) && (
-          <div className="block-4">
-            <CalcTable calcData={tableCalcData} calcRows={tableCalcRows} />
-          </div>
-        )}
+        {(() => {
+          const shouldShow = tableCalcData || (tableCalcRows && tableCalcRows.length > 0);
+          console.log("Условие отображения таблицы:", { 
+            tableCalcData: !!tableCalcData, 
+            tableCalcRowsLength: tableCalcRows?.length || 0,
+            shouldShow 
+          });
+          return shouldShow ? (
+            <div className="block-4">
+              <CalcTable calcData={tableCalcData} calcRows={tableCalcRows} />
+            </div>
+          ) : null;
+        })()}
       </div>
     </div>
   );

@@ -342,6 +342,15 @@ export default function CalcControls(props) {
       let newCalcData = null;
       let newCalcRows = [];
 
+      console.log("Ответ от API:", { 
+        hasData: !!data, 
+        dataType: typeof data, 
+        isDataArray: Array.isArray(data),
+        hasColumns: data && Array.isArray(data.columns),
+        hasRows: data && Array.isArray(data.rows),
+        jsonKeys: json ? Object.keys(json) : []
+      });
+
       if (data && Array.isArray(data.columns) && Array.isArray(data.rows)) {
         newCalcData = {
           title: typeof data.title === "string" ? data.title : "",
@@ -350,6 +359,11 @@ export default function CalcControls(props) {
         };
         setCalcData(newCalcData);
         setCalcRows([]);
+        console.log("Обработан новый формат данных:", { 
+          title: newCalcData.title, 
+          columnsCount: newCalcData.columns.length, 
+          rowsCount: newCalcData.rows.length 
+        });
       } else {
         newCalcRows = Array.isArray(json?.data)
           ? json.data
@@ -358,9 +372,14 @@ export default function CalcControls(props) {
           : [];
         setCalcRows(newCalcRows);
         setCalcData(null);
+        console.log("Обработан старый формат данных:", { rowsCount: newCalcRows.length });
       }
 
       // Передаем данные таблицы в родительский компонент
+      console.log("Передача данных в родительский компонент:", { 
+        newCalcData: newCalcData ? { title: newCalcData.title, columnsCount: newCalcData.columns?.length, rowsCount: newCalcData.rows?.length } : null,
+        newCalcRowsLength: newCalcRows.length 
+      });
       if (onTableDataChange) {
         onTableDataChange(newCalcData, newCalcRows);
       }
@@ -391,10 +410,10 @@ export default function CalcControls(props) {
       }
     } finally {
       setCalcLoading(false);
-      // Очищаем поля после расчета
-      setWidth("");
-      setHeight("");
-      setArea("");
+      // НЕ очищаем поля после расчета, чтобы данные таблицы оставались видимыми
+      // setWidth("");
+      // setHeight("");
+      // setArea("");
     }
   };
 
