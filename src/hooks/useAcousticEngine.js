@@ -486,10 +486,15 @@ export function useAcousticEngine() {
         
         setSize((currentValue) => {
           const urlValue = restoreFromUrl("size", next.size);
-          if (urlValue) return urlValue;
+          if (urlValue) {
+            console.log('setSize: restoring from URL:', urlValue);
+            return urlValue;
+          }
           if (currentValue && next.size.find((o) => o.id === currentValue)) {
+            console.log('setSize: keeping current value:', currentValue);
             return currentValue;
           }
+          console.log('setSize: resetting value. currentValue:', currentValue, 'available sizes:', next.size.map(o => o.id));
           return "";
         });
         

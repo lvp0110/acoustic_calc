@@ -91,9 +91,48 @@ export default function SelectWithImages({
     return () => window.removeEventListener('resize', handleResize);
   }, [isOpen, calculateDropdownStyle]);
 
+  // Обработчик клика вне dropdown для его закрытия
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event) => {
+      // Проверяем, что клик был вне контейнера и dropdown
+      const clickedInsideContainer = containerRef.current?.contains(event.target);
+      const clickedInsideDropdown = dropdownRef.current?.contains(event.target);
+      
+      // Также проверяем, не был ли это клик на кнопку выбора опции или её дочерние элементы
+      const isDropdownItemButton = event.target.closest('.select-dropdown-item');
+      const isSizeOptionButton = event.target.closest('.size-option-button');
+      const isDropdownItem = event.target.closest('[data-dropdown-item]');
+      
+      // Если клик внутри dropdown или на элементе dropdown, не закрываем
+      if (clickedInsideDropdown || isDropdownItem || isDropdownItemButton || isSizeOptionButton) {
+        return;
+      }
+      
+      // Если клик вне контейнера, закрываем dropdown
+      if (!clickedInsideContainer) {
+        setIsOpen(false);
+        setQ("");
+      }
+    };
+
+    // Используем click вместо mousedown, чтобы он срабатывал после onClick на кнопке
+    // Добавляем небольшую задержку, чтобы клик на кнопку открытия успел обработаться
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside, true);
+    }, 150);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('click', handleClickOutside, true);
+    };
+  }, [isOpen]);
+
   return (
     <div ref={containerRef} style={{ position: "relative", width: "100%" }}>
       <button
+        type="button"
         onClick={() => {
           setIsOpen((v) => !v);
           if (isOpen) {
@@ -268,6 +307,14 @@ export default function SelectWithImages({
         <div
           ref={dropdownRef}
           className="select-dropdown"
+          onClick={(e) => {
+            // Предотвращаем закрытие dropdown при клике внутри него
+            e.stopPropagation();
+          }}
+          onMouseDown={(e) => {
+            // Предотвращаем закрытие dropdown при mousedown внутри него
+            e.stopPropagation();
+          }}
           style={{
             position: "absolute",
             top: "100%",
@@ -280,7 +327,7 @@ export default function SelectWithImages({
             maxHeight: 480,
             overflowY: "auto",
             overflowX: "hidden",
-            zIndex: 10,
+            zIndex: 1000,
             boxSizing: "border-box",
             padding: 12,
             marginTop: 8,
@@ -330,11 +377,19 @@ export default function SelectWithImages({
                 <button
                   key={opt.id}
                   className={`select-dropdown-item ${paramType === "size" ? "size-option-button" : ""}`}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Selecting option:', opt.id, opt.name);
                     onChange(opt.id);
                     setIsOpen(false);
                     setQ("");
                   }}
+                  onMouseDown={(e) => {
+                    // Предотвращаем закрытие dropdown при mousedown на кнопке
+                    e.stopPropagation();
+                  }}
+                  type="button"
                   style={{
                     gridColumn: "span 2",
                     width: "100%",

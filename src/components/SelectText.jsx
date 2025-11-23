@@ -14,12 +14,64 @@ export default function SelectText({
   const [isOpen, setIsOpen] = useState(false);
   const [q, setQ] = useState("");
   const searchInputRef = useRef(null);
+  const containerRef = useRef(null);
+  const dropdownRef = useRef(null);
   const selectedOption = options.find((opt) => opt.id === value);
+  
+  // Отладочное логирование для размеров
+  useEffect(() => {
+    if (paramType === "size") {
+      console.log('SelectText [size] - value:', value);
+      console.log('SelectText [size] - options count:', options.length);
+      console.log('SelectText [size] - options IDs:', options.map(o => o.id));
+      console.log('SelectText [size] - selectedOption:', selectedOption);
+      console.log('SelectText [size] - selectedOption?.name:', selectedOption?.name);
+    }
+  }, [value, options, selectedOption, paramType]);
 
   useEffect(() => {
     if (isOpen && searchInputRef.current && paramType !== "surface") {
       searchInputRef.current.focus();
     }
+  }, [isOpen, paramType]);
+
+  // Обработчик клика вне dropdown для его закрытия
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event) => {
+      // Проверяем, что клик был вне контейнера и dropdown
+      const clickedInsideContainer = containerRef.current?.contains(event.target);
+      const clickedInsideDropdown = dropdownRef.current?.contains(event.target);
+      
+      // Также проверяем, не был ли это клик на кнопку выбора опции или её дочерние элементы
+      const isDropdownItemButton = event.target.closest('button[data-dropdown-item]');
+      const isDropdownItem = event.target.closest('[data-dropdown-item]');
+      
+      // Если клик внутри dropdown или на элементе dropdown, не закрываем
+      if (clickedInsideDropdown || isDropdownItem || isDropdownItemButton) {
+        return;
+      }
+      
+      // Если клик вне контейнера, закрываем dropdown
+      if (!clickedInsideContainer) {
+        setIsOpen(false);
+        if (paramType !== "surface") {
+          setQ("");
+        }
+      }
+    };
+
+    // Используем click вместо mousedown, чтобы он срабатывал после onClick на кнопке
+    // Добавляем небольшую задержку, чтобы клик на кнопку открытия успел обработаться
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside, true);
+    }, 150);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('click', handleClickOutside, true);
+    };
   }, [isOpen, paramType]);
 
   const sectionAcc = SECTION_TITLES[paramType]?.acc || "опцию";
@@ -38,8 +90,9 @@ export default function SelectText({
   }, [options, q, paramType]);
 
   return (
-    <div style={{ position: "relative", width: "100%" }}>
+    <div ref={containerRef} style={{ position: "relative", width: "100%" }}>
       <button
+        type="button"
         onClick={() => {
           setIsOpen(!isOpen);
           if (isOpen && paramType !== "surface") {
@@ -65,7 +118,7 @@ export default function SelectText({
         aria-label={`Выберите ${sectionAcc}`}
       >
         <span style={{ padding: "0 12px", paddingRight: showArrow ? "40px" : "12px" }}>
-          {brandParamsName || selectedOption?.name || capitalize(SECTION_TITLES[paramType]?.gen || sectionGen)}
+          {selectedOption?.name || brandParamsName || capitalize(SECTION_TITLES[paramType]?.gen || sectionGen)}
         </span>
         {showArrow && (
           <span
@@ -101,6 +154,15 @@ export default function SelectText({
 
       {isOpen && (
         <div
+          ref={dropdownRef}
+          onClick={(e) => {
+            // Предотвращаем закрытие dropdown при клике внутри него
+            e.stopPropagation();
+          }}
+          onMouseDown={(e) => {
+            // Предотвращаем закрытие dropdown при mousedown внутри него
+            e.stopPropagation();
+          }}
           style={{
             position: "absolute",
             top: "100%",
@@ -110,7 +172,7 @@ export default function SelectText({
             borderRadius: "16px",
             maxHeight: "300px",
             overflowY: "auto",
-            zIndex: 10,
+            zIndex: 1000,
             display: "block",
             boxSizing: "border-box",            
             marginTop: 8,
@@ -151,12 +213,20 @@ export default function SelectText({
           {/* Кнопка "Очистить выбор" */}
           {showClearButton && (
             <button
-              onClick={() => {
+              type="button"
+              data-dropdown-item
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 onChange("");
                 setIsOpen(false);
                 if (paramType !== "surface") {
                   setQ("");
                 }
+              }}
+              onMouseDown={(e) => {
+                // Предотвращаем закрытие dropdown при mousedown на кнопке
+                e.stopPropagation();
               }}
               style={{
                 width: "100%",
@@ -176,12 +246,34 @@ export default function SelectText({
           {filtered.map((opt) => (
             <button
               key={opt.id}
-              onClick={() => {
+              type="button"
+              data-dropdown-item
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('SelectText: Selecting option:', opt.id, opt.name, 'paramType:', paramType);
+                console.log('SelectText: Current value before onChange:', value);
+                console.log('SelectText: Options available:', options.map(o => ({ id: o.id, name: o.name })));
+                console.log('SelectText: Calling onChange with:', opt.id);
+                
+                // Сохраняем текущее значение для проверки после вызова onChange
+                const valueBefore = value;
                 onChange(opt.id);
+                
+                // Ждем немного, чтобы React обновил состояние
+                await new Promise(resolve => setTimeout(resolve, 0));
+                
+                console.log('SelectText: onChange called. Value was:', valueBefore, 'should become:', opt.id);
+                console.log('SelectText: After onChange, checking if option exists in options:', options.find(o => o.id === opt.id));
+                
                 setIsOpen(false);
                 if (paramType !== "surface") {
                   setQ("");
                 }
+              }}
+              onMouseDown={(e) => {
+                // Предотвращаем закрытие dropdown при mousedown на кнопке
+                e.stopPropagation();
               }}
               style={{
                 width: "100%",
