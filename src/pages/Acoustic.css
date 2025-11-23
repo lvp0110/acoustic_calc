@@ -140,76 +140,9 @@
 }
 
 /* Убираем border у кнопок выбора размера в выпадающем списке */
-button.size-option-button,
-.size-option-button,
-div button.size-option-button,
-[class*="SelectWithImages"] button.size-option-button,
-div[style*="grid"] button.size-option-button {
+button.size-option-button {
   border: none !important;
-  border-width: 0 !important;
-  border-style: none !important;
-  border-top: none !important;
-  border-right: none !important;
-  border-bottom: none !important;
-  border-left: none !important;
-  border-top-width: 0 !important;
-  border-right-width: 0 !important;
-  border-bottom-width: 0 !important;
-  border-left-width: 0 !important;
-  border-top-style: none !important;
-  border-right-style: none !important;
-  border-bottom-style: none !important;
-  border-left-style: none !important;
-  border-color: transparent !important;
   outline: none !important;
   box-shadow: none !important;
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
-  appearance: none !important;
   margin: 0 !important;
-  pointer-events: auto !important;
-  cursor: pointer !important;
-}
-
-button.size-option-button::before,
-button.size-option-button::after,
-.size-option-button::before,
-.size-option-button::after {
-  border: none !important;
-  border-width: 0 !important;
-  border-style: none !important;
-}
-
-button.size-option-button:hover,
-button.size-option-button:focus,
-button.size-option-button:active,
-button.size-option-button:visited,
-.size-option-button:hover,
-.size-option-button:focus,
-.size-option-button:active,
-.size-option-button:visited,
-div button.size-option-button:hover,
-div button.size-option-button:focus,
-div button.size-option-button:active,
-div[style*="grid"] button.size-option-button:hover,
-div[style*="grid"] button.size-option-button:focus,
-div[style*="grid"] button.size-option-button:active {
-  border: none !important;
-  border-width: 0 !important;
-  border-style: none !important;
-  border-top: none !important;
-  border-right: none !important;
-  border-bottom: none !important;
-  border-left: none !important;
-  border-top-width: 0 !important;
-  border-right-width: 0 !important;
-  border-bottom-width: 0 !important;
-  border-left-width: 0 !important;
-  border-top-style: none !important;
-  border-right-style: none !important;
-  border-bottom-style: none !important;
-  border-left-style: none !important;
-  border-color: transparent !important;
-  outline: none !important;
-  box-shadow: none !important;
 }

@@ -20,6 +20,7 @@ body {
   margin: 0;
   height: 100vh;
   background-color: #f5f5f7;
+  font-size: large;
 }
 /* #F5F5F7  242424 */
 a {
@@ -52,8 +53,10 @@ button {
 }
 input {
   border: none;
+  font-size: large;
 }
 
 table {
   color: rgb(184, 181, 181);
+  font-size: large;
 }

@@ -48,8 +48,7 @@ export default function SelectText({
         }}
         style={{
           width: "100%",
-          padding: "10px 12px",
-          paddingRight: showArrow ? "40px" : "12px",
+          padding: "0",
           border: "none",
           borderRadius: "16px",
           backgroundColor: selectedOption && paramType === "surface" ? "#006BCF" : "#fff",
@@ -57,15 +56,15 @@ export default function SelectText({
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          justifyContent: "flex-start",
           textAlign: "left",
           minHeight: "70px",
           position: "relative",
-          fontSize: "14px",
+          fontSize: "large",
         }}
         aria-label={`Выберите ${sectionAcc}`}
       >
-        <span>
+        <span style={{ padding: "0 12px", paddingRight: showArrow ? "40px" : "12px" }}>
           {brandParamsName || selectedOption?.name || capitalize(SECTION_TITLES[paramType]?.gen || sectionGen)}
         </span>
         {showArrow && (
@@ -136,7 +135,7 @@ export default function SelectText({
                 outline: "none",
                 marginBottom: "12px",
                 boxSizing: "border-box",
-                fontSize: "14px",
+                fontSize: "large",
                 background: "#f7f7f9",
                 color: "black",
               }}

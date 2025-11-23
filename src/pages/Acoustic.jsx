@@ -232,7 +232,6 @@ export default function Acoustic() {
         const url = buildApiUrl(
           `api/v1/brandParams/${encodeURIComponent(brand)}?model=${encodeURIComponent(model)}`
         );
-        console.log("Загрузка brandParams для name:", url);
         const res = await fetch(url, { signal: controller.signal });
         const text = await res.text();
         let json;
@@ -241,8 +240,6 @@ export default function Acoustic() {
         } catch (e) {
           console.error("Ошибка парсинга JSON:", e);
         }
-
-        console.log("Ответ от brandParams API:", json);
 
         if (!res.ok) {
           console.warn("Ошибка загрузки brandParams:", res.status, text);
@@ -254,34 +251,26 @@ export default function Acoustic() {
         const names = {};
         const dataArr = Array.isArray(json?.data) ? json.data : [];
         
-        console.log("dataArr:", dataArr);
-        
         dataArr.forEach((item) => {
           const code = item?.code?.toLowerCase();
           const name = item?.name || item?.Name || item?.title || "";
-          console.log(`Проверка элемента: code=${code}, name=${name}`);
           if (code && name && (code === "size" || code === "color" || code === "perf" || code === "edge")) {
             names[code] = name;
-            console.log(`Добавлен name для ${code}: ${name}`);
           }
         });
 
         // Также проверяем прямые поля в json
         if (json?.size?.name) {
           names.size = json.size.name;
-          console.log("Найден size.name:", json.size.name);
         }
         if (json?.color?.name) {
           names.color = json.color.name;
-          console.log("Найден color.name:", json.color.name);
         }
         if (json?.perf?.name) {
           names.perf = json.perf.name;
-          console.log("Найден perf.name:", json.perf.name);
         }
         if (json?.edge?.name) {
           names.edge = json.edge.name;
-          console.log("Найден edge.name:", json.edge.name);
         }
 
         // Проверяем также в корне json
@@ -290,12 +279,10 @@ export default function Acoustic() {
             const lowerKey = key.toLowerCase();
             if (lowerKey === "size" || lowerKey === "color" || lowerKey === "perf" || lowerKey === "edge") {
               names[lowerKey] = json.name[key];
-              console.log(`Найден name.${key}:`, json.name[key]);
             }
           });
         }
 
-        console.log("Итоговые извлеченные names:", names);
         setBrandParamsNames(names);
       } catch (e) {
         if (e.name !== "AbortError") {
@@ -409,13 +396,8 @@ export default function Acoustic() {
             <div className="block-3">
               <CalcControls
                 onTableDataChange={(calcData, calcRows) => {
-                  console.log("Получены данные таблицы в Acoustic:", { 
-                    calcData: calcData ? { title: calcData.title, columnsCount: calcData.columns?.length, rowsCount: calcData.rows?.length } : null,
-                    calcRowsLength: calcRows?.length || 0 
-                  });
                   setTableCalcData(calcData);
                   setTableCalcRows(calcRows);
-                  console.log("Состояние обновлено, tableCalcData:", calcData !== null, "tableCalcRows:", calcRows?.length || 0);
                 }}
               />
             </div>
@@ -457,19 +439,11 @@ export default function Acoustic() {
         </div>
 
         {/* Блок 4: Таблица результатов */}
-        {(() => {
-          const shouldShow = tableCalcData || (tableCalcRows && tableCalcRows.length > 0);
-          console.log("Условие отображения таблицы:", { 
-            tableCalcData: !!tableCalcData, 
-            tableCalcRowsLength: tableCalcRows?.length || 0,
-            shouldShow 
-          });
-          return shouldShow ? (
-            <div className="block-4">
-              <CalcTable calcData={tableCalcData} calcRows={tableCalcRows} />
-            </div>
-          ) : null;
-        })()}
+        {(tableCalcData || (tableCalcRows && tableCalcRows.length > 0)) && (
+          <div className="block-4">
+            <CalcTable calcData={tableCalcData} calcRows={tableCalcRows} />
+          </div>
+        )}
       </div>
     </div>
   );

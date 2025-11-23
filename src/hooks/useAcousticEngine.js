@@ -7,13 +7,6 @@ const getBaseUrl = () => {
   const envUrl = import.meta.env?.VITE_API_URL;
   const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
   
-  // Логирование для отладки
-  console.log('[BASE_URL Debug]', {
-    mode,
-    hasVITE_API_URL: !!envUrl,
-    VITE_API_URL_value: envUrl ? `${String(envUrl).substring(0, 50)}...` : 'not set',
-    currentOrigin
-  });
   
   // 1. Используем переменную окружения, если она задана (приоритет)
   if (envUrl) {
@@ -56,9 +49,7 @@ const getBaseUrl = () => {
 
 const BASE_URL = getBaseUrl();
 
-// Логируем финальный BASE_URL для отладки
 if (import.meta.env?.MODE === 'production') {
-  console.log('[BASE_URL] Final value:', BASE_URL || '(empty - will use relative paths)');
   if (!BASE_URL) {
     console.error('[BASE_URL] ⚠️  API requests will fail because BASE_URL is empty!');
     console.error('[BASE_URL] Set VITE_API_URL secret to your API server URL.');
@@ -144,11 +135,6 @@ const buildApiUrl = (path) => {
   const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
   const finalUrl = `${cleanBase}/${cleanPath}`;
   
-  // Логируем в development для отладки
-  if (import.meta.env?.MODE === 'development') {
-    console.log(`[buildApiUrl] ${cleanPath} → ${finalUrl}`);
-  }
-  
   return finalUrl;
 };
 
@@ -208,7 +194,6 @@ export function useAcousticEngine() {
   const [size, setSize] = useState("");
   const [perf, setPerf] = useState("");
   const [edge, setEdge] = useState("");
-
 
   // Инициализация/URL
   const [searchParams, setSearchParams] = useSearchParams();
@@ -393,7 +378,6 @@ export function useAcousticEngine() {
         modelList.forEach((item) => (fullData[item.id] = item));
         setFullOptionData((prev) => ({ ...prev, model: fullData }));
 
-        console.log("Model options structure:", modelList[0]);
       } catch (e) {
         if (e.name !== "AbortError")
           setParamsError(e.message || "Ошибка загрузки параметров");
@@ -477,10 +461,6 @@ export function useAcousticEngine() {
         Object.keys(next).forEach((k) => next[k].forEach((item) => (fullDataMap[k][item.id] = item)));
         setFullOptionData((prev) => ({ ...prev, ...fullDataMap }));
 
-        if (next.color.length > 0) console.log("Color option structure:", next.color[0]);
-        if (next.size.length > 0) console.log("Size option structure:", next.size[0]);
-        if (next.perf.length > 0) console.log("Perf option structure:", next.perf[0]);
-        if (next.edge.length > 0) console.log("Edge option structure:", next.edge[0]);
 
         // Валидируем и восстанавливаем значения из URL после загрузки опций
         // Сначала проверяем значения из URL при инициализации, затем текущие значения
@@ -555,7 +535,6 @@ export function useAcousticEngine() {
     setPerf("");
     setEdge("");
   }, [model, isReady]);
-
 
   return {
     // базовое

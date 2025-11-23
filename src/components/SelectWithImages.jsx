@@ -58,14 +58,14 @@ export default function SelectWithImages({
         }}
         style={{
           width: "100%",
-          padding: selectedOption ? "0" : "10px 12px",
-          paddingRight: selectedOption ? "0" : "40px",
+          padding: "0",
           border: "none",
           borderRadius: 16,
           backgroundColor: "#fff",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
+          justifyContent: "flex-start",
           position: "relative",
           minHeight: 70,
           overflow: "hidden",
@@ -101,7 +101,7 @@ export default function SelectWithImages({
                 marginTop: "auto",
                 padding: "4px 5px",
                 borderRadius: 16,
-                fontSize: 14,
+                fontSize: "large",
                 marginLeft: 4,
                 marginBottom: 4,
                 background: "#f5f5f7",
@@ -148,7 +148,7 @@ export default function SelectWithImages({
           </>
         ) : (
           <>
-            <span style={{ padding: "10px 12px" }}>
+            <span style={{ padding: "0 12px", paddingRight: "40px" }}>
               {brandParamsName || `Выберите ${capitalize(sectionAcc)}`}
             </span>
             <span
@@ -193,7 +193,7 @@ export default function SelectWithImages({
             backgroundColor: "#333",
             color: "#fff",
             borderRadius: 8,
-            fontSize: 12,
+            fontSize: "large",
             zIndex: 1000,
             width: "max-content",
             maxWidth: "300px",
@@ -222,9 +222,6 @@ export default function SelectWithImages({
 
       {isOpen && (
         <div
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
           style={{
             position: "absolute",
             top: "100%",
@@ -266,7 +263,7 @@ export default function SelectWithImages({
               outline: "none",
               marginBottom: 12,
               boxSizing: "border-box",
-              fontSize: 14,
+              fontSize: "large",
               background: "#f7f7f9",
               color: "black",
             }}
@@ -297,21 +294,6 @@ export default function SelectWithImages({
                     padding: paramType === "size" ? "10px 12px" : 8,
                     margin: paramType === "size" ? 0 : undefined,
                     border: "none",
-                    borderWidth: 0,
-                    borderStyle: "none",
-                    borderTop: "none",
-                    borderRight: "none",
-                    borderBottom: "none",
-                    borderLeft: "none",
-                    borderTopWidth: 0,
-                    borderRightWidth: 0,
-                    borderBottomWidth: 0,
-                    borderLeftWidth: 0,
-                    borderTopStyle: "none",
-                    borderRightStyle: "none",
-                    borderBottomStyle: "none",
-                    borderLeftStyle: "none",
-                    borderColor: "transparent",
                     outline: "none",
                     boxShadow: "none",
                     borderRadius: 0,
@@ -321,53 +303,7 @@ export default function SelectWithImages({
                     boxSizing: "border-box",
                     display: "flex",
                     flexDirection: "column",
-                    transition: "box-shadow 0.2s",
-                    position: "relative",
-                    zIndex: 1,
-                  }}
-                  onMouseEnter={(e) => {
-                    const btn = e.currentTarget;
-                    btn.style.border = "none";
-                    btn.style.borderWidth = "0";
-                    btn.style.borderStyle = "none";
-                    btn.style.borderTop = "none";
-                    btn.style.borderRight = "none";
-                    btn.style.borderBottom = "none";
-                    btn.style.borderLeft = "none";
-                    btn.style.boxShadow = "none";
-                  }}
-                  onFocus={(e) => {
-                    const btn = e.currentTarget;
-                    btn.style.border = "none";
-                    btn.style.borderWidth = "0";
-                    btn.style.borderStyle = "none";
-                    btn.style.borderTop = "none";
-                    btn.style.borderRight = "none";
-                    btn.style.borderBottom = "none";
-                    btn.style.borderLeft = "none";
-                    btn.style.boxShadow = "none";
-                  }}
-                  onMouseLeave={(e) => {
-                    const btn = e.currentTarget;
-                    btn.style.border = "none";
-                    btn.style.borderWidth = "0";
-                    btn.style.borderStyle = "none";
-                    btn.style.borderTop = "none";
-                    btn.style.borderRight = "none";
-                    btn.style.borderBottom = "none";
-                    btn.style.borderLeft = "none";
-                    btn.style.boxShadow = "none";
-                  }}
-                  onBlur={(e) => {
-                    const btn = e.currentTarget;
-                    btn.style.border = "none";
-                    btn.style.borderWidth = "0";
-                    btn.style.borderStyle = "none";
-                    btn.style.borderTop = "none";
-                    btn.style.borderRight = "none";
-                    btn.style.borderBottom = "none";
-                    btn.style.borderLeft = "none";
-                    btn.style.boxShadow = "none";
+                    transition: "background-color 0.2s",
                   }}
                 >
                   <div
@@ -396,7 +332,7 @@ export default function SelectWithImages({
                   <span
                     style={{
                       marginTop: 8,
-                      fontSize: 14,
+                      fontSize: "large",
                       fontWeight: 500,
                       whiteSpace: "nowrap",
                       overflow: "hidden",
