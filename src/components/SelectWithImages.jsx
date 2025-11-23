@@ -8,6 +8,7 @@ export default function SelectWithImages({
   getImageUrl,
   SECTION_TITLES,
   capitalize,
+  brandParamsName = "",
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -15,6 +16,7 @@ export default function SelectWithImages({
   const [tooltipPosition, setTooltipPosition] = useState({ right: 0, bottom: 0 });
   const spanRef = useRef(null);
   const containerRef = useRef(null);
+  const searchInputRef = useRef(null);
   const selectedOption = options.find((opt) => opt.id === value);
   const sectionAcc = SECTION_TITLES[paramType]?.acc || "опцию";
 
@@ -39,13 +41,25 @@ export default function SelectWithImages({
     }
   }, [showTooltip]);
 
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isOpen]);
+
   return (
     <div ref={containerRef} style={{ position: "relative", width: "100%" }}>
       <button
-        onClick={() => setIsOpen((v) => !v)}
+        onClick={() => {
+          setIsOpen((v) => !v);
+          if (isOpen) {
+            setQ("");
+          }
+        }}
         style={{
           width: "100%",
           padding: selectedOption ? "0" : "10px 12px",
+          paddingRight: selectedOption ? "0" : "40px",
           border: "none",
           borderRadius: 16,
           backgroundColor: "#fff",
@@ -77,7 +91,6 @@ export default function SelectWithImages({
                 inset: 0,
                 width: "100%",
                 height: "100%",
-                // objectFit: "cover",
               }}
             />
             <span
@@ -85,7 +98,6 @@ export default function SelectWithImages({
               style={{
                 position: "relative",
                 zIndex: 2,
-                // marginLeft: "auto",
                 marginTop: "auto",
                 padding: "4px 5px",
                 borderRadius: 16,
@@ -137,7 +149,7 @@ export default function SelectWithImages({
         ) : (
           <>
             <span style={{ padding: "10px 12px" }}>
-              {`Выберите ${capitalize(sectionAcc)}`}
+              {brandParamsName || `Выберите ${capitalize(sectionAcc)}`}
             </span>
             <span
               style={{
@@ -210,6 +222,9 @@ export default function SelectWithImages({
 
       {isOpen && (
         <div
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
           style={{
             position: "absolute",
             top: "100%",
@@ -225,14 +240,23 @@ export default function SelectWithImages({
             zIndex: 10,
             boxSizing: "border-box",
             padding: 12,
+            marginTop: 8,
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
           }}
         >
           {/* Поиск */}
           <input
+            ref={searchInputRef}
             type="text"
             placeholder="Поиск"
             value={q}
             onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setIsOpen(false);
+                setQ("");
+              }
+            }}
             style={{
               width: "100%",
               height: 40,
@@ -253,7 +277,7 @@ export default function SelectWithImages({
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-              gap: 12,
+              gap: paramType === "size" ? 0 : 12,
             }}
           >
             {filtered.map((opt) => {
@@ -261,16 +285,36 @@ export default function SelectWithImages({
               return (
                 <button
                   key={opt.id}
+                  className={paramType === "size" ? "size-option-button" : ""}
                   onClick={() => {
                     onChange(opt.id);
                     setIsOpen(false);
+                    setQ("");
                   }}
                   style={{
                     gridColumn: "span 2",
                     width: "100%",
-                    padding: 8,
+                    padding: paramType === "size" ? "10px 12px" : 8,
+                    margin: paramType === "size" ? 0 : undefined,
                     border: "none",
-                    borderRadius: 16,
+                    borderWidth: 0,
+                    borderStyle: "none",
+                    borderTop: "none",
+                    borderRight: "none",
+                    borderBottom: "none",
+                    borderLeft: "none",
+                    borderTopWidth: 0,
+                    borderRightWidth: 0,
+                    borderBottomWidth: 0,
+                    borderLeftWidth: 0,
+                    borderTopStyle: "none",
+                    borderRightStyle: "none",
+                    borderBottomStyle: "none",
+                    borderLeftStyle: "none",
+                    borderColor: "transparent",
+                    outline: "none",
+                    boxShadow: "none",
+                    borderRadius: 0,
                     backgroundColor: value === opt.id ? "#e3f2fd" : "#fff",
                     cursor: "pointer",
                     textAlign: "left",
@@ -278,15 +322,62 @@ export default function SelectWithImages({
                     display: "flex",
                     flexDirection: "column",
                     transition: "box-shadow 0.2s",
+                    position: "relative",
+                    zIndex: 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    const btn = e.currentTarget;
+                    btn.style.border = "none";
+                    btn.style.borderWidth = "0";
+                    btn.style.borderStyle = "none";
+                    btn.style.borderTop = "none";
+                    btn.style.borderRight = "none";
+                    btn.style.borderBottom = "none";
+                    btn.style.borderLeft = "none";
+                    btn.style.boxShadow = "none";
+                  }}
+                  onFocus={(e) => {
+                    const btn = e.currentTarget;
+                    btn.style.border = "none";
+                    btn.style.borderWidth = "0";
+                    btn.style.borderStyle = "none";
+                    btn.style.borderTop = "none";
+                    btn.style.borderRight = "none";
+                    btn.style.borderBottom = "none";
+                    btn.style.borderLeft = "none";
+                    btn.style.boxShadow = "none";
+                  }}
+                  onMouseLeave={(e) => {
+                    const btn = e.currentTarget;
+                    btn.style.border = "none";
+                    btn.style.borderWidth = "0";
+                    btn.style.borderStyle = "none";
+                    btn.style.borderTop = "none";
+                    btn.style.borderRight = "none";
+                    btn.style.borderBottom = "none";
+                    btn.style.borderLeft = "none";
+                    btn.style.boxShadow = "none";
+                  }}
+                  onBlur={(e) => {
+                    const btn = e.currentTarget;
+                    btn.style.border = "none";
+                    btn.style.borderWidth = "0";
+                    btn.style.borderStyle = "none";
+                    btn.style.borderTop = "none";
+                    btn.style.borderRight = "none";
+                    btn.style.borderBottom = "none";
+                    btn.style.borderLeft = "none";
+                    btn.style.boxShadow = "none";
                   }}
                 >
                   <div
                     style={{
                       width: "100%",
-                      aspectRatio: "32 / 32", // было 16/9
+                      aspectRatio: "32 / 16", 
                       borderRadius: 16,
                       overflow: "hidden",
                       background: "#f1f2f6",
+                      pointerEvents: "none",
                     }}
                   >
                     <img
@@ -298,6 +389,7 @@ export default function SelectWithImages({
                         height: "96%",
                         padding: "4px",
                         display: "block",
+                        pointerEvents: "none",
                       }}
                     />
                   </div>
@@ -309,6 +401,7 @@ export default function SelectWithImages({
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
+                      pointerEvents: "none",
                     }}
                   >
                     {opt.name}

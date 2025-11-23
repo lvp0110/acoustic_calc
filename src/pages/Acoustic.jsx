@@ -15,6 +15,7 @@ export default function Acoustic() {
   const [descriptionLoading, setDescriptionLoading] = useState(false);
   const [descriptionError, setDescriptionError] = useState("");
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [brandParamsNames, setBrandParamsNames] = useState({});
   const tableDataRestored = useRef(false);
   const {
     BASE_URL,
@@ -62,6 +63,7 @@ export default function Acoustic() {
   // Компонент-обертка для выбора правильного селекта
   const SelectComponent = ({ paramType, value, onChange, options }) => {
     const hasImages = hasImagesInOptions(options);
+    const brandParamsName = brandParamsNames[paramType] || "";
 
     if (hasImages) {
       return (
@@ -73,6 +75,7 @@ export default function Acoustic() {
           getImageUrl={getImageUrl}
           SECTION_TITLES={SECTION_TITLES}
           capitalize={capitalize}
+          brandParamsName={brandParamsName}
         />
       );
     } else {
@@ -84,6 +87,7 @@ export default function Acoustic() {
           options={options}
           SECTION_TITLES={SECTION_TITLES}
           capitalize={capitalize}
+          brandParamsName={brandParamsName}
         />
       );
     }
@@ -104,6 +108,13 @@ export default function Acoustic() {
       setDescription("");
       setDescriptionError("");
       setIsDescriptionExpanded(false);
+      
+      // Сбрасываем все выбранные пункты
+      setModel("");
+      setColor("");
+      setSize("");
+      setPerf("");
+      setEdge("");
     }
     setBrand(newBrand);
   };
@@ -207,6 +218,95 @@ export default function Acoustic() {
 
     return () => controller.abort();
   }, [brand, BASE_URL]);
+
+  // Загрузка name из api/v1/brandParams с model для каждого типа опции
+  useEffect(() => {
+    if (!brand || !model) {
+      setBrandParamsNames({});
+      return;
+    }
+
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const url = buildApiUrl(
+          `api/v1/brandParams/${encodeURIComponent(brand)}?model=${encodeURIComponent(model)}`
+        );
+        console.log("Загрузка brandParams для name:", url);
+        const res = await fetch(url, { signal: controller.signal });
+        const text = await res.text();
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch (e) {
+          console.error("Ошибка парсинга JSON:", e);
+        }
+
+        console.log("Ответ от brandParams API:", json);
+
+        if (!res.ok) {
+          console.warn("Ошибка загрузки brandParams:", res.status, text);
+          setBrandParamsNames({});
+          return;
+        }
+
+        // Извлекаем name для каждого типа опции из массива data
+        const names = {};
+        const dataArr = Array.isArray(json?.data) ? json.data : [];
+        
+        console.log("dataArr:", dataArr);
+        
+        dataArr.forEach((item) => {
+          const code = item?.code?.toLowerCase();
+          const name = item?.name || item?.Name || item?.title || "";
+          console.log(`Проверка элемента: code=${code}, name=${name}`);
+          if (code && name && (code === "size" || code === "color" || code === "perf" || code === "edge")) {
+            names[code] = name;
+            console.log(`Добавлен name для ${code}: ${name}`);
+          }
+        });
+
+        // Также проверяем прямые поля в json
+        if (json?.size?.name) {
+          names.size = json.size.name;
+          console.log("Найден size.name:", json.size.name);
+        }
+        if (json?.color?.name) {
+          names.color = json.color.name;
+          console.log("Найден color.name:", json.color.name);
+        }
+        if (json?.perf?.name) {
+          names.perf = json.perf.name;
+          console.log("Найден perf.name:", json.perf.name);
+        }
+        if (json?.edge?.name) {
+          names.edge = json.edge.name;
+          console.log("Найден edge.name:", json.edge.name);
+        }
+
+        // Проверяем также в корне json
+        if (json?.name && typeof json.name === "object") {
+          Object.keys(json.name).forEach((key) => {
+            const lowerKey = key.toLowerCase();
+            if (lowerKey === "size" || lowerKey === "color" || lowerKey === "perf" || lowerKey === "edge") {
+              names[lowerKey] = json.name[key];
+              console.log(`Найден name.${key}:`, json.name[key]);
+            }
+          });
+        }
+
+        console.log("Итоговые извлеченные names:", names);
+        setBrandParamsNames(names);
+      } catch (e) {
+        if (e.name !== "AbortError") {
+          console.error("Ошибка загрузки brandParams:", e);
+          setBrandParamsNames({});
+        }
+      }
+    })();
+
+    return () => controller.abort();
+  }, [brand, model, BASE_URL]);
 
   // Пока не готовы (не прочитан URL) — ничего не показываем
   if (!isReady) {

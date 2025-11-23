@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 
 export default function SelectText({
   paramType,
@@ -9,17 +9,43 @@ export default function SelectText({
   capitalize,
   showClearButton = true,
   showArrow = true,
+  brandParamsName = "",
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const searchInputRef = useRef(null);
   const selectedOption = options.find((opt) => opt.id === value);
+
+  useEffect(() => {
+    if (isOpen && searchInputRef.current && paramType !== "surface") {
+      searchInputRef.current.focus();
+    }
+  }, [isOpen, paramType]);
 
   const sectionAcc = SECTION_TITLES[paramType]?.acc || "опцию";
   const sectionGen = SECTION_TITLES[paramType]?.gen || "опции";
 
+  const filtered = useMemo(() => {
+    // Для surface не используем поиск
+    if (paramType === "surface") return options;
+    const s = q.trim().toLowerCase();
+    if (!s) return options;
+    return options.filter((o) =>
+      String(o?.name || "")
+        .toLowerCase()
+        .includes(s)
+    );
+  }, [options, q, paramType]);
+
   return (
     <div style={{ position: "relative", width: "100%" }}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          setIsOpen(!isOpen);
+          if (isOpen && paramType !== "surface") {
+            setQ("");
+          }
+        }}
         style={{
           width: "100%",
           padding: "10px 12px",
@@ -27,7 +53,7 @@ export default function SelectText({
           border: "none",
           borderRadius: "16px",
           backgroundColor: selectedOption && paramType === "surface" ? "#006BCF" : "#fff",
-          color: selectedOption && paramType === "surface" ? "#fff" : undefined,
+          color: selectedOption && paramType === "surface" ? "#fff" : "#000",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
@@ -35,10 +61,13 @@ export default function SelectText({
           textAlign: "left",
           minHeight: "70px",
           position: "relative",
+          fontSize: "14px",
         }}
         aria-label={`Выберите ${sectionAcc}`}
       >
-        <span>{selectedOption?.name || `Выберите ${capitalize(sectionAcc)}`}</span>
+        <span>
+          {brandParamsName || selectedOption?.name || capitalize(SECTION_TITLES[paramType]?.gen || sectionGen)}
+        </span>
         {showArrow && (
           <span
             style={{
@@ -79,21 +108,56 @@ export default function SelectText({
             left: 0,
             width: "100%",
             backgroundColor: "#fff",
-            // border: "1px solid #ccc",
-            borderRadius: "0 0 16px 16px",
+            borderRadius: "16px",
             maxHeight: "300px",
             overflowY: "auto",
             zIndex: 10,
             display: "block",
-            boxSizing: "border-box",
+            boxSizing: "border-box",            
+            marginTop: 8,
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+            padding: "0px",
           }}
-        >
+          >
+          {/* Поле поиска - только если не surface */}
+          {paramType !== "surface" && (
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Поиск"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              style={{
+                width: "100%",
+                height: "40px",
+                padding: "0 12px",
+                border: "none",
+                borderRadius: "16px",
+                outline: "none",
+                marginBottom: "12px",
+                boxSizing: "border-box",
+                fontSize: "14px",
+                background: "#f7f7f9",
+                color: "black",
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setIsOpen(false);
+                  setQ("");
+                }
+              }}
+            />
+          )}
+
           {/* Кнопка "Очистить выбор" */}
           {showClearButton && (
             <button
               onClick={() => {
                 onChange("");
                 setIsOpen(false);
+                if (paramType !== "surface") {
+                  setQ("");
+                }
               }}
               style={{
                 width: "100%",
@@ -102,6 +166,7 @@ export default function SelectText({
                 backgroundColor: "#f5f5f5",
                 cursor: "pointer",
                 textAlign: "left",
+                borderRadius: "0",
               }}
             >
               {`Очистить выбор ${sectionGen}`}
@@ -109,17 +174,20 @@ export default function SelectText({
           )}
 
           {/* Опции в виде обычного вертикального списка */}
-          {options.map((opt) => (
+          {filtered.map((opt) => (
             <button
               key={opt.id}
               onClick={() => {
                 onChange(opt.id);
                 setIsOpen(false);
+                if (paramType !== "surface") {
+                  setQ("");
+                }
               }}
               style={{
                 width: "100%",
                 padding: "10px 12px",
-                border: "none",
+                outline: "none",
                 backgroundColor: value === opt.id && paramType === "surface" ? "#006BCF" : value === opt.id ? "#e3f2fd" : "#fff",
                 color: value === opt.id && paramType === "surface" ? "#fff" : undefined,
                 cursor: "pointer",
@@ -127,6 +195,8 @@ export default function SelectText({
                 alignItems: "center",
                 textAlign: "left",
                 transition: "background-color 0.2s",
+                border: "none",
+                borderRadius: "0",
               }}
               onMouseEnter={(e) => {
                 if (value !== opt.id) {

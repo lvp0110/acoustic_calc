@@ -209,6 +209,7 @@ export function useAcousticEngine() {
   const [perf, setPerf] = useState("");
   const [edge, setEdge] = useState("");
 
+
   // Инициализация/URL
   const [searchParams, setSearchParams] = useSearchParams();
   const [isReady, setIsReady] = useState(false); // стало готово после чтения URL
@@ -554,6 +555,7 @@ export function useAcousticEngine() {
     setPerf("");
     setEdge("");
   }, [model, isReady]);
+
 
   return {
     // базовое
