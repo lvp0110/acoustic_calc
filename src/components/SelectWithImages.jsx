@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 
 export default function SelectWithImages({
   paramType,
@@ -14,9 +14,11 @@ export default function SelectWithImages({
   const [q, setQ] = useState("");
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ right: 0, bottom: 0 });
+  const [dropdownStyle, setDropdownStyle] = useState({});
   const spanRef = useRef(null);
   const containerRef = useRef(null);
   const searchInputRef = useRef(null);
+  const dropdownRef = useRef(null);
   const selectedOption = options.find((opt) => opt.id === value);
   const sectionAcc = SECTION_TITLES[paramType]?.acc || "опцию";
 
@@ -46,6 +48,48 @@ export default function SelectWithImages({
       searchInputRef.current.focus();
     }
   }, [isOpen]);
+
+  // Вычисляем позицию и ширину выпадающего списка относительно block-2
+  const calculateDropdownStyle = useCallback(() => {
+    if (!isOpen || !containerRef.current) {
+      setDropdownStyle({});
+      return;
+    }
+    
+    // Находим ближайший родительский элемент с классом block-2
+    let block2 = containerRef.current.closest('.block-2');
+    if (block2) {
+      const block2Rect = block2.getBoundingClientRect();
+      const containerRect = containerRef.current.getBoundingClientRect();
+      
+      // Вычисляем offset слева (относительно block-2)
+      const leftOffset = containerRect.left - block2Rect.left;
+      
+      // Ширина dropdown = ширина block-2 минус padding (10px с каждой стороны = 20px)
+      const dropdownWidth = block2Rect.width - 20;
+      
+      setDropdownStyle({
+        left: `-${leftOffset}px`,
+        width: `${dropdownWidth}px`,
+        maxWidth: `${dropdownWidth}px`,
+      });
+    } else {
+      // Если block-2 не найден, используем стандартное поведение
+      setDropdownStyle({});
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    calculateDropdownStyle();
+    
+    // Пересчитываем при изменении размера окна
+    const handleResize = () => {
+      calculateDropdownStyle();
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isOpen, calculateDropdownStyle]);
 
   return (
     <div ref={containerRef} style={{ position: "relative", width: "100%" }}>
@@ -222,12 +266,14 @@ export default function SelectWithImages({
 
       {isOpen && (
         <div
+          ref={dropdownRef}
+          className="select-dropdown"
           style={{
             position: "absolute",
             top: "100%",
-            left: 0,
-            width: "100%",
-            maxWidth: "100%",
+            left: dropdownStyle.left || 0,
+            width: dropdownStyle.width || "100%",
+            maxWidth: dropdownStyle.maxWidth || "100%",
             backgroundColor: "#fff",
             border: "none",
             borderRadius: 16,
@@ -271,6 +317,7 @@ export default function SelectWithImages({
 
           {/* Грид 2 колонки, карточки как на скрине */}
           <div
+            className="select-dropdown-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
@@ -282,7 +329,7 @@ export default function SelectWithImages({
               return (
                 <button
                   key={opt.id}
-                  className={paramType === "size" ? "size-option-button" : ""}
+                  className={`select-dropdown-item ${paramType === "size" ? "size-option-button" : ""}`}
                   onClick={() => {
                     onChange(opt.id);
                     setIsOpen(false);

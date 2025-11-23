@@ -34,8 +34,9 @@
   padding: 10px;
   /* background-color: #f5f5f5; */
   border: #f5f5f5 1px solid;
-
   border-radius: 16px;
+  position: relative;
+  overflow: visible;
 }
 
 .options-grid {
@@ -145,4 +146,33 @@ button.size-option-button {
   outline: none !important;
   box-shadow: none !important;
   margin: 0 !important;
+}
+
+/* Стили для выпадающих списков с изображениями */
+/* Обеспечиваем, что контейнер SelectWithImages занимает полную ширину */
+.block-2 > .options-grid > div {
+  width: 100%;
+  position: relative;
+}
+
+/* На экранах более 550px: элементы в два столбца */
+@media (min-width: 551px) {
+  .block-2 .select-dropdown-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  
+  .block-2 .select-dropdown-item {
+    grid-column: span 1 !important;
+  }
+}
+
+/* На экранах 550px и меньше: элементы в один столбец */
+@media (max-width: 550px) {
+  .block-2 .select-dropdown-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .block-2 .select-dropdown-item {
+    grid-column: span 1 !important;
+  }
 }
