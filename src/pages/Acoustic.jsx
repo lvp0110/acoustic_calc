@@ -254,11 +254,18 @@ export default function Acoustic() {
     // Ищем описание в загруженных данных брендов
     const selectedBrand = brands.find((b) => b.code === brand);
     if (selectedBrand && selectedBrand.description) {
+      console.log('[Description] Found in brands data:', selectedBrand.description);
       setDescription(selectedBrand.description);
       setDescriptionError("");
       setDescriptionLoading(false);
       return;
     }
+    
+    console.log('[Description] Not found in brands data, trying API...', {
+      brand,
+      brandsCount: brands.length,
+      selectedBrand: selectedBrand ? { code: selectedBrand.code, name: selectedBrand.name } : null
+    });
 
     // Если описание не найдено в данных брендов, пытаемся загрузить из brandParams
     const controller = new AbortController();
@@ -295,6 +302,12 @@ export default function Acoustic() {
           json?.data?.description ||
           json?.Description ||
           "";
+        console.log('[Description] Loaded from API:', desc || '(empty)', {
+          hasJson: !!json,
+          jsonKeys: json ? Object.keys(json) : [],
+          hasData: !!json?.data,
+          dataKeys: json?.data ? Object.keys(json.data) : []
+        });
         setDescription(desc || "");
       } catch (e) {
         if (e.name !== "AbortError") {
@@ -306,7 +319,7 @@ export default function Acoustic() {
     })();
 
     return () => controller.abort();
-  }, [brand, brands, BASE_URL]);
+  }, [brand, brands, buildApiUrl]);
 
   // Загрузка name из api/v1/brandParams с model для каждого типа опции
   useEffect(() => {
@@ -532,6 +545,11 @@ export default function Acoustic() {
               {!descriptionLoading && !descriptionError && description && (
                 <div className="description-content">
                   <ReactMarkdown style={{ fontWeight: 100 }}>{description}</ReactMarkdown>
+                </div>
+              )}
+              {!descriptionLoading && !descriptionError && !description && (
+                <div className="description-content" style={{ opacity: 0.5, fontStyle: "italic" }}>
+                  Описание отсутствует
                 </div>
               )}
             </div>

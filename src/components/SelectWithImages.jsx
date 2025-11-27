@@ -415,7 +415,7 @@ export default function SelectWithImages({
                   <div
                     style={{
                       width: "100%",
-                      aspectRatio: "32 / 16", 
+                      aspectRatio: "32 / 32", 
                       borderRadius: 16,
                       overflow: "hidden",
                       background: "#f1f2f6",

@@ -63,14 +63,17 @@
   border: #f5f5f5 1px solid;
   border-radius: 16px;
   transition: all 0.3s ease;
+  min-height: 30px;
 }
 
 .description-content {
   white-space: pre-wrap;
   word-wrap: break-word;
   line-height: 1.5;
-  font-size: 5px;
+  font-size: 6px;
   font-weight: 100;
+  min-height: 1em;
+  display: block;
 }
 
 /* На экранах менее 1024px: показывать только одну строку и курсор pointer */
