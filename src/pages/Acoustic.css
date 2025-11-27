@@ -69,6 +69,8 @@
   white-space: pre-wrap;
   word-wrap: break-word;
   line-height: 1.5;
+  font-size: 5px;
+  font-weight: 100;
 }
 
 /* На экранах менее 1024px: показывать только одну строку и курсор pointer */

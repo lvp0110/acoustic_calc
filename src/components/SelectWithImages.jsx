@@ -66,7 +66,7 @@ export default function SelectWithImages({
       const leftOffset = containerRect.left - block2Rect.left;
       
       // Ширина dropdown = ширина block-2 минус padding (10px с каждой стороны = 20px)
-      const dropdownWidth = block2Rect.width - 20;
+      const dropdownWidth = block2Rect.width ;
       
       setDropdownStyle({
         left: `-${leftOffset}px`,
@@ -171,9 +171,14 @@ export default function SelectWithImages({
               onError={(e) => (e.currentTarget.style.display = "none")}
               style={{
                 position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%)",
+                maxWidth: "100%",
+                maxHeight: "100%",
+                width: "auto",
+                height: "auto",
+                objectFit: "contain",
               }}
             />
             <span
@@ -380,7 +385,6 @@ export default function SelectWithImages({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Selecting option:', opt.id, opt.name);
                     onChange(opt.id);
                     setIsOpen(false);
                     setQ("");

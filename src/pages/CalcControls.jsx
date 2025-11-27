@@ -3,9 +3,10 @@ import { useSearchParams } from "react-router-dom";
 import "./CalcControls.css";
 import { useAcoustic } from "../context/AcousticContext.jsx";
 import SelectText from "../components/SelectText.jsx";
+import { encodeTableData, decodeTableData } from "../utils/tableData.js";
 
 export default function CalcControls(props) {
-  const { BASE_URL, brand, model, color, size, perf, edge, fullOptionData } =
+  const { BASE_URL, brand, model, color, size, perf, edge, fullOptionData, hasColor, hasSize, hasPerf, hasEdge } =
     useAcoustic();
   const { onTableDataChange } = props;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,7 +23,6 @@ export default function CalcControls(props) {
   const [calcRows, setCalcRows] = useState([]);
   const [calcData, setCalcData] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const debounceTimer = useRef(null);
   const isInitialized = useRef(false);
   const lastCalcParams = useRef("");
   const prevBrand = useRef(brand);
@@ -53,19 +53,18 @@ export default function CalcControls(props) {
     if (urlHeight) setInternalHeight(urlHeight);
     if (urlArea) setInternalArea(urlArea);
 
-    // Восстанавливаем данные таблицы из URL
-    const tableDataEncoded = searchParams.get("tableData");
-    if (tableDataEncoded) {
-      const { calcData: restoredCalcData, calcRows: restoredCalcRows } =
-        decodeTableData(tableDataEncoded);
-      if (restoredCalcData || (restoredCalcRows && restoredCalcRows.length > 0)) {
-        setCalcData(restoredCalcData);
-        setCalcRows(restoredCalcRows);
-        // Передаем данные в родительский компонент
-        if (onTableDataChange) {
-          onTableDataChange(restoredCalcData, restoredCalcRows);
-        }
-      }
+    // НЕ восстанавливаем данные таблицы из URL
+    // Таблица должна показываться ТОЛЬКО после нажатия кнопки "Расчёт"
+    // Удаляем tableData из URL при инициализации, чтобы не восстанавливать таблицу
+    if (searchParams.has("tableData")) {
+      setSearchParams(
+        (prevParams) => {
+          const params = new URLSearchParams(prevParams);
+          params.delete("tableData");
+          return params;
+        },
+        { replace: true }
+      );
     }
 
     isInitialized.current = true;
@@ -190,6 +189,7 @@ export default function CalcControls(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brand, setSearchParams]);
 
+
   // Автоматический расчет площади при вводе размеров
   useEffect(() => {
     if (mode === "sizes") {
@@ -211,7 +211,6 @@ export default function CalcControls(props) {
   }, [width, height, mode]);
 
   const v2Urls = useMemo(() => {
-    // Helper для правильного формирования URL
     const buildApiUrl = (path) => {
       const cleanPath = path.startsWith("/") ? path.slice(1) : path;
       if (!BASE_URL || BASE_URL === "") {
@@ -235,43 +234,18 @@ export default function CalcControls(props) {
     return Number.isFinite(n) ? n : NaN;
   };
 
-  // Функции для кодирования/декодирования данных таблицы в base64
-  const encodeTableData = (calcData, calcRows) => {
-    try {
-      const data = {
-        calcData: calcData,
-        calcRows: calcRows,
-      };
-      const json = JSON.stringify(data);
-      // Правильное кодирование: сначала в UTF-8 через encodeURIComponent, потом в base64
-      const utf8 = unescape(encodeURIComponent(json));
-      const base64 = btoa(utf8);
-      return base64;
-    } catch (e) {
-      console.error("Ошибка кодирования данных таблицы:", e, e.message);
-      return null;
-    }
-  };
-
-  const decodeTableData = (encoded) => {
-    try {
-      if (!encoded) return { calcData: null, calcRows: [] };
-      // Правильное декодирование: сначала из base64, потом из UTF-8
-      const utf8 = atob(encoded);
-      const json = decodeURIComponent(escape(utf8));
-      const data = JSON.parse(json);
-      return {
-        calcData: data.calcData || null,
-        calcRows: data.calcRows || [],
-      };
-    } catch (e) {
-      console.error("Ошибка декодирования данных таблицы:", e, e.message);
-      return { calcData: null, calcRows: [] };
-    }
-  };
-
   const hasValidInput = useMemo(() => {
+    // Проверяем обязательные параметры: бренд и модель
     if (!brand || !model) return false;
+    
+    // Проверяем все доступные параметры модели
+    // Если параметр доступен (hasColor, hasSize, etc.), то он должен быть выбран
+    if (hasColor && !color) return false;
+    if (hasSize && !size) return false;
+    if (hasPerf && !perf) return false;
+    if (hasEdge && !edge) return false;
+    
+    // Проверяем размеры (width/height или area)
     if (mode === "sizes") {
       const w = numeric(width);
       const h = numeric(height);
@@ -279,7 +253,7 @@ export default function CalcControls(props) {
     }
     const a = numeric(area);
     return a > 0;
-  }, [brand, model, mode, width, height, area]);
+  }, [brand, model, color, size, perf, edge, hasColor, hasSize, hasPerf, hasEdge, mode, width, height, area]);
 
   // Параметры v2 не запрашиваем автоматически, чтобы избежать 404 в консоли на несуществующие пары brand/model.
 
@@ -389,10 +363,6 @@ export default function CalcControls(props) {
       }
     } finally {
       setCalcLoading(false);
-      // НЕ очищаем поля после расчета, чтобы данные таблицы оставались видимыми
-      // setWidth("");
-      // setHeight("");
-      // setArea("");
     }
   };
 

@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
 import { useAcoustic } from "../context/AcousticContext.jsx";
 import SelectWithImages from "../components/SelectWithImages.jsx";
 import SelectText from "../components/SelectText.jsx";
 import CalcControls from "./CalcControls.jsx";
 import CalcTable from "../components/CalcTable.jsx";
+import { decodeTableData } from "../utils/tableData.js";
 import "./Acoustic.css";
 
 export default function Acoustic() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tableCalcData, setTableCalcData] = useState(null);
   const [tableCalcRows, setTableCalcRows] = useState([]);
   const [description, setDescription] = useState("");
@@ -16,9 +18,15 @@ export default function Acoustic() {
   const [descriptionError, setDescriptionError] = useState("");
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [brandParamsNames, setBrandParamsNames] = useState({});
-  const tableDataRestored = useRef(false);
+  const tableDataRemovedFromUrl = useRef(false); // Флаг, что tableData был удален из URL
+  const [tableBrand, setTableBrand] = useState(null); // Храним бренд, для которого была создана таблица (используем состояние для немедленного обновления)
+  const [tableModel, setTableModel] = useState(null); // Храним модель, для которой была создана таблица
+  const prevBrandRef = useRef(null); // Для отслеживания смены бренда
+  const prevModelRef = useRef(null); // Для отслеживания смены модели
+  const brandChangeInProgressRef = useRef(false); // Флаг для блокировки восстановления таблицы при смене бренда
   const {
     BASE_URL,
+    buildApiUrl,
     isReady,
     brandsLoading,
     brandsError,
@@ -54,6 +62,59 @@ export default function Acoustic() {
     hasBrands,
     hasModels,
   } = useAcoustic();
+
+  // Сброс ссылки на бренд таблицы при смене бренда, чтобы скрыть таблицу
+  useEffect(() => {
+    if (!isReady) {
+      prevBrandRef.current = brand;
+      prevModelRef.current = model;
+      if (brand) {
+        // При инициализации, если бренд есть, но tableBrand не совпадает - очищаем
+        if (tableBrand !== null && tableBrand !== brand) {
+          setTableBrand(null);
+          setTableModel(null);
+          setTableCalcData(null);
+          setTableCalcRows([]);
+          tableDataRemovedFromUrl.current = false;
+        }
+      }
+      return;
+    }
+
+    // Если бренд изменился, сбрасываем ссылку на бренд таблицы и очищаем данные
+    if (prevBrandRef.current !== null && prevBrandRef.current !== brand) {
+      // Устанавливаем флаг смены бренда
+      brandChangeInProgressRef.current = true;
+      
+      // НЕМЕДЛЕННО скрываем таблицу, устанавливая tableBrand в null
+      setTableBrand(null);
+      setTableModel(null);
+      // Затем очищаем данные таблицы
+      setTableCalcData(null);
+      setTableCalcRows([]);
+      // Сбрасываем флаг восстановления
+      tableDataRemovedFromUrl.current = false;
+      
+      // Сбрасываем флаг через небольшую задержку
+      setTimeout(() => {
+        brandChangeInProgressRef.current = false;
+      }, 100);
+    }
+    
+    // Дополнительная проверка: если tableBrand не совпадает с текущим брендом, очищаем
+    // Это важно для случая, когда бренд изменился, но useEffect не сработал
+    if (tableBrand !== null && tableBrand !== brand) {
+      setTableBrand(null);
+      setTableModel(null);
+      setTableCalcData(null);
+      setTableCalcRows([]);
+      tableDataRemovedFromUrl.current = false;
+    }
+    
+    prevBrandRef.current = brand;
+    prevModelRef.current = model;
+  }, [brand, model, isReady, tableBrand, tableModel]);
+
 
   // Функция для определения, есть ли изображения в опциях
   const hasImagesInOptions = (options) => {
@@ -96,75 +157,75 @@ export default function Acoustic() {
   // Преобразование brands из { code, name } в { id, name } для SelectText
   const brandOptions = brands.map((b) => ({ id: b.code, name: b.name }));
 
-  // Обертка для setBrand, которая сбрасывает таблицу при смене бренда
+  // Обертка для setBrand
   const handleBrandChange = (newBrand) => {
-    if (isReady && brand && newBrand !== brand && newBrand) {
-      // Сбрасываем данные таблицы при смене бренда
+    // Если бренд действительно меняется (включая сброс на пустое значение)
+    if (isReady && brand !== newBrand) {
+      // Устанавливаем флаг, что идет смена бренда - это заблокирует восстановление таблицы
+      brandChangeInProgressRef.current = true;
+      
+      // НЕМЕДЛЕННО скрываем таблицу и очищаем данные (до вызова setBrand)
+      setTableBrand(null); // Используем состояние для немедленного обновления UI
+      setTableModel(null); // Также сбрасываем модель таблицы
       setTableCalcData(null);
       setTableCalcRows([]);
-      tableDataRestored.current = false;
+      tableDataRemovedFromUrl.current = false;
       
       // Сбрасываем описание
       setDescription("");
       setDescriptionError("");
       setIsDescriptionExpanded(false);
       
-      // Сбрасываем все выбранные пункты
+      // Сбрасываем все выбранные пункты (модель и все параметры)
       setModel("");
       setColor("");
       setSize("");
       setPerf("");
       setEdge("");
-    }
-    setBrand(newBrand);
-  };
-
-  // Helper для правильного формирования URL
-  const buildApiUrl = (path) => {
-    const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-    if (!BASE_URL || BASE_URL === "") {
-      return `/${cleanPath}`;
-    }
-    const cleanBase = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL;
-    return `${cleanBase}/${cleanPath}`;
-  };
-
-  // Функции для декодирования данных таблицы из base64
-  const decodeTableData = (encoded) => {
-    try {
-      if (!encoded) return { calcData: null, calcRows: [] };
-      // Правильное декодирование: сначала из base64, потом из UTF-8
-      const utf8 = atob(encoded);
-      const json = decodeURIComponent(escape(utf8));
-      const data = JSON.parse(json);
-      return {
-        calcData: data.calcData || null,
-        calcRows: data.calcRows || [],
-      };
-    } catch (e) {
-      console.error("Ошибка декодирования данных таблицы:", e, e.message);
-      return { calcData: null, calcRows: [] };
-    }
-  };
-
-  // Восстановление данных таблицы из URL при загрузке
-  useEffect(() => {
-    if (!isReady || tableDataRestored.current) return;
-    
-    const tableDataEncoded = searchParams.get("tableData");
-    if (tableDataEncoded) {
-      const { calcData: restoredCalcData, calcRows: restoredCalcRows } =
-        decodeTableData(tableDataEncoded);
-      if (restoredCalcData || (restoredCalcRows && restoredCalcRows.length > 0)) {
-        setTableCalcData(restoredCalcData);
-        setTableCalcRows(restoredCalcRows);
-        tableDataRestored.current = true;
+      
+      // Удаляем все параметры из URL, включая tableData
+      // Делаем это ПЕРЕД изменением бренда, чтобы предотвратить восстановление
+      const newParams = new URLSearchParams();
+      if (newBrand) {
+        newParams.set("brand", newBrand);
       }
+      setSearchParams(newParams, { replace: true });
+      
+      // Меняем бренд ПОСЛЕ очистки всех данных
+      setBrand(newBrand);
+      
+      // Сбрасываем флаг через небольшую задержку, чтобы дать время всем useEffect выполниться
+      setTimeout(() => {
+        brandChangeInProgressRef.current = false;
+      }, 200);
+    } else {
+      // Если бренд не меняется, просто устанавливаем его
+      setBrand(newBrand);
     }
-  }, [isReady, searchParams]);
+  };
+
+  // ВАЖНО: Таблица НЕ должна восстанавливаться из URL!
+  // Таблица показывается ТОЛЬКО после нажатия кнопки "Расчёт"
+  // Удаляем tableData из URL только один раз при первой загрузке
+  useEffect(() => {
+    if (!isReady) return;
+    
+    // Удаляем tableData из URL только один раз при загрузке, чтобы таблица не восстанавливалась автоматически
+    if (searchParams.has("tableData") && !tableDataRemovedFromUrl.current) {
+      setSearchParams(
+        (prevParams) => {
+          const params = new URLSearchParams(prevParams);
+          params.delete("tableData");
+          return params;
+        },
+        { replace: true }
+      );
+      tableDataRemovedFromUrl.current = true; // Помечаем, что уже удалили
+    }
+  }, [isReady, searchParams, setSearchParams]);
 
 
-  // Загрузка description из api/v1/brandParams
+  // Загрузка description из данных бренда (AcousticCategories)
   useEffect(() => {
     if (!brand) {
       setDescription("");
@@ -172,6 +233,16 @@ export default function Acoustic() {
       return;
     }
 
+    // Ищем описание в загруженных данных брендов
+    const selectedBrand = brands.find((b) => b.code === brand);
+    if (selectedBrand && selectedBrand.description) {
+      setDescription(selectedBrand.description);
+      setDescriptionError("");
+      setDescriptionLoading(false);
+      return;
+    }
+
+    // Если описание не найдено в данных брендов, пытаемся загрузить из brandParams
     const controller = new AbortController();
     (async () => {
       try {
@@ -217,7 +288,7 @@ export default function Acoustic() {
     })();
 
     return () => controller.abort();
-  }, [brand, BASE_URL]);
+  }, [brand, brands, BASE_URL]);
 
   // Загрузка name из api/v1/brandParams с model для каждого типа опции
   useEffect(() => {
@@ -396,8 +467,31 @@ export default function Acoustic() {
             <div className="block-3">
               <CalcControls
                 onTableDataChange={(calcData, calcRows) => {
+                  // Если данных нет, сразу скрываем таблицу
+                  if (!calcData && (!calcRows || calcRows.length === 0)) {
+                    setTableBrand(null);
+                    setTableModel(null);
+                    setTableCalcData(null);
+                    setTableCalcRows([]);
+                    return;
+                  }
+                  
+                  // Если данные есть, проверяем, что бренд и модель совпадают
+                  if (tableBrand !== null && tableBrand !== brand) {
+                    // Если бренд не совпадает, не сохраняем данные
+                    return;
+                  }
+                  
+                  if (tableModel !== null && tableModel !== model) {
+                    // Если модель не совпадает, не сохраняем данные
+                    return;
+                  }
+                  
+                  // Сохраняем данные только если бренд и модель совпадают
                   setTableCalcData(calcData);
                   setTableCalcRows(calcRows);
+                  setTableBrand(brand);
+                  setTableModel(model);
                 }}
               />
             </div>
@@ -417,29 +511,25 @@ export default function Acoustic() {
                   Ошибка: {descriptionError}
                 </div>
               )}
-              {/* Временный lorem текст для проверки */}
-              <div className="description-content">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-                enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
-                in reprehenderit in voluptate velit esse cillum dolore eu fugiat
-                nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-                sunt in culpa qui officia deserunt mollit anim id est laborum.
-                Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-                accusantium doloremque laudantium, totam rem aperiam, eaque ipsa
-                quae ab illo inventore veritatis et quasi architecto beatae vitae
-                dicta sunt explicabo.
-              </div>
               {!descriptionLoading && !descriptionError && description && (
-                <div className="description-content">{description}</div>
+                <div className="description-content">
+                  <ReactMarkdown style={{ fontWeight: 100 }}>{description}</ReactMarkdown>
+                </div>
               )}
             </div>
           )}
         </div>
 
         {/* Блок 4: Таблица результатов */}
-        {(tableCalcData || (tableCalcRows && tableCalcRows.length > 0)) && (
+        {/* Таблица показывается ТОЛЬКО если бренд и модель совпадают с теми, для которых был выполнен расчет */}
+        {!brandChangeInProgressRef.current &&
+         tableBrand === brand && 
+         tableModel === model &&
+         tableBrand !== null &&
+         tableModel !== null &&
+         brand &&
+         model &&
+         (tableCalcData || (tableCalcRows && tableCalcRows.length > 0)) && (
           <div className="block-4">
             <CalcTable calcData={tableCalcData} calcRows={tableCalcRows} />
           </div>

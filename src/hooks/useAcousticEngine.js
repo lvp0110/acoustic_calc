@@ -43,11 +43,18 @@ const getBaseUrl = () => {
     return "";
   }
   
-  // 3. По умолчанию для разработки
-  return "http://localhost:3005";
+  // 3. По умолчанию для разработки - используем пустую строку для относительных путей
+  // Это позволит использовать proxy из vite.config.js
+  return "";
 };
 
 const BASE_URL = getBaseUrl();
+
+// Логирование для отладки
+if (import.meta.env?.MODE === 'development') {
+  console.log('[BASE_URL] Development mode: using relative paths (proxy)');
+  console.log('[BASE_URL] BASE_URL:', BASE_URL || '(empty - will use relative paths)');
+}
 
 if (import.meta.env?.MODE === 'production') {
   if (!BASE_URL) {
@@ -77,7 +84,10 @@ const normalizeBrands = (raw) => {
       item?.ShortName ?? item?.code ?? item?.slug ?? item?.id ?? `brand-${idx}`
     );
     const name = String(item?.Name ?? item?.name ?? item?.title ?? code);
-    return { code, name };
+    const description = String(
+      item?.Description ?? item?.description ?? item?.desc ?? ""
+    );
+    return { code, name, description };
   });
 };
 
@@ -486,15 +496,10 @@ export function useAcousticEngine() {
         
         setSize((currentValue) => {
           const urlValue = restoreFromUrl("size", next.size);
-          if (urlValue) {
-            console.log('setSize: restoring from URL:', urlValue);
-            return urlValue;
-          }
+          if (urlValue) return urlValue;
           if (currentValue && next.size.find((o) => o.id === currentValue)) {
-            console.log('setSize: keeping current value:', currentValue);
             return currentValue;
           }
-          console.log('setSize: resetting value. currentValue:', currentValue, 'available sizes:', next.size.map(o => o.id));
           return "";
         });
         
@@ -541,9 +546,23 @@ export function useAcousticEngine() {
     setEdge("");
   }, [model, isReady]);
 
+  // Экспортируем buildApiUrl для использования в других компонентах
+  const buildApiUrlForExport = (path) => {
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    if (!BASE_URL || BASE_URL === '') {
+      if (import.meta.env?.MODE === 'production') {
+        return '';
+      }
+      return `/${cleanPath}`;
+    }
+    const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+    return `${cleanBase}/${cleanPath}`;
+  };
+
   return {
     // базовое
     BASE_URL,
+    buildApiUrl: buildApiUrlForExport,
     SECTION_TITLES,
     capitalize,
     getImageUrl,

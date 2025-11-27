@@ -17,17 +17,6 @@ export default function SelectText({
   const containerRef = useRef(null);
   const dropdownRef = useRef(null);
   const selectedOption = options.find((opt) => opt.id === value);
-  
-  // Отладочное логирование для размеров
-  useEffect(() => {
-    if (paramType === "size") {
-      console.log('SelectText [size] - value:', value);
-      console.log('SelectText [size] - options count:', options.length);
-      console.log('SelectText [size] - options IDs:', options.map(o => o.id));
-      console.log('SelectText [size] - selectedOption:', selectedOption);
-      console.log('SelectText [size] - selectedOption?.name:', selectedOption?.name);
-    }
-  }, [value, options, selectedOption, paramType]);
 
   useEffect(() => {
     if (isOpen && searchInputRef.current && paramType !== "surface") {
@@ -248,24 +237,10 @@ export default function SelectText({
               key={opt.id}
               type="button"
               data-dropdown-item
-              onClick={async (e) => {
+              onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('SelectText: Selecting option:', opt.id, opt.name, 'paramType:', paramType);
-                console.log('SelectText: Current value before onChange:', value);
-                console.log('SelectText: Options available:', options.map(o => ({ id: o.id, name: o.name })));
-                console.log('SelectText: Calling onChange with:', opt.id);
-                
-                // Сохраняем текущее значение для проверки после вызова onChange
-                const valueBefore = value;
                 onChange(opt.id);
-                
-                // Ждем немного, чтобы React обновил состояние
-                await new Promise(resolve => setTimeout(resolve, 0));
-                
-                console.log('SelectText: onChange called. Value was:', valueBefore, 'should become:', opt.id);
-                console.log('SelectText: After onChange, checking if option exists in options:', options.find(o => o.id === opt.id));
-                
                 setIsOpen(false);
                 if (paramType !== "surface") {
                   setQ("");
