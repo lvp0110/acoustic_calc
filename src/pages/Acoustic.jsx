@@ -24,6 +24,7 @@ export default function Acoustic() {
   const prevBrandRef = useRef(null); // Для отслеживания смены бренда
   const prevModelRef = useRef(null); // Для отслеживания смены модели
   const brandChangeInProgressRef = useRef(false); // Флаг для блокировки восстановления таблицы при смене бренда
+  const tableContainerRef = useRef(null); // Ref для контейнера таблицы
   const {
     BASE_URL,
     buildApiUrl,
@@ -321,6 +322,32 @@ export default function Acoustic() {
     return () => controller.abort();
   }, [brand, brands, buildApiUrl]);
 
+  // Прокрутка к таблице после расчета
+  useEffect(() => {
+    // Прокручиваем к таблице только если:
+    // 1. Таблица видна (бренд и модель совпадают)
+    // 2. Есть данные таблицы
+    // 3. Контейнер таблицы существует
+    if (
+      tableBrand === brand &&
+      tableModel === model &&
+      tableBrand !== null &&
+      tableModel !== null &&
+      (tableCalcData || (tableCalcRows && tableCalcRows.length > 0)) &&
+      tableContainerRef.current
+    ) {
+      // Используем setTimeout для того, чтобы прокрутка произошла после рендера
+      setTimeout(() => {
+        if (tableContainerRef.current) {
+          tableContainerRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }
+      }, 100);
+    }
+  }, [tableCalcData, tableCalcRows, tableBrand, tableModel, brand, model]);
+
   // Загрузка name из api/v1/brandParams с model для каждого типа опции
   useEffect(() => {
     if (!brand || !model) {
@@ -566,7 +593,7 @@ export default function Acoustic() {
          brand &&
          model &&
          (tableCalcData || (tableCalcRows && tableCalcRows.length > 0)) && (
-          <div className="block-4">
+          <div className="block-4" ref={tableContainerRef}>
             <CalcTable calcData={tableCalcData} calcRows={tableCalcRows} />
           </div>
         )}
