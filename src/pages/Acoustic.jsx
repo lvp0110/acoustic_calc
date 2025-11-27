@@ -101,9 +101,27 @@ export default function Acoustic() {
       }, 100);
     }
     
+    // Если модель изменилась, сбрасываем таблицу (нужен новый расчет для новой модели)
+    if (prevModelRef.current !== null && prevModelRef.current !== model) {
+      setTableBrand(null);
+      setTableModel(null);
+      setTableCalcData(null);
+      setTableCalcRows([]);
+      tableDataRemovedFromUrl.current = false;
+    }
+    
     // Дополнительная проверка: если tableBrand не совпадает с текущим брендом, очищаем
     // Это важно для случая, когда бренд изменился, но useEffect не сработал
     if (tableBrand !== null && tableBrand !== brand) {
+      setTableBrand(null);
+      setTableModel(null);
+      setTableCalcData(null);
+      setTableCalcRows([]);
+      tableDataRemovedFromUrl.current = false;
+    }
+    
+    // Дополнительная проверка: если tableModel не совпадает с текущей моделью, очищаем
+    if (tableModel !== null && tableModel !== model) {
       setTableBrand(null);
       setTableModel(null);
       setTableCalcData(null);
