@@ -13,7 +13,10 @@ export default function SelectWithImages({
   const [isOpen, setIsOpen] = useState(false);
   const [q, setQ] = useState("");
   const [showTooltip, setShowTooltip] = useState(false);
-  const [tooltipPosition, setTooltipPosition] = useState({ right: 0, bottom: 0 });
+  const [tooltipPosition, setTooltipPosition] = useState({
+    right: 0,
+    bottom: 0,
+  });
   const [dropdownStyle, setDropdownStyle] = useState({});
   const spanRef = useRef(null);
   const containerRef = useRef(null);
@@ -55,19 +58,19 @@ export default function SelectWithImages({
       setDropdownStyle({});
       return;
     }
-    
+
     // Находим ближайший родительский элемент с классом block-2
-    let block2 = containerRef.current.closest('.block-2');
+    let block2 = containerRef.current.closest(".block-2");
     if (block2) {
       const block2Rect = block2.getBoundingClientRect();
       const containerRect = containerRef.current.getBoundingClientRect();
-      
+
       // Вычисляем offset слева (относительно block-2)
       const leftOffset = containerRect.left - block2Rect.left;
-      
+
       // Ширина dropdown = ширина block-2 минус padding (10px с каждой стороны = 20px)
-      const dropdownWidth = block2Rect.width ;
-      
+      const dropdownWidth = block2Rect.width;
+
       setDropdownStyle({
         left: `-${leftOffset}px`,
         width: `${dropdownWidth}px`,
@@ -81,14 +84,14 @@ export default function SelectWithImages({
 
   useEffect(() => {
     calculateDropdownStyle();
-    
+
     // Пересчитываем при изменении размера окна
     const handleResize = () => {
       calculateDropdownStyle();
     };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [isOpen, calculateDropdownStyle]);
 
   // Обработчик клика вне dropdown для его закрытия
@@ -97,19 +100,28 @@ export default function SelectWithImages({
 
     const handleClickOutside = (event) => {
       // Проверяем, что клик был вне контейнера и dropdown
-      const clickedInsideContainer = containerRef.current?.contains(event.target);
+      const clickedInsideContainer = containerRef.current?.contains(
+        event.target
+      );
       const clickedInsideDropdown = dropdownRef.current?.contains(event.target);
-      
+
       // Также проверяем, не был ли это клик на кнопку выбора опции или её дочерние элементы
-      const isDropdownItemButton = event.target.closest('.select-dropdown-item');
-      const isSizeOptionButton = event.target.closest('.size-option-button');
-      const isDropdownItem = event.target.closest('[data-dropdown-item]');
-      
+      const isDropdownItemButton = event.target.closest(
+        ".select-dropdown-item"
+      );
+      const isSizeOptionButton = event.target.closest(".size-option-button");
+      const isDropdownItem = event.target.closest("[data-dropdown-item]");
+
       // Если клик внутри dropdown или на элементе dropdown, не закрываем
-      if (clickedInsideDropdown || isDropdownItem || isDropdownItemButton || isSizeOptionButton) {
+      if (
+        clickedInsideDropdown ||
+        isDropdownItem ||
+        isDropdownItemButton ||
+        isSizeOptionButton
+      ) {
         return;
       }
-      
+
       // Если клик вне контейнера, закрываем dropdown
       if (!clickedInsideContainer) {
         setIsOpen(false);
@@ -120,12 +132,12 @@ export default function SelectWithImages({
     // Используем click вместо mousedown, чтобы он срабатывал после onClick на кнопке
     // Добавляем небольшую задержку, чтобы клик на кнопку открытия успел обработаться
     const timeoutId = setTimeout(() => {
-      document.addEventListener('click', handleClickOutside, true);
+      document.addEventListener("click", handleClickOutside, true);
     }, 150);
 
     return () => {
       clearTimeout(timeoutId);
-      document.removeEventListener('click', handleClickOutside, true);
+      document.removeEventListener("click", handleClickOutside, true);
     };
   }, [isOpen]);
 
@@ -171,47 +183,81 @@ export default function SelectWithImages({
               onError={(e) => (e.currentTarget.style.display = "none")}
               style={{
                 position: "absolute",
-                left: "50%",
-                top: "50%",
-                transform: "translate(-50%, -50%)",
-                maxWidth: "100%",
-                maxHeight: "100%",
-                width: "auto",
-                height: "auto",
-                objectFit: "contain",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: paramType === "color" ? "cover" : "contain",
+                objectPosition: paramType === "color" ? "center" : "center",
               }}
             />
-            <span
-              ref={spanRef}
-              style={{
-                position: "relative",
-                zIndex: 2,
-                marginTop: "auto",
-                padding: "4px 5px",
-                borderRadius: 16,
-                fontSize: "large",
-                marginLeft: 4,
-                marginBottom: 4,
-                background: "#f5f5f7",
-              }}
-              onMouseEnter={() => setShowTooltip(true)}
-              onMouseLeave={() => setShowTooltip(false)}
-            >
-              {selectedOption?.name}
-            </span>
+            {paramType !== "color" && (
+              <>
+                <span
+                  ref={spanRef}
+                  style={{
+                    position: "relative",
+                    zIndex: 2,
+                    marginTop: "auto",
+                    padding: "4px 4px",
+                    borderRadius: "0px 16px 0px 16px",
+                    fontSize: "medium",
+                    marginLeft: 0,
+                    marginBottom: 0,
+                    background: "#f5f5f7",
+                  }}
+                  onMouseEnter={() => setShowTooltip(true)}
+                  onMouseLeave={() => setShowTooltip(false)}
+                >
+                  {selectedOption?.name}
+                </span>
+              </>
+            )}
+            {paramType === "color" && (
+              <span
+                ref={spanRef}
+                style={{
+                  position: "relative",
+                  zIndex: 2,
+                  marginTop: "auto",
+                  padding: "4px 4px",
+                  borderRadius: "0px 16px 0px 16px",
+                  fontSize: "medium",
+                  marginLeft: 0,
+                  marginBottom: 0,
+                  background: "#f5f5f7",
+                  borderLeft: "solid 2px gray",
+                  borderBottom: "solid 2px gray",
+                  
+                }}
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseLeave={() => setShowTooltip(false)}
+              >
+                {selectedOption?.name}
+              </span>
+            )}
             <span
               style={{
                 position: "absolute",
                 right: "12px",
-                top: "50%",
-                transform: `translateY(-50%) ${isOpen ? "rotate(180deg)" : "rotate(0deg)"}`,
+                top: paramType === "color" ? "12px" : "50%",
+                transform:
+                  paramType === "color"
+                    ? isOpen
+                      ? "rotate(180deg)"
+                      : "rotate(0deg)"
+                    : `translateY(-50%) ${
+                        isOpen ? "rotate(180deg)" : "rotate(0deg)"
+                      }`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 transition: "transform 0.3s ease",
                 zIndex: 3,
                 pointerEvents: "none",
-                backgroundColor: "rgba(245, 245, 247, 0.9)",
+                backgroundColor:
+                  paramType === "color"
+                    ? "rgba(255, 255, 255, 0.9)"
+                    : "rgba(245, 245, 247, 0.9)",
                 borderRadius: "50%",
                 width: "24px",
                 height: "24px",
@@ -381,7 +427,9 @@ export default function SelectWithImages({
               return (
                 <button
                   key={opt.id}
-                  className={`select-dropdown-item ${paramType === "size" ? "size-option-button" : ""}`}
+                  className={`select-dropdown-item ${
+                    paramType === "size" ? "size-option-button" : ""
+                  }`}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -415,7 +463,7 @@ export default function SelectWithImages({
                   <div
                     style={{
                       width: "100%",
-                      aspectRatio: "32 / 32", 
+                      aspectRatio: "32 / 32",
                       borderRadius: 16,
                       overflow: "hidden",
                       background: "#f1f2f6",
