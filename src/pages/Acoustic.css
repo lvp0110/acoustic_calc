@@ -171,10 +171,10 @@ button.size-option-button {
   }
 }
 
-/* На экранах 550px и меньше: элементы в один столбец */
+/* На экранах 550px и меньше: элементы в два столбца (50% ширины каждый) */
 @media (max-width: 550px) {
   .block-2 .select-dropdown-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
   
   .block-2 .select-dropdown-item {

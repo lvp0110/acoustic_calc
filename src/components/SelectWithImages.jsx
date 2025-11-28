@@ -290,13 +290,13 @@ export default function SelectWithImages({
                   zIndex: 2,
                   marginTop: "auto",
                   padding: "4px 4px",
-                  borderRadius: "0px 16px 0px 16px",
+                  borderRadius: "0px 14px 0px 14px",
                   fontSize: "medium",
-                  marginLeft: 0,
-                  marginBottom: 0,
+                  marginLeft: 2,
+                  marginBottom: 2,
                   background: "#f5f5f7",
-                  borderLeft: "solid 2px gray",
-                  borderBottom: "solid 2px gray",
+                  // borderLeft: "solid 1px lightgray",
+                  // borderBottom: "solid 1px lightgray",
                   
                 }}
                 onMouseEnter={() => setShowTooltip(true)}
@@ -513,8 +513,6 @@ export default function SelectWithImages({
                   }}
                   type="button"
                   style={{
-                    gridColumn: "span 2",
-                    width: "100%",
                     padding: paramType === "size" ? "10px 12px" : 8,
                     margin: paramType === "size" ? 0 : undefined,
                     border: "none",
