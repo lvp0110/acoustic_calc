@@ -16,11 +16,22 @@ export default function SelectText({
   const searchInputRef = useRef(null);
   const containerRef = useRef(null);
   const dropdownRef = useRef(null);
+  const scrollTimeoutRef = useRef(null);
+  const openTimeRef = useRef(null);
+  const isSelectingRef = useRef(false);
   const selectedOption = options.find((opt) => opt.id === value);
 
   useEffect(() => {
     if (isOpen && searchInputRef.current && paramType !== "surface") {
       searchInputRef.current.focus();
+      // Запоминаем время открытия dropdown
+      openTimeRef.current = Date.now();
+      // Сбрасываем флаг выбора при открытии
+      isSelectingRef.current = false;
+    } else {
+      openTimeRef.current = null;
+      // Сбрасываем флаг выбора при закрытии
+      isSelectingRef.current = false;
     }
   }, [isOpen, paramType]);
 
@@ -51,22 +62,50 @@ export default function SelectText({
       }
     };
 
-    // Обработчик touch-событий для мобильных устройств
-    const handleTouchStart = (event) => {
-      // Если touch происходит внутри dropdown или контейнера, не закрываем
-      if (
-        dropdownRef.current?.contains(event.target) ||
-        containerRef.current?.contains(event.target)
-      ) {
-        return;
-      }
-      
-      // На мобильных устройствах закрываем только при явном touch вне dropdown
-      if (window.innerWidth < 550) {
-        // Небольшая задержка, чтобы дать возможность обработать клик на кнопку
-        setTimeout(() => {
-          if (!containerRef.current?.contains(event.target) && 
-              !dropdownRef.current?.contains(event.target)) {
+    // Обработчик скролла страницы - закрываем dropdown при скролле страницы (не внутри dropdown)
+    const handleScroll = () => {
+      // На мобильных устройствах (< 550px) закрываем dropdown при скролле страницы
+      if (window.innerWidth < 550 && dropdownRef.current && isOpen) {
+        // Не закрываем dropdown, если происходит выбор опции
+        if (isSelectingRef.current) {
+          return;
+        }
+        
+        // Не закрываем dropdown, если он только что открылся (в течение 500ms)
+        if (openTimeRef.current && Date.now() - openTimeRef.current < 500) {
+          return;
+        }
+        
+        // Очищаем предыдущий таймаут
+        if (scrollTimeoutRef.current) {
+          clearTimeout(scrollTimeoutRef.current);
+        }
+        
+        // Используем небольшую задержку, чтобы отличить скролл страницы от скролла внутри dropdown
+        scrollTimeoutRef.current = setTimeout(() => {
+          // Проверяем еще раз, что dropdown открыт и не происходит выбор
+          if (!dropdownRef.current || !isOpen || isSelectingRef.current) {
+            return;
+          }
+          
+          // Проверяем, является ли активный элемент частью dropdown
+          const activeElement = document.activeElement;
+          const isActiveInDropdown = 
+            activeElement && dropdownRef.current.contains(activeElement);
+          
+          // Если активный элемент в dropdown (например, input для поиска), не закрываем
+          if (isActiveInDropdown) {
+            return;
+          }
+          
+          // Проверяем, находится ли dropdown в viewport
+          const dropdownRect = dropdownRef.current.getBoundingClientRect();
+          const isDropdownInViewport = 
+            dropdownRect.top < window.innerHeight && 
+            dropdownRect.bottom > 0;
+          
+          // Закрываем только если dropdown видим и активный элемент не внутри него
+          if (isDropdownInViewport) {
             setIsOpen(false);
             if (paramType !== "surface") {
               setQ("");
@@ -80,17 +119,21 @@ export default function SelectText({
     // Добавляем небольшую задержку, чтобы клик на кнопку открытия успел обработаться
     const timeoutId = setTimeout(() => {
       document.addEventListener('click', handleClickOutside, true);
-      // На мобильных устройствах также слушаем touchstart
+      // На мобильных устройствах слушаем скролл страницы
       if (window.innerWidth < 550) {
-        document.addEventListener("touchstart", handleTouchStart, { passive: true });
+        window.addEventListener("scroll", handleScroll, { passive: true });
       }
     }, 150);
 
     return () => {
       clearTimeout(timeoutId);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+        scrollTimeoutRef.current = null;
+      }
       document.removeEventListener('click', handleClickOutside, true);
       if (window.innerWidth < 550) {
-        document.removeEventListener("touchstart", handleTouchStart);
+        window.removeEventListener("scroll", handleScroll);
       }
     };
   }, [isOpen, paramType]);
@@ -258,11 +301,18 @@ export default function SelectText({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                // Устанавливаем флаг, что происходит выбор опции
+                isSelectingRef.current = true;
                 onChange("");
+                // Закрываем dropdown сразу, чтобы избежать конфликтов
                 setIsOpen(false);
                 if (paramType !== "surface") {
                   setQ("");
                 }
+                // Сбрасываем флаг через задержку, чтобы обработчик скролла не мешал
+                setTimeout(() => {
+                  isSelectingRef.current = false;
+                }, 800);
               }}
               onMouseDown={(e) => {
                 // Предотвращаем закрытие dropdown при mousedown на кнопке
@@ -291,11 +341,18 @@ export default function SelectText({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                // Устанавливаем флаг, что происходит выбор опции
+                isSelectingRef.current = true;
                 onChange(opt.id);
+                // Закрываем dropdown сразу, чтобы избежать конфликтов
                 setIsOpen(false);
                 if (paramType !== "surface") {
                   setQ("");
                 }
+                // Сбрасываем флаг через задержку, чтобы обработчик скролла не мешал
+                setTimeout(() => {
+                  isSelectingRef.current = false;
+                }, 800);
               }}
               onMouseDown={(e) => {
                 // Предотвращаем закрытие dropdown при mousedown на кнопке
