@@ -129,15 +129,45 @@ export default function SelectWithImages({
       }
     };
 
+    // Обработчик touch-событий для мобильных устройств
+    const handleTouchStart = (event) => {
+      // Если touch происходит внутри dropdown или контейнера, не закрываем
+      if (
+        dropdownRef.current?.contains(event.target) ||
+        containerRef.current?.contains(event.target)
+      ) {
+        return;
+      }
+      
+      // На мобильных устройствах закрываем только при явном touch вне dropdown
+      if (window.innerWidth < 550) {
+        // Небольшая задержка, чтобы дать возможность обработать клик на кнопку
+        setTimeout(() => {
+          if (!containerRef.current?.contains(event.target) && 
+              !dropdownRef.current?.contains(event.target)) {
+            setIsOpen(false);
+            setQ("");
+          }
+        }, 100);
+      }
+    };
+
     // Используем click вместо mousedown, чтобы он срабатывал после onClick на кнопке
     // Добавляем небольшую задержку, чтобы клик на кнопку открытия успел обработаться
     const timeoutId = setTimeout(() => {
       document.addEventListener("click", handleClickOutside, true);
+      // На мобильных устройствах также слушаем touchstart
+      if (window.innerWidth < 550) {
+        document.addEventListener("touchstart", handleTouchStart, { passive: true });
+      }
     }, 150);
 
     return () => {
       clearTimeout(timeoutId);
       document.removeEventListener("click", handleClickOutside, true);
+      if (window.innerWidth < 550) {
+        document.removeEventListener("touchstart", handleTouchStart);
+      }
     };
   }, [isOpen]);
 
@@ -383,6 +413,25 @@ export default function SelectWithImages({
             padding: 12,
             marginTop: 8,
             boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+            WebkitOverflowScrolling: "touch", // Плавный скролл на iOS
+          }}
+          onScroll={(e) => {
+            // Предотвращаем всплытие события скролла
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+          }}
+          onTouchStart={(e) => {
+            // Предотвращаем закрытие при touch-событиях внутри dropdown
+            e.stopPropagation();
+          }}
+          onTouchMove={(e) => {
+            // Предотвращаем закрытие при touch-скролле на мобильных
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+          }}
+          onTouchEnd={(e) => {
+            // Предотвращаем закрытие при touch-событиях внутри dropdown
+            e.stopPropagation();
           }}
         >
           {/* Поиск */}

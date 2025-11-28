@@ -528,12 +528,24 @@ export default function CalcControls(props) {
               placeholder="ширина"
               value={width}
               onChange={(e) => setWidth(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && hasValidInput && !calcLoading) {
+                  e.preventDefault();
+                  onCalculate();
+                }
+              }}
             />
             <input
               type="text"
               placeholder="высота"
               value={height}
               onChange={(e) => setHeight(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && hasValidInput && !calcLoading) {
+                  e.preventDefault();
+                  onCalculate();
+                }
+              }}
             />
           </>
         ) : (
@@ -543,6 +555,12 @@ export default function CalcControls(props) {
               placeholder="площадь (м²)"
               value={area}
               onChange={(e) => setArea(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && hasValidInput && !calcLoading) {
+                  e.preventDefault();
+                  onCalculate();
+                }
+              }}
             />
             <input
               type="text"

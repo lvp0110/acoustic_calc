@@ -25,6 +25,7 @@ export default function Acoustic() {
   const prevModelRef = useRef(null); // Для отслеживания смены модели
   const brandChangeInProgressRef = useRef(false); // Флаг для блокировки восстановления таблицы при смене бренда
   const tableContainerRef = useRef(null); // Ref для контейнера таблицы
+  const [showScrollArrow, setShowScrollArrow] = useState(false); // Показывать ли стрелку прокрутки
   const {
     BASE_URL,
     buildApiUrl,
@@ -348,6 +349,60 @@ export default function Acoustic() {
     }
   }, [tableCalcData, tableCalcRows, tableBrand, tableModel, brand, model]);
 
+  // Проверка необходимости показа стрелки прокрутки (только для экранов < 1024px)
+  useEffect(() => {
+    const checkScrollNeeded = () => {
+      // Проверяем только на экранах меньше 1024px
+      if (window.innerWidth >= 1024) {
+        setShowScrollArrow(false);
+        return;
+      }
+
+      // Проверяем, есть ли контент ниже видимой области
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+      // Проверяем, действительно ли требуется прокрутка
+      // 1. Высота документа должна быть больше высоты окна (есть что прокручивать)
+      // 2. Пользователь должен быть в верхней части страницы (прокрутил меньше 200px)
+      // 3. Должен быть видимый контент ниже (разница между высотой документа и текущей позицией прокрутки)
+      const hasMoreContent = documentHeight > windowHeight;
+      const isAtTop = scrollTop < 200; // Показываем только если прокрутили меньше 200px
+      const hasContentBelow = (documentHeight - scrollTop) > windowHeight + 50; // Есть контент ниже с небольшим запасом
+
+      // Показываем стрелку только если все условия выполнены
+      setShowScrollArrow(hasMoreContent && isAtTop && hasContentBelow);
+    };
+
+    // Проверяем при загрузке и изменении размера окна
+    checkScrollNeeded();
+    
+    // Используем небольшую задержку для проверки после рендера
+    const timeoutId = setTimeout(checkScrollNeeded, 100);
+    
+    window.addEventListener('scroll', checkScrollNeeded, { passive: true });
+    window.addEventListener('resize', checkScrollNeeded);
+
+    // Также проверяем при изменении контента
+    const observer = new MutationObserver(() => {
+      // Небольшая задержка для того, чтобы DOM успел обновиться
+      setTimeout(checkScrollNeeded, 100);
+    });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+    });
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('scroll', checkScrollNeeded);
+      window.removeEventListener('resize', checkScrollNeeded);
+      observer.disconnect();
+    };
+  }, [brand, model, tableCalcData, tableCalcRows, isDescriptionExpanded]);
+
   // Загрузка name из api/v1/brandParams с model для каждого типа опции
   useEffect(() => {
     if (!brand || !model) {
@@ -598,6 +653,32 @@ export default function Acoustic() {
           </div>
         )}
       </div>
+      
+      {/* Стрелка прокрутки (только для экранов < 1024px) */}
+      {showScrollArrow && (
+        <div 
+          className="scroll-arrow"
+          onClick={() => {
+            window.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
+          }}
+        >
+          <svg 
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path 
+              d="M12 5V19M12 19L19 12M12 19L5 12" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+      )}
     </div>
   );
 }
