@@ -40,8 +40,8 @@ export default function SelectWithImages({
       const spanRect = spanRef.current.getBoundingClientRect();
       const containerRect = containerRef.current.getBoundingClientRect();
       setTooltipPosition({
-        right: containerRect.right - spanRect.right,
-        bottom: containerRect.bottom - spanRect.top + 8,
+        right: containerRect.bottom - spanRect.bottom - 8,
+        bottom: containerRect.bottom - spanRect.top + 4,
       });
     }
   }, [showTooltip]);
@@ -255,8 +255,8 @@ export default function SelectWithImages({
                   marginLeft: 0,
                   marginBottom: 0,
                   background: "#f5f5f7",
-                  borderLeft: "solid 2px gray",
-                  borderBottom: "solid 2px gray",
+                  borderLeft: "solid 1px lightgray",
+                  borderBottom: "solid 1px lightgray",
                   
                 }}
                 onMouseEnter={() => setShowTooltip(true)}

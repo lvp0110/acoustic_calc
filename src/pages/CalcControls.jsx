@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import "./CalcControls.css";
 import { useAcoustic } from "../context/AcousticContext.jsx";
 import SelectText from "../components/SelectText.jsx";
-import { encodeTableData, decodeTableData } from "../utils/tableData.js";
+import { encodeTableData } from "../utils/tableData.js";
 
 export default function CalcControls(props) {
   const { BASE_URL, brand, model, color, size, perf, edge, fullOptionData, hasColor, hasSize, hasPerf, hasEdge } =
@@ -223,7 +223,6 @@ export default function CalcControls(props) {
     };
 
     return {
-      params: buildApiUrl("api/v2/constr/calc/params"),
       calcBase: buildApiUrl("api/v2/constr/calc"),
       excel: buildApiUrl("api/v2/constr/calc/excel"),
     };
@@ -265,13 +264,6 @@ export default function CalcControls(props) {
       setCalcRows([]);
       setCalcLoading(true);
       setCalcError("");
-      const selected = {
-        model: fullOptionData?.model?.[model] || null,
-        color: fullOptionData?.color?.[color] || null,
-        size: fullOptionData?.size?.[size] || null,
-        perf: fullOptionData?.perf?.[perf] || null,
-        edge: fullOptionData?.edge?.[edge] || null,
-      };
       const params = new URLSearchParams();
       if (model) params.set("model", model);
       if (color) params.set("color", color);
