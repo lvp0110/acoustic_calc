@@ -113,6 +113,51 @@
   }
 }
 
+@media screen and (max-width: 375px) {
+  .calc-components {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    height: auto;
+  }
+
+  .calc-components button {
+    flex: 0 0 calc(50% - 4px);
+    width: calc(50% - 4px);
+  }
+
+  .calc-components > div {
+    flex: 0 0 100%;
+    width: 100%;
+  }
+
+  .table-components {
+    display: grid;
+    grid-template-columns: 1fr 70px;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .table-components button:first-child {
+    grid-column: 1;
+  }
+
+  .table-components button:last-child {
+    grid-column: 2;
+  }
+
+  /* Excel кнопка, если есть */
+  .table-components button:nth-child(2):not(:last-child) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .table-components button:last-child:nth-child(3) {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+
 /* Modal styles */
 .modal-overlay {
   position: fixed;
