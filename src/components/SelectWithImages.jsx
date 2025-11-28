@@ -22,9 +22,6 @@ export default function SelectWithImages({
   const containerRef = useRef(null);
   const searchInputRef = useRef(null);
   const dropdownRef = useRef(null);
-  const scrollTimeoutRef = useRef(null);
-  const openTimeRef = useRef(null);
-  const isSelectingRef = useRef(false);
   const selectedOption = options.find((opt) => opt.id === value);
   const sectionAcc = SECTION_TITLES[paramType]?.acc || "опцию";
 
@@ -43,8 +40,8 @@ export default function SelectWithImages({
       const spanRect = spanRef.current.getBoundingClientRect();
       const containerRect = containerRef.current.getBoundingClientRect();
       setTooltipPosition({
-        right: containerRect.bottom - spanRect.bottom - 8,
-        bottom: containerRect.bottom - spanRect.top + 4,
+        right: containerRect.right - spanRect.right,
+        bottom: containerRect.bottom - spanRect.top + 8,
       });
     }
   }, [showTooltip]);
@@ -52,14 +49,6 @@ export default function SelectWithImages({
   useEffect(() => {
     if (isOpen && searchInputRef.current) {
       searchInputRef.current.focus();
-      // Запоминаем время открытия dropdown
-      openTimeRef.current = Date.now();
-      // Сбрасываем флаг выбора при открытии
-      isSelectingRef.current = false;
-    } else {
-      openTimeRef.current = null;
-      // Сбрасываем флаг выбора при закрытии
-      isSelectingRef.current = false;
     }
   }, [isOpen]);
 
@@ -109,7 +98,53 @@ export default function SelectWithImages({
   useEffect(() => {
     if (!isOpen) return;
 
+    // Для мобильных устройств отслеживаем touch события для определения скролла
+    let touchStartY = null;
+    let touchStartX = null;
+    let touchStartTime = null;
+    let hasScrolled = false;
+
+    const handleTouchStart = (event) => {
+      if (event.touches.length > 0) {
+        touchStartY = event.touches[0].clientY;
+        touchStartX = event.touches[0].clientX;
+        touchStartTime = Date.now();
+        hasScrolled = false;
+      }
+    };
+
+    const handleTouchMove = (event) => {
+      if (touchStartY !== null && touchStartX !== null && event.touches.length > 0) {
+        const deltaY = Math.abs(event.touches[0].clientY - touchStartY);
+        const deltaX = Math.abs(event.touches[0].clientX - touchStartX);
+        // Если движение больше 5px, считаем это скроллом
+        if (deltaY > 5 || deltaX > 5) {
+          hasScrolled = true;
+        }
+      }
+    };
+
     const handleClickOutside = (event) => {
+      // На мобильных устройствах проверяем, не был ли это скролл
+      if (window.innerWidth < 1024) {
+        // Если это touch событие и был скролл, не закрываем
+        if (event.type === 'touchend' && hasScrolled) {
+          touchStartY = null;
+          touchStartX = null;
+          touchStartTime = null;
+          hasScrolled = false;
+          return;
+        }
+        // Если между touchstart и touchend прошло больше 200ms и было движение, это скролл
+        if (event.type === 'touchend' && touchStartTime && Date.now() - touchStartTime > 200 && hasScrolled) {
+          touchStartY = null;
+          touchStartX = null;
+          touchStartTime = null;
+          hasScrolled = false;
+          return;
+        }
+      }
+
       // Проверяем, что клик был вне контейнера и dropdown
       const clickedInsideContainer = containerRef.current?.contains(
         event.target
@@ -130,6 +165,10 @@ export default function SelectWithImages({
         isDropdownItemButton ||
         isSizeOptionButton
       ) {
+        touchStartY = null;
+        touchStartX = null;
+        touchStartTime = null;
+        hasScrolled = false;
         return;
       }
 
@@ -138,78 +177,32 @@ export default function SelectWithImages({
         setIsOpen(false);
         setQ("");
       }
-    };
-
-    // Обработчик скролла страницы - закрываем dropdown при скролле страницы (не внутри dropdown)
-    const handleScroll = () => {
-      // На мобильных устройствах (< 550px) закрываем dropdown при скролле страницы
-      if (window.innerWidth < 550 && dropdownRef.current && isOpen) {
-        // Не закрываем dropdown, если происходит выбор опции
-        if (isSelectingRef.current) {
-          return;
-        }
-        
-        // Не закрываем dropdown, если он только что открылся (в течение 500ms)
-        if (openTimeRef.current && Date.now() - openTimeRef.current < 500) {
-          return;
-        }
-        
-        // Очищаем предыдущий таймаут
-        if (scrollTimeoutRef.current) {
-          clearTimeout(scrollTimeoutRef.current);
-        }
-        
-        // Используем небольшую задержку, чтобы отличить скролл страницы от скролла внутри dropdown
-        scrollTimeoutRef.current = setTimeout(() => {
-          // Проверяем еще раз, что dropdown открыт и не происходит выбор
-          if (!dropdownRef.current || !isOpen || isSelectingRef.current) {
-            return;
-          }
-          
-          // Проверяем, является ли активный элемент частью dropdown
-          const activeElement = document.activeElement;
-          const isActiveInDropdown = 
-            activeElement && dropdownRef.current.contains(activeElement);
-          
-          // Если активный элемент в dropdown (например, input для поиска), не закрываем
-          if (isActiveInDropdown) {
-            return;
-          }
-          
-          // Проверяем, находится ли dropdown в viewport
-          const dropdownRect = dropdownRef.current.getBoundingClientRect();
-          const isDropdownInViewport = 
-            dropdownRect.top < window.innerHeight && 
-            dropdownRect.bottom > 0;
-          
-          // Закрываем только если dropdown видим и активный элемент не внутри него
-          if (isDropdownInViewport) {
-            setIsOpen(false);
-            setQ("");
-          }
-        }, 100);
-      }
+      
+      touchStartY = null;
+      touchStartX = null;
+      touchStartTime = null;
+      hasScrolled = false;
     };
 
     // Используем click вместо mousedown, чтобы он срабатывал после onClick на кнопке
     // Добавляем небольшую задержку, чтобы клик на кнопку открытия успел обработаться
     const timeoutId = setTimeout(() => {
       document.addEventListener("click", handleClickOutside, true);
-      // На мобильных устройствах слушаем скролл страницы
-      if (window.innerWidth < 550) {
-        window.addEventListener("scroll", handleScroll, { passive: true });
+      // Для мобильных устройств добавляем touch события
+      if (window.innerWidth < 1024) {
+        document.addEventListener("touchstart", handleTouchStart, { passive: true });
+        document.addEventListener("touchmove", handleTouchMove, { passive: true });
+        document.addEventListener("touchend", handleClickOutside, { passive: true });
       }
     }, 150);
 
     return () => {
       clearTimeout(timeoutId);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-        scrollTimeoutRef.current = null;
-      }
       document.removeEventListener("click", handleClickOutside, true);
-      if (window.innerWidth < 550) {
-        window.removeEventListener("scroll", handleScroll);
+      if (window.innerWidth < 1024) {
+        document.removeEventListener("touchstart", handleTouchStart);
+        document.removeEventListener("touchmove", handleTouchMove);
+        document.removeEventListener("touchend", handleClickOutside);
       }
     };
   }, [isOpen]);
@@ -218,11 +211,15 @@ export default function SelectWithImages({
     <div ref={containerRef} style={{ position: "relative", width: "100%" }}>
       <button
         type="button"
-        onClick={() => {
-          setIsOpen((v) => !v);
-          if (isOpen) {
-            setQ("");
-          }
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen((prev) => {
+            const newValue = !prev;
+            if (!newValue) {
+              setQ("");
+            }
+            return newValue;
+          });
         }}
         style={{
           width: "100%",
@@ -298,8 +295,8 @@ export default function SelectWithImages({
                   marginLeft: 0,
                   marginBottom: 0,
                   background: "#f5f5f7",
-                  borderLeft: "solid 1px lightgray",
-                  borderBottom: "solid 1px lightgray",
+                  borderLeft: "solid 2px gray",
+                  borderBottom: "solid 2px gray",
                   
                 }}
                 onMouseEnter={() => setShowTooltip(true)}
@@ -456,25 +453,6 @@ export default function SelectWithImages({
             padding: 12,
             marginTop: 8,
             boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-            WebkitOverflowScrolling: "touch", // Плавный скролл на iOS
-          }}
-          onScroll={(e) => {
-            // Предотвращаем всплытие события скролла
-            e.stopPropagation();
-            e.nativeEvent.stopImmediatePropagation();
-          }}
-          onTouchStart={(e) => {
-            // Предотвращаем закрытие при touch-событиях внутри dropdown
-            e.stopPropagation();
-          }}
-          onTouchMove={(e) => {
-            // Предотвращаем закрытие при touch-скролле на мобильных
-            e.stopPropagation();
-            e.nativeEvent.stopImmediatePropagation();
-          }}
-          onTouchEnd={(e) => {
-            // Предотвращаем закрытие при touch-событиях внутри dropdown
-            e.stopPropagation();
           }}
         >
           {/* Поиск */}
@@ -525,16 +503,9 @@ export default function SelectWithImages({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    // Устанавливаем флаг, что происходит выбор опции
-                    isSelectingRef.current = true;
                     onChange(opt.id);
-                    // Закрываем dropdown сразу, чтобы избежать конфликтов
                     setIsOpen(false);
                     setQ("");
-                    // Сбрасываем флаг через задержку, чтобы обработчик скролла не мешал
-                    setTimeout(() => {
-                      isSelectingRef.current = false;
-                    }, 800);
                   }}
                   onMouseDown={(e) => {
                     // Предотвращаем закрытие dropdown при mousedown на кнопке

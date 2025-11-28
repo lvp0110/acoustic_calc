@@ -39,19 +39,6 @@
   overflow: visible;
 }
 
-/* На мобильных устройствах обеспечиваем правильную работу dropdown */
-@media (max-width: 550px) {
-  .block-2 {
-    /* Убеждаемся, что dropdown не обрезается */
-    overflow: visible;
-  }
-  
-  /* Увеличиваем z-index для dropdown на мобильных */
-  .select-dropdown {
-    z-index: 1001 !important;
-  }
-}
-
 .options-grid {
   display: grid;
   gap: 8px;
@@ -192,55 +179,5 @@ button.size-option-button {
   
   .block-2 .select-dropdown-item {
     grid-column: span 1 !important;
-  }
-}
-
-/* Стрелка прокрутки (только для экранов < 1024px) */
-.scroll-arrow {
-  position: fixed;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 50px;
-  height: 50px;
-  background-color: rgba(0, 107, 207, 0.9);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  color: white;
-  animation: bounce 2s infinite;
-}
-
-.scroll-arrow:hover {
-  background-color: rgba(0, 107, 207, 1);
-  transform: translateX(-50%) scale(1.1);
-}
-
-.scroll-arrow svg {
-  width: 24px;
-  height: 24px;
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translateX(-50%) translateY(0);
-  }
-  40% {
-    transform: translateX(-50%) translateY(-10px);
-  }
-  60% {
-    transform: translateX(-50%) translateY(-5px);
-  }
-}
-
-/* Скрываем стрелку на экранах >= 1024px */
-@media (min-width: 1024px) {
-  .scroll-arrow {
-    display: none !important;
   }
 }

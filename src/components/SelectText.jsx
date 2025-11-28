@@ -16,22 +16,11 @@ export default function SelectText({
   const searchInputRef = useRef(null);
   const containerRef = useRef(null);
   const dropdownRef = useRef(null);
-  const scrollTimeoutRef = useRef(null);
-  const openTimeRef = useRef(null);
-  const isSelectingRef = useRef(false);
   const selectedOption = options.find((opt) => opt.id === value);
 
   useEffect(() => {
     if (isOpen && searchInputRef.current && paramType !== "surface") {
       searchInputRef.current.focus();
-      // Запоминаем время открытия dropdown
-      openTimeRef.current = Date.now();
-      // Сбрасываем флаг выбора при открытии
-      isSelectingRef.current = false;
-    } else {
-      openTimeRef.current = null;
-      // Сбрасываем флаг выбора при закрытии
-      isSelectingRef.current = false;
     }
   }, [isOpen, paramType]);
 
@@ -39,7 +28,53 @@ export default function SelectText({
   useEffect(() => {
     if (!isOpen) return;
 
+    // Для мобильных устройств отслеживаем touch события для определения скролла
+    let touchStartY = null;
+    let touchStartX = null;
+    let touchStartTime = null;
+    let hasScrolled = false;
+
+    const handleTouchStart = (event) => {
+      if (event.touches.length > 0) {
+        touchStartY = event.touches[0].clientY;
+        touchStartX = event.touches[0].clientX;
+        touchStartTime = Date.now();
+        hasScrolled = false;
+      }
+    };
+
+    const handleTouchMove = (event) => {
+      if (touchStartY !== null && touchStartX !== null && event.touches.length > 0) {
+        const deltaY = Math.abs(event.touches[0].clientY - touchStartY);
+        const deltaX = Math.abs(event.touches[0].clientX - touchStartX);
+        // Если движение больше 5px, считаем это скроллом
+        if (deltaY > 5 || deltaX > 5) {
+          hasScrolled = true;
+        }
+      }
+    };
+
     const handleClickOutside = (event) => {
+      // На мобильных устройствах проверяем, не был ли это скролл
+      if (window.innerWidth < 1024) {
+        // Если это touch событие и был скролл, не закрываем
+        if (event.type === 'touchend' && hasScrolled) {
+          touchStartY = null;
+          touchStartX = null;
+          touchStartTime = null;
+          hasScrolled = false;
+          return;
+        }
+        // Если между touchstart и touchend прошло больше 200ms и было движение, это скролл
+        if (event.type === 'touchend' && touchStartTime && Date.now() - touchStartTime > 200 && hasScrolled) {
+          touchStartY = null;
+          touchStartX = null;
+          touchStartTime = null;
+          hasScrolled = false;
+          return;
+        }
+      }
+
       // Проверяем, что клик был вне контейнера и dropdown
       const clickedInsideContainer = containerRef.current?.contains(event.target);
       const clickedInsideDropdown = dropdownRef.current?.contains(event.target);
@@ -50,6 +85,10 @@ export default function SelectText({
       
       // Если клик внутри dropdown или на элементе dropdown, не закрываем
       if (clickedInsideDropdown || isDropdownItem || isDropdownItemButton) {
+        touchStartY = null;
+        touchStartX = null;
+        touchStartTime = null;
+        hasScrolled = false;
         return;
       }
       
@@ -60,80 +99,32 @@ export default function SelectText({
           setQ("");
         }
       }
-    };
-
-    // Обработчик скролла страницы - закрываем dropdown при скролле страницы (не внутри dropdown)
-    const handleScroll = () => {
-      // На мобильных устройствах (< 550px) закрываем dropdown при скролле страницы
-      if (window.innerWidth < 550 && dropdownRef.current && isOpen) {
-        // Не закрываем dropdown, если происходит выбор опции
-        if (isSelectingRef.current) {
-          return;
-        }
-        
-        // Не закрываем dropdown, если он только что открылся (в течение 500ms)
-        if (openTimeRef.current && Date.now() - openTimeRef.current < 500) {
-          return;
-        }
-        
-        // Очищаем предыдущий таймаут
-        if (scrollTimeoutRef.current) {
-          clearTimeout(scrollTimeoutRef.current);
-        }
-        
-        // Используем небольшую задержку, чтобы отличить скролл страницы от скролла внутри dropdown
-        scrollTimeoutRef.current = setTimeout(() => {
-          // Проверяем еще раз, что dropdown открыт и не происходит выбор
-          if (!dropdownRef.current || !isOpen || isSelectingRef.current) {
-            return;
-          }
-          
-          // Проверяем, является ли активный элемент частью dropdown
-          const activeElement = document.activeElement;
-          const isActiveInDropdown = 
-            activeElement && dropdownRef.current.contains(activeElement);
-          
-          // Если активный элемент в dropdown (например, input для поиска), не закрываем
-          if (isActiveInDropdown) {
-            return;
-          }
-          
-          // Проверяем, находится ли dropdown в viewport
-          const dropdownRect = dropdownRef.current.getBoundingClientRect();
-          const isDropdownInViewport = 
-            dropdownRect.top < window.innerHeight && 
-            dropdownRect.bottom > 0;
-          
-          // Закрываем только если dropdown видим и активный элемент не внутри него
-          if (isDropdownInViewport) {
-            setIsOpen(false);
-            if (paramType !== "surface") {
-              setQ("");
-            }
-          }
-        }, 100);
-      }
+      
+      touchStartY = null;
+      touchStartX = null;
+      touchStartTime = null;
+      hasScrolled = false;
     };
 
     // Используем click вместо mousedown, чтобы он срабатывал после onClick на кнопке
     // Добавляем небольшую задержку, чтобы клик на кнопку открытия успел обработаться
     const timeoutId = setTimeout(() => {
       document.addEventListener('click', handleClickOutside, true);
-      // На мобильных устройствах слушаем скролл страницы
-      if (window.innerWidth < 550) {
-        window.addEventListener("scroll", handleScroll, { passive: true });
+      // Для мобильных устройств добавляем touch события
+      if (window.innerWidth < 1024) {
+        document.addEventListener("touchstart", handleTouchStart, { passive: true });
+        document.addEventListener("touchmove", handleTouchMove, { passive: true });
+        document.addEventListener("touchend", handleClickOutside, { passive: true });
       }
     }, 150);
 
     return () => {
       clearTimeout(timeoutId);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-        scrollTimeoutRef.current = null;
-      }
       document.removeEventListener('click', handleClickOutside, true);
-      if (window.innerWidth < 550) {
-        window.removeEventListener("scroll", handleScroll);
+      if (window.innerWidth < 1024) {
+        document.removeEventListener("touchstart", handleTouchStart);
+        document.removeEventListener("touchmove", handleTouchMove);
+        document.removeEventListener("touchend", handleClickOutside);
       }
     };
   }, [isOpen, paramType]);
@@ -157,11 +148,15 @@ export default function SelectText({
     <div ref={containerRef} style={{ position: "relative", width: "100%" }}>
       <button
         type="button"
-        onClick={() => {
-          setIsOpen(!isOpen);
-          if (isOpen && paramType !== "surface") {
-            setQ("");
-          }
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen((prev) => {
+            const newValue = !prev;
+            if (!newValue && paramType !== "surface") {
+              setQ("");
+            }
+            return newValue;
+          });
         }}
         style={{
           width: "100%",
@@ -242,25 +237,6 @@ export default function SelectText({
             marginTop: 8,
             boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
             padding: "0px",
-            WebkitOverflowScrolling: "touch", // Плавный скролл на iOS
-          }}
-          onScroll={(e) => {
-            // Предотвращаем всплытие события скролла
-            e.stopPropagation();
-            e.nativeEvent.stopImmediatePropagation();
-          }}
-          onTouchStart={(e) => {
-            // Предотвращаем закрытие при touch-событиях внутри dropdown
-            e.stopPropagation();
-          }}
-          onTouchMove={(e) => {
-            // Предотвращаем закрытие при touch-скролле на мобильных
-            e.stopPropagation();
-            e.nativeEvent.stopImmediatePropagation();
-          }}
-          onTouchEnd={(e) => {
-            // Предотвращаем закрытие при touch-событиях внутри dropdown
-            e.stopPropagation();
           }}
           >
           {/* Поле поиска - только если не surface */}
@@ -301,18 +277,11 @@ export default function SelectText({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                // Устанавливаем флаг, что происходит выбор опции
-                isSelectingRef.current = true;
                 onChange("");
-                // Закрываем dropdown сразу, чтобы избежать конфликтов
                 setIsOpen(false);
                 if (paramType !== "surface") {
                   setQ("");
                 }
-                // Сбрасываем флаг через задержку, чтобы обработчик скролла не мешал
-                setTimeout(() => {
-                  isSelectingRef.current = false;
-                }, 800);
               }}
               onMouseDown={(e) => {
                 // Предотвращаем закрытие dropdown при mousedown на кнопке
@@ -341,18 +310,11 @@ export default function SelectText({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                // Устанавливаем флаг, что происходит выбор опции
-                isSelectingRef.current = true;
                 onChange(opt.id);
-                // Закрываем dropdown сразу, чтобы избежать конфликтов
                 setIsOpen(false);
                 if (paramType !== "surface") {
                   setQ("");
                 }
-                // Сбрасываем флаг через задержку, чтобы обработчик скролла не мешал
-                setTimeout(() => {
-                  isSelectingRef.current = false;
-                }, 800);
               }}
               onMouseDown={(e) => {
                 // Предотвращаем закрытие dropdown при mousedown на кнопке
