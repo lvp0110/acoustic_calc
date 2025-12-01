@@ -22,8 +22,48 @@ export default function SelectWithImages({
   const containerRef = useRef(null);
   const searchInputRef = useRef(null);
   const dropdownRef = useRef(null);
-  const selectedOption = options.find((opt) => opt.id === value);
+  // Используем строгое сравнение для поиска правильного бренда
+  const selectedOption = options.find((opt) => {
+    const matches = String(opt.id) === String(value);
+    if (import.meta.env?.MODE === 'development' && paramType === 'brand' && matches) {
+      console.log('[SelectWithImages] Found matching option:', {
+        searchValue: value,
+        foundId: opt.id,
+        foundCode: opt.code,
+        foundName: opt.name,
+        hasImg: !!(opt.Img && String(opt.Img).trim() !== ""),
+        Img: opt.Img
+      });
+    }
+    return matches;
+  });
   const sectionAcc = SECTION_TITLES[paramType]?.acc || "опцию";
+
+  // Отладочное логирование для брендов
+  if (import.meta.env?.MODE === 'development' && paramType === 'brand') {
+    console.log('[SelectWithImages] Brand selection check:', {
+      value,
+      optionsCount: options.length,
+      selectedOption: selectedOption ? { 
+        id: selectedOption.id, 
+        code: selectedOption.code, 
+        name: selectedOption.name, 
+        Img: selectedOption.Img,
+        hasImg: !!(selectedOption.Img && String(selectedOption.Img).trim() !== "")
+      } : null,
+      allOptionIds: options.map(o => ({ id: o.id, code: o.code, name: o.name, Img: o.Img }))
+    });
+    if (selectedOption) {
+      // Проверяем соответствие
+      if (String(selectedOption.id) !== String(value) || (selectedOption.code && String(selectedOption.code) !== String(value))) {
+        console.error('[SelectWithImages] MISMATCH! value:', value, 'selectedOption.id:', selectedOption.id, 'selectedOption.code:', selectedOption.code);
+      }
+      const imageUrl = getImageUrl(selectedOption);
+      console.log('[SelectWithImages] Brand selected:', selectedOption.name, 'Image URL:', imageUrl);
+    } else {
+      console.warn('[SelectWithImages] No brand found for value:', value);
+    }
+  }
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -239,47 +279,217 @@ export default function SelectWithImages({
       >
         {selectedOption ? (
           <>
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                pointerEvents: "none",
-                zIndex: 1,
-              }}
-            />
-            <img
-              src={getImageUrl(selectedOption)}
-              alt={selectedOption?.name}
-              onError={(e) => (e.currentTarget.style.display = "none")}
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: paramType === "color" ? "cover" : "contain",
-                objectPosition: paramType === "color" ? "center" : "center",
-              }}
-            />
-            {paramType !== "color" && (
+            {paramType === "brand" ? (
+              // Для брендов: изображение рядом с текстом
+              // Важно: selectedOption должен соответствовать выбранному бренду (value === selectedOption.id === selectedOption.code)
               <>
+                {(() => {
+                  // Проверяем, что selectedOption соответствует выбранному бренду
+                  if (import.meta.env?.MODE === 'development') {
+                    console.log('[SelectWithImages] Brand selection verification:', {
+                      value,
+                      selectedOptionId: selectedOption?.id,
+                      selectedOptionCode: selectedOption?.code,
+                      matches: selectedOption?.id === value && selectedOption?.code === value,
+                      selectedOptionName: selectedOption?.name,
+                      selectedOptionImg: selectedOption?.Img
+                    });
+                  }
+                  
+                  // Строгая проверка: убеждаемся, что selectedOption действительно соответствует value
+                  if (!selectedOption) {
+                    if (import.meta.env?.MODE === 'development') {
+                      console.error('[SelectWithImages] No selectedOption for value:', value);
+                    }
+                    return null;
+                  }
+                  
+                  // Проверяем соответствие по id и code
+                  const idMatches = String(selectedOption.id) === String(value);
+                  const codeMatches = !selectedOption.code || String(selectedOption.code) === String(value);
+                  
+                  if (!idMatches || !codeMatches) {
+                    if (import.meta.env?.MODE === 'development') {
+                      console.error('[SelectWithImages] MISMATCH! value:', value, 'selectedOption:', { 
+                        id: selectedOption.id, 
+                        code: selectedOption.code,
+                        name: selectedOption.name
+                      });
+                    }
+                    return null;
+                  }
+                  
+                  // Получаем изображение ТОЛЬКО для этого конкретного бренда
+                  // Убеждаемся, что Img поле принадлежит именно этому бренду
+                  const brandImg = selectedOption.Img;
+                  const brandCode = selectedOption.code || selectedOption.id;
+                  const hasValidImg = brandImg && String(brandImg).trim() !== "";
+                  
+                  if (import.meta.env?.MODE === 'development') {
+                    console.log('[SelectWithImages] ✓ Checking image for brand', selectedOption.name, '(code:', brandCode, 'id:', selectedOption.id, ')');
+                    console.log('[SelectWithImages] Brand Img field:', brandImg);
+                    console.log('[SelectWithImages] Has valid Img:', hasValidImg);
+                  }
+                  
+                  // Если у бренда нет изображения, не отображаем его
+                  if (!hasValidImg) {
+                    if (import.meta.env?.MODE === 'development') {
+                      console.log('[SelectWithImages] Brand', selectedOption.name, 'has no image, skipping');
+                    }
+                    return null;
+                  }
+                  
+                  // ВАЖНО: Проверяем, что имя файла изображения содержит код бренда
+                  // Это гарантирует, что изображение действительно принадлежит этому бренду
+                  const imgFileName = String(brandImg).toLowerCase();
+                  const brandCodeLower = String(brandCode).toLowerCase();
+                  // Проверяем, что имя файла содержит код бренда (например, "text_block_brand_dc.jpg" содержит "dc")
+                  const imgMatchesBrand = imgFileName.includes(`_${brandCodeLower}`) || 
+                                         imgFileName.includes(`brand_${brandCodeLower}`) ||
+                                         imgFileName.startsWith(`${brandCodeLower}_`) ||
+                                         imgFileName === `${brandCodeLower}.jpg` ||
+                                         imgFileName === `brand_${brandCodeLower}.jpg`;
+                  
+                  if (import.meta.env?.MODE === 'development') {
+                    console.log('[SelectWithImages] Image filename validation:', {
+                      imgFileName,
+                      brandCode: brandCodeLower,
+                      matches: imgMatchesBrand
+                    });
+                  }
+                  
+                  // Если изображение не соответствует коду бренда, не отображаем его
+                  // Это предотвращает отображение изображений других брендов
+                  if (!imgMatchesBrand) {
+                    if (import.meta.env?.MODE === 'development') {
+                      console.warn('[SelectWithImages] ⚠️ Image filename does not match brand code. Image:', brandImg, 'Brand code:', brandCode, '- NOT DISPLAYING');
+                    }
+                    return null;
+                  }
+                  
+                  const imageUrl = getImageUrl(selectedOption);
+                  if (import.meta.env?.MODE === 'development') {
+                    console.log('[SelectWithImages] Brand', selectedOption.name, 'imageUrl:', imageUrl);
+                  }
+                  
+                  // Отображаем изображение ТОЛЬКО если оно есть у этого бренда
+                  if (imageUrl) {
+                    return (
+                      <img
+                        src={imageUrl}
+                        alt={selectedOption?.name}
+                        onError={(e) => {
+                          console.error('[SelectWithImages] Image load error:', {
+                            src: e.currentTarget.src,
+                            paramType,
+                            option: selectedOption,
+                            imageUrl: imageUrl
+                          });
+                          e.currentTarget.style.display = "none";
+                        }}
+                        onLoad={() => {
+                          if (import.meta.env?.MODE === 'development') {
+                            console.log('[SelectWithImages] Image loaded successfully:', imageUrl);
+                          }
+                        }}
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          objectFit: "contain",
+                          marginRight: "12px",
+                          flexShrink: 0,
+                        }}
+                      />
+                    );
+                  }
+                  if (import.meta.env?.MODE === 'development') {
+                    console.warn('[SelectWithImages] No image URL for brand, selectedOption:', selectedOption);
+                  }
+                  return null;
+                })()}
                 <span
                   ref={spanRef}
                   style={{
-                    position: "relative",
-                    zIndex: 2,
-                    marginTop: "auto",
-                    padding: "4px 4px",
-                    borderRadius: "0px 16px 0px 16px",
+                    flex: 1,
                     fontSize: "medium",
-                    marginLeft: 0,
-                    marginBottom: 0,
-                    background: "#f5f5f7",
+                    textAlign: "left",
+                    padding: "0 12px",
                   }}
                   onMouseEnter={() => setShowTooltip(true)}
                   onMouseLeave={() => setShowTooltip(false)}
                 >
                   {selectedOption?.name}
                 </span>
+              </>
+            ) : (
+              // Для остальных типов: изображение на фоне
+              <>
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    pointerEvents: "none",
+                    zIndex: 1,
+                  }}
+                />
+                {(() => {
+                  const imageUrl = getImageUrl(selectedOption);
+                  if (!imageUrl) {
+                    if (import.meta.env?.MODE === 'development' && paramType === 'brand') {
+                      console.warn('[SelectWithImages] No image URL for brand:', selectedOption);
+                    }
+                    return null;
+                  }
+                  return (
+                    <img
+                      src={imageUrl}
+                      alt={selectedOption?.name}
+                      onError={(e) => {
+                        console.error('[SelectWithImages] Image load error:', {
+                          src: e.currentTarget.src,
+                          paramType,
+                          option: selectedOption
+                        });
+                        e.currentTarget.style.display = "none";
+                      }}
+                      onLoad={() => {
+                        if (import.meta.env?.MODE === 'development' && paramType === 'brand') {
+                          console.log('[SelectWithImages] Image loaded successfully:', imageUrl);
+                        }
+                      }}
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: paramType === "color" ? "cover" : "contain",
+                        objectPosition: paramType === "color" ? "center" : "center",
+                      }}
+                    />
+                  );
+                })()}
+                {paramType !== "color" && (
+                  <>
+                    <span
+                      ref={spanRef}
+                      style={{
+                        position: "relative",
+                        zIndex: 2,
+                        marginTop: "auto",
+                        padding: "4px 4px",
+                        borderRadius: "0px 16px 0px 16px",
+                        fontSize: "medium",
+                        marginLeft: 0,
+                        marginBottom: 0,
+                        background: "#f5f5f7",
+                      }}
+                      onMouseEnter={() => setShowTooltip(true)}
+                      onMouseLeave={() => setShowTooltip(false)}
+                    >
+                      {selectedOption?.name}
+                    </span>
+                  </>
+                )}
               </>
             )}
             {paramType === "color" && (
@@ -307,11 +517,17 @@ export default function SelectWithImages({
             )}
             <span
               style={{
-                position: "absolute",
-                right: "12px",
-                top: paramType === "color" ? "12px" : "50%",
+                position: paramType === "brand" ? "relative" : "absolute",
+                right: paramType === "brand" ? "auto" : "12px",
+                marginLeft: paramType === "brand" ? "auto" : 0,
+                marginRight: paramType === "brand" ? "12px" : 0,
+                top: paramType === "brand" ? "auto" : (paramType === "color" ? "12px" : "50%"),
                 transform:
-                  paramType === "color"
+                  paramType === "brand"
+                    ? isOpen
+                      ? "rotate(180deg)"
+                      : "rotate(0deg)"
+                    : paramType === "color"
                     ? isOpen
                       ? "rotate(180deg)"
                       : "rotate(0deg)"
@@ -331,6 +547,7 @@ export default function SelectWithImages({
                 borderRadius: "50%",
                 width: "24px",
                 height: "24px",
+                flexShrink: 0,
               }}
             >
               <svg
@@ -352,19 +569,26 @@ export default function SelectWithImages({
           </>
         ) : (
           <>
-            <span style={{ padding: "0 12px", paddingRight: "40px" }}>
+            <span style={{ 
+              padding: "0 12px", 
+              paddingRight: paramType === "brand" ? "40px" : "40px",
+              flex: paramType === "brand" ? 1 : "none"
+            }}>
               {brandParamsName || `Выберите ${capitalize(sectionAcc)}`}
             </span>
             <span
               style={{
-                position: "absolute",
-                right: "12px",
+                position: paramType === "brand" ? "relative" : "absolute",
+                right: paramType === "brand" ? "auto" : "12px",
+                marginLeft: paramType === "brand" ? "auto" : 0,
+                marginRight: paramType === "brand" ? "12px" : 0,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 transition: "transform 0.3s ease",
                 transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
                 pointerEvents: "none",
+                flexShrink: 0,
               }}
             >
               <svg
@@ -493,7 +717,43 @@ export default function SelectWithImages({
             }}
           >
             {filtered.map((opt) => {
-              const url = getImageUrl(opt);
+              // Для брендов: проверяем, что изображение соответствует этому бренду
+              let url = null;
+              if (paramType === "brand") {
+                const brandImg = opt.Img;
+                const brandCode = opt.code || opt.id;
+                const hasValidImg = brandImg && String(brandImg).trim() !== "";
+                
+                if (hasValidImg) {
+                  // Проверяем, что имя файла содержит код бренда
+                  const imgFileName = String(brandImg).toLowerCase();
+                  const brandCodeLower = String(brandCode).toLowerCase();
+                  const imgMatchesBrand = imgFileName.includes(`_${brandCodeLower}`) || 
+                                         imgFileName.includes(`brand_${brandCodeLower}`) ||
+                                         imgFileName.startsWith(`${brandCodeLower}_`) ||
+                                         imgFileName === `${brandCodeLower}.jpg` ||
+                                         imgFileName === `brand_${brandCodeLower}.jpg`;
+                  
+                  if (imgMatchesBrand) {
+                    url = getImageUrl(opt);
+                    if (import.meta.env?.MODE === 'development') {
+                      console.log('[SelectWithImages] Dropdown: Brand', opt.name, '(code:', brandCode, ') has matching image:', brandImg);
+                    }
+                  } else {
+                    if (import.meta.env?.MODE === 'development') {
+                      console.log('[SelectWithImages] Dropdown: Brand', opt.name, '(code:', brandCode, ') image does not match:', brandImg, '- NOT DISPLAYING');
+                    }
+                  }
+                } else {
+                  if (import.meta.env?.MODE === 'development') {
+                    console.log('[SelectWithImages] Dropdown: Brand', opt.name, '(code:', brandCode, ') has no image');
+                  }
+                }
+              } else {
+                // Для других типов используем стандартную логику
+                url = getImageUrl(opt);
+              }
+              
               return (
                 <button
                   key={opt.id}
@@ -528,29 +788,42 @@ export default function SelectWithImages({
                     transition: "background-color 0.2s",
                   }}
                 >
-                  <div
-                    style={{
-                      width: "100%",
-                      aspectRatio: "32 / 32",
-                      borderRadius: 16,
-                      overflow: "hidden",
-                      background: "#f1f2f6",
-                      pointerEvents: "none",
-                    }}
-                  >
-                    <img
-                      src={url}
-                      alt={opt.name}
-                      onError={(e) => (e.currentTarget.style.display = "none")}
+                  {url ? (
+                    <div
                       style={{
-                        width: "96%",
-                        height: "96%",
-                        padding: "4px",
-                        display: "block",
+                        width: "100%",
+                        aspectRatio: "32 / 32",
+                        borderRadius: 16,
+                        overflow: "hidden",
+                        background: "#f1f2f6",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      <img
+                        src={url}
+                        alt={opt.name}
+                        onError={(e) => (e.currentTarget.style.display = "none")}
+                        style={{
+                          width: "96%",
+                          height: "96%",
+                          padding: "4px",
+                          display: "block",
+                          pointerEvents: "none",
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        width: "100%",
+                        aspectRatio: "32 / 32",
+                        borderRadius: 16,
+                        overflow: "hidden",
+                        background: "#f1f2f6",
                         pointerEvents: "none",
                       }}
                     />
-                  </div>
+                  )}
                   <span
                     style={{
                       marginTop: 8,

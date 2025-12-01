@@ -173,8 +173,13 @@ export default function Acoustic() {
     }
   };
 
-  // Преобразование brands из { code, name } в { id, name } для SelectText
-  const brandOptions = brands.map((b) => ({ id: b.code, name: b.name }));
+  // Преобразование brands в формат для SelectWithImages: { id, name, ... }
+  // Сохраняем все исходные поля из API, чтобы getImageUrl мог найти изображение
+  const brandOptions = brands.map((b) => ({
+    ...b, // Сохраняем все исходные поля (включая Img, Name, ShortName и т.д.)
+    id: b.code, // Перезаписываем id на code для SelectWithImages
+    name: b.name, // Перезаписываем name для единообразия
+  }));
 
   // Обертка для setBrand
   const handleBrandChange = (newBrand) => {
@@ -246,20 +251,130 @@ export default function Acoustic() {
 
   // Загрузка description из данных бренда (AcousticCategories)
   useEffect(() => {
+    // Сначала очищаем description при смене бренда
+    // Это важно, чтобы старые данные не оставались
+    setDescription("");
+    setDescriptionError("");
+    setDescriptionLoading(false);
+    
     if (!brand) {
-      setDescription("");
-      setDescriptionError("");
+      if (import.meta.env?.MODE === 'development') {
+        console.log('[Description] No brand selected, description cleared');
+      }
       return;
     }
 
     // Ищем описание в загруженных данных брендов
-    const selectedBrand = brands.find((b) => b.code === brand);
-    if (selectedBrand && selectedBrand.description) {
-      console.log('[Description] Found in brands data:', selectedBrand.description);
-      setDescription(selectedBrand.description);
-      setDescriptionError("");
-      setDescriptionLoading(false);
-      return;
+    // Важно: ищем по code, который соответствует выбранному brand
+    // Используем строгое сравнение, чтобы убедиться, что находим правильный бренд
+    const selectedBrand = brands.find((b) => {
+      const matches = String(b.code) === String(brand);
+      if (import.meta.env?.MODE === 'development' && matches) {
+        console.log('[Description] Found matching brand:', {
+          searchCode: brand,
+          foundCode: b.code,
+          foundName: b.name,
+          hasDescription: !!(b.Description || b.description),
+          hasDescriptionCapital: !!b.Description,
+          hasDescriptionLower: !!b.description,
+          hasImg: !!(b.Img && String(b.Img).trim() !== "")
+        });
+      }
+      return matches;
+    });
+    
+    if (import.meta.env?.MODE === 'development') {
+      console.log('[Description] Looking for brand code:', brand);
+      console.log('[Description] Available brand codes:', brands.map(b => ({ code: b.code, name: b.name })));
+      console.log('[Description] Selected brand result:', selectedBrand ? { 
+        code: selectedBrand.code, 
+        name: selectedBrand.name, 
+        hasDescription: !!selectedBrand.description,
+        descriptionLength: selectedBrand.description ? selectedBrand.description.length : 0,
+        hasImg: !!(selectedBrand.Img && String(selectedBrand.Img).trim() !== ""),
+        Img: selectedBrand.Img
+      } : 'NOT FOUND');
+    }
+    
+    // Если нашли бренд и у него есть описание, используем его
+    if (selectedBrand) {
+      // Проверяем, что это действительно правильный бренд
+      if (String(selectedBrand.code) !== String(brand)) {
+        console.error('[Description] CODE MISMATCH! Expected:', brand, 'Got:', selectedBrand.code);
+        setDescription("");
+        return;
+      }
+      
+      // Проверяем description из разных возможных полей
+      // ВАЖНО: используем Description (с заглавной буквы) из исходного item, 
+      // так как это поле сохраняется явно в normalizeBrands
+      const brandDescription = selectedBrand.Description || selectedBrand.description || "";
+      const descriptionStr = String(brandDescription).trim();
+      
+      if (import.meta.env?.MODE === 'development') {
+        console.log('[Description] Checking description for brand', brand, '(', selectedBrand.name, '):', {
+          hasDescription: !!selectedBrand.description,
+          hasDescriptionCapital: !!selectedBrand.Description,
+          descriptionValue: selectedBrand.Description ? selectedBrand.Description.substring(0, 50) + '...' : null,
+          descriptionLength: descriptionStr.length,
+          descriptionPreview: descriptionStr ? descriptionStr.substring(0, 100) + '...' : null
+        });
+      }
+      
+      if (descriptionStr !== "") {
+        // ВАЖНО: Дополнительная проверка - убеждаемся, что description действительно принадлежит этому бренду
+        // Проверяем, что description содержит название или код этого бренда
+        const descriptionLower = descriptionStr.toLowerCase();
+        const brandNameLower = selectedBrand.name.toLowerCase();
+        const brandCodeLower = String(brand).toLowerCase();
+        
+        // Проверяем, содержит ли description название или код этого бренда
+        const containsBrandName = descriptionLower.includes(brandNameLower);
+        const containsBrandCode = descriptionLower.includes(brandCodeLower);
+        
+        if (import.meta.env?.MODE === 'development') {
+          console.log('[Description] Validation for brand', brand, '(', selectedBrand.name, '):', {
+            containsBrandName,
+            containsBrandCode,
+            brandName: selectedBrand.name,
+            brandCode: brand
+          });
+        }
+        
+        // Если description не содержит название или код бренда, это может быть описание другого бренда
+        // В этом случае не используем его
+        if (!containsBrandName && !containsBrandCode) {
+          if (import.meta.env?.MODE === 'development') {
+            console.warn('[Description] ⚠️ Description does not contain brand name or code. Not using it for brand', brand);
+            console.warn('[Description] Description preview:', descriptionStr.substring(0, 100));
+          }
+          setDescription("");
+          setDescriptionError("");
+          setDescriptionLoading(false);
+          return;
+        }
+        
+        if (import.meta.env?.MODE === 'development') {
+          console.log('[Description] ✓ Setting description for brand', brand, '(', selectedBrand.name, ')');
+          console.log('[Description] Description length:', descriptionStr.length);
+          console.log('[Description] Description source:', selectedBrand.Description ? 'Description (capital)' : 'description (lowercase)');
+        }
+        setDescription(descriptionStr);
+        setDescriptionError("");
+        setDescriptionLoading(false);
+        return;
+      } else {
+        // Если описание пустое, оставляем его пустым (уже очищено выше)
+        if (import.meta.env?.MODE === 'development') {
+          console.log('[Description] Brand', brand, 'has no description, leaving empty');
+        }
+        return;
+      }
+    }
+    
+    // Если бренд не найден, оставляем description пустым
+    if (import.meta.env?.MODE === 'development') {
+      console.warn('[Description] ✗ Brand', brand, 'not found in brands list');
     }
     
     console.log('[Description] Not found in brands data, trying API...', {
@@ -320,7 +435,7 @@ export default function Acoustic() {
     })();
 
     return () => controller.abort();
-  }, [brand, brands, buildApiUrl]);
+  }, [brand, brands, buildApiUrl]); // Зависимости: brand и brands - при изменении бренда description обновится
 
   // Прокрутка к таблице после расчета
   useEffect(() => {
@@ -445,17 +560,17 @@ export default function Acoustic() {
             )}
             {(!brandsLoading || brand) && !brandsError && (hasBrands || brand) && (
               <div style={{ marginBottom: 8 }}>
-                <SelectText
+                <SelectWithImages
                   paramType="brand"
                   value={brand}
                   onChange={handleBrandChange}
                   options={brandOptions}
+                  getImageUrl={getImageUrl}
                   SECTION_TITLES={{
                     ...SECTION_TITLES,
                     brand: { acc: "бренд", gen: "бренда" },
                   }}
                   capitalize={capitalize}
-                  showArrow={false}
                 />
               </div>
             )}

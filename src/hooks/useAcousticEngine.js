@@ -84,10 +84,61 @@ const normalizeBrands = (raw) => {
       item?.ShortName ?? item?.code ?? item?.slug ?? item?.id ?? `brand-${idx}`
     );
     const name = String(item?.Name ?? item?.name ?? item?.title ?? code);
-    const description = String(
-      item?.Description ?? item?.description ?? item?.desc ?? ""
-    );
-    return { code, name, description };
+    
+    // ВАЖНО: Сохраняем Img и Description из исходного item ПЕРЕД spread,
+    // чтобы они не перезаписывались другими полями
+    // Используем ТОЛЬКО данные из этого конкретного item
+    const originalImg = item?.Img || item?.img || null;
+    const originalDescription = item?.Description || item?.description || item?.desc || null;
+    
+    // Нормализуем description - используем только из исходного item
+    const description = originalDescription ? String(originalDescription).trim() : "";
+    
+    // Сохраняем все исходные поля из API, чтобы getImageUrl мог найти изображение
+    // Это важно, так как API может возвращать изображения в различных полях
+    // ВАЖНО: сначала распространяем item, затем перезаписываем нормализованными полями,
+    // и в конце явно устанавливаем Img и Description из исходного item
+    const normalized = { 
+      ...item, // Сначала распространяем все исходные поля
+      code,    // Затем перезаписываем нормализованные поля
+      name, 
+      description,
+      // Явно сохраняем Img и Description из исходного item, чтобы они точно были из этого бренда
+      // Это гарантирует, что каждый бренд получает только свои данные
+      Img: originalImg,
+      Description: originalDescription
+    };
+    
+    // Отладочное логирование для проверки изоляции данных
+    if (import.meta.env?.MODE === 'development') {
+      if (originalDescription && String(originalDescription).trim() !== "") {
+        console.log(`[normalizeBrands] Brand ${normalized.code} has description from original item:`, {
+          code: normalized.code,
+          name: normalized.name,
+          originalItemDescription: item?.Description ? item.Description.substring(0, 50) + '...' : null,
+          normalizedDescription: normalized.description ? normalized.description.substring(0, 50) + '...' : null,
+          normalizedDescriptionField: normalized.Description ? normalized.Description.substring(0, 50) + '...' : null
+        });
+      }
+    }
+    
+    // Отладочное логирование для всех брендов для проверки данных
+    if (import.meta.env?.MODE === 'development') {
+      const hasImg = normalized.Img && String(normalized.Img).trim() !== "";
+      const hasDescription = normalized.Description && String(normalized.Description).trim() !== "";
+      console.log(`[normalizeBrands] Brand ${idx} (${normalized.code} - ${normalized.name}):`, {
+        code: normalized.code,
+        name: normalized.name,
+        ShortName: item?.ShortName,
+        hasImg,
+        Img: normalized.Img,
+        originalItemImg: item?.Img,
+        hasDescription,
+        descriptionPreview: hasDescription ? normalized.Description.substring(0, 50) + '...' : null
+      });
+    }
+    
+    return normalized;
   });
 };
 
@@ -149,18 +200,68 @@ const buildApiUrl = (path) => {
 };
 
 const getImageUrl = (option) => {
-  if (!option) return null;
+  if (!option) {
+    console.warn('[getImageUrl] Option is null or undefined');
+    return null;
+  }
+  
+  // Отладочное логирование для брендов
+  if (import.meta.env?.MODE === 'development' && option?.code) {
+    console.log('[getImageUrl] Checking option:', option.code);
+    console.log('[getImageUrl] Option.Img:', option.Img);
+    console.log('[getImageUrl] All option fields:', Object.keys(option));
+  }
+  
+  // Проверяем все возможные варианты полей с изображениями
+  // Для брендов приоритет отдаем полю Img (с заглавной буквы), так как API возвращает именно его
+  // Важно: проверяем, что значение не пустое (не null, не undefined, не пустая строка)
   const imageFile =
-    option?.img ||
-    option?.image ||
-    option?.imageFile ||
-    option?.imageUrl ||
-    option?.section_img ||
-    option?.file ||
-    option?.filename;
+    (option?.Img && String(option.Img).trim() !== "") ? option.Img :  // Приоритет для брендов (API возвращает Img)
+    (option?.img && String(option.img).trim() !== "") ? option.img :
+    (option?.Image && String(option.Image).trim() !== "") ? option.Image :
+    (option?.image && String(option.image).trim() !== "") ? option.image :
+    (option?.ImageFile && String(option.ImageFile).trim() !== "") ? option.ImageFile :
+    (option?.imageFile && String(option.imageFile).trim() !== "") ? option.imageFile :
+    (option?.ImageUrl && String(option.ImageUrl).trim() !== "") ? option.ImageUrl :
+    (option?.imageUrl && String(option.imageUrl).trim() !== "") ? option.imageUrl :
+    (option?.Section_img && String(option.Section_img).trim() !== "") ? option.Section_img :
+    (option?.section_img && String(option.section_img).trim() !== "") ? option.section_img :
+    (option?.File && String(option.File).trim() !== "") ? option.File :
+    (option?.file && String(option.file).trim() !== "") ? option.file :
+    (option?.Filename && String(option.Filename).trim() !== "") ? option.Filename :
+    (option?.filename && String(option.filename).trim() !== "") ? option.filename :
+    (option?.Photo && String(option.Photo).trim() !== "") ? option.Photo :
+    (option?.photo && String(option.photo).trim() !== "") ? option.photo :
+    (option?.Picture && String(option.Picture).trim() !== "") ? option.Picture :
+    (option?.picture && String(option.picture).trim() !== "") ? option.picture :
+    (option?.Logo && String(option.Logo).trim() !== "") ? option.Logo :
+    (option?.logo && String(option.logo).trim() !== "") ? option.logo :
+    (option?.Icon && String(option.Icon).trim() !== "") ? option.Icon :
+    (option?.icon && String(option.icon).trim() !== "") ? option.icon :
+    null;
 
-  if (!imageFile || String(imageFile).trim() === "") return null;
-  if (!String(imageFile).startsWith("http")) return buildApiUrl(`api/v1/constr/${imageFile}`);
+  if (!imageFile) {
+    // Отладочное логирование в режиме разработки
+    if (import.meta.env?.MODE === 'development') {
+      console.warn('[getImageUrl] No image found for option:', option?.code || option?.id, 'Fields:', Object.keys(option));
+      console.warn('[getImageUrl] Checked Img field:', option?.Img);
+      console.warn('[getImageUrl] Checked img field:', option?.img);
+    }
+    return null;
+  }
+  
+  // Отладочное логирование в режиме разработки
+  if (import.meta.env?.MODE === 'development') {
+    console.log('[getImageUrl] Found image for option:', option?.code || option?.id, 'Image file:', imageFile);
+  }
+  
+  if (!String(imageFile).startsWith("http")) {
+    const imageUrl = buildApiUrl(`api/v1/constr/${imageFile}`);
+    if (import.meta.env?.MODE === 'development') {
+      console.log('[getImageUrl] Built URL for option:', option?.code || option?.id, 'URL:', imageUrl);
+    }
+    return imageUrl;
+  }
   return imageFile;
 };
 
@@ -321,7 +422,46 @@ export function useAcousticEngine() {
           const msg = json?.message || json?.error || text || `HTTP ${res.status}`;
           throw new Error(msg);
         }
-        setBrands(normalizeBrands(json));
+        const normalized = normalizeBrands(json);
+        // Отладочное логирование в режиме разработки
+        if (import.meta.env?.MODE === 'development' && normalized.length > 0) {
+          console.log('[Brands] Total normalized brands:', normalized.length);
+          // Проверяем, есть ли изображения у каждого бренда
+          normalized.forEach((b, idx) => {
+            const hasImg = b.Img && String(b.Img).trim() !== "";
+            const hasDescription = b.Description && String(b.Description).trim() !== "";
+            if (hasImg || hasDescription) {
+              console.log(`[Brands] Brand ${idx} (${b.code} - ${b.name}):`, {
+                hasImg,
+                Img: b.Img,
+                hasDescription,
+                descriptionLength: hasDescription ? b.Description.length : 0
+              });
+            }
+          });
+          
+          // Проверяем уникальность изображений
+          const imageMap = new Map();
+          normalized.forEach(b => {
+            if (b.Img && String(b.Img).trim() !== "") {
+              const img = String(b.Img).trim();
+              if (!imageMap.has(img)) {
+                imageMap.set(img, []);
+              }
+              imageMap.get(img).push(b.code);
+            }
+          });
+          
+          // Логируем бренды с одинаковыми изображениями
+          imageMap.forEach((brands, img) => {
+            if (brands.length > 1) {
+              console.warn(`[Brands] ⚠️ Image "${img}" is shared by multiple brands:`, brands);
+            } else {
+              console.log(`[Brands] ✓ Image "${img}" is unique to brand:`, brands[0]);
+            }
+          });
+        }
+        setBrands(normalized);
       } catch (e) {
         if (e.name !== "AbortError")
           setBrandsError(e.message || "Ошибка загрузки брендов");

@@ -67,11 +67,11 @@
 }
 
 .description-content {
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  line-height: 1.5;
-  font-size: 6px;
-  font-weight: 100;
+  /* white-space: pre-wrap;
+  word-wrap: break-word; */
+  /* line-height: 1.5; */
+  /* font-size: 6px; */
+  font-weight: 500;
   min-height: 1em;
   display: block;
 }
