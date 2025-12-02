@@ -24,35 +24,8 @@ export default function BrandPage() {
       name: b.name, // Перезаписываем name для единообразия
     };
     
-    // Отладочное логирование для первого бренда
-    if (import.meta.env?.MODE === 'development' && brands.indexOf(b) === 0) {
-      console.log('[BrandPage] Original brand:', b);
-      console.log('[BrandPage] Brand Img before mapping:', b.Img);
-      console.log('[BrandPage] Mapped option:', option);
-      console.log('[BrandPage] Option Img after mapping:', option.Img);
-      console.log('[BrandPage] All option fields:', Object.keys(option));
-    }
-    
     return option;
   });
-
-  // Отладочное логирование в режиме разработки
-  if (import.meta.env?.MODE === 'development' && brandOptions.length > 0) {
-    console.log('[BrandPage] Total brands:', brandOptions.length);
-    console.log('[BrandPage] Current brand value:', brand);
-    const selectedBrand = brandOptions.find(b => b.id === brand);
-    if (selectedBrand) {
-      console.log('[BrandPage] Selected brand:', selectedBrand);
-      console.log('[BrandPage] Brand Img field:', selectedBrand.Img);
-      console.log('[BrandPage] All brand fields:', Object.keys(selectedBrand));
-      const imageUrl = getImageUrl(selectedBrand);
-      console.log('[BrandPage] Image URL from getImageUrl:', imageUrl);
-    } else {
-      console.log('[BrandPage] No brand selected yet');
-      console.log('[BrandPage] First brand sample:', brandOptions[0]);
-      console.log('[BrandPage] First brand Img:', brandOptions[0]?.Img);
-    }
-  }
 
   return (
     <div>

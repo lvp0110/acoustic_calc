@@ -38,6 +38,7 @@ export default function Acoustic() {
     paramsLoading,
     paramsError,
     paramOptions,
+    fullOptionData,
     model,
     setModel,
 
@@ -249,52 +250,37 @@ export default function Acoustic() {
   }, [isReady, searchParams, setSearchParams]);
 
 
-  // Загрузка description из данных бренда (AcousticCategories)
+  // Загрузка description из данных модели или бренда
   useEffect(() => {
-    // Сначала очищаем description при смене бренда
-    // Это важно, чтобы старые данные не оставались
+    // Сначала очищаем description
     setDescription("");
     setDescriptionError("");
     setDescriptionLoading(false);
     
     if (!brand) {
-      if (import.meta.env?.MODE === 'development') {
-        console.log('[Description] No brand selected, description cleared');
-      }
       return;
     }
 
+    // ПРИОРИТЕТ 1: Если выбрана модель, пытаемся получить описание модели
+    if (model && fullOptionData?.model?.[model]) {
+      const selectedModel = fullOptionData.model[model];
+      const modelDescription = selectedModel?.Description || selectedModel?.description || selectedModel?.desc || "";
+      const modelDescriptionStr = String(modelDescription).trim();
+      
+      if (modelDescriptionStr !== "") {
+        setDescription(modelDescriptionStr);
+        setDescriptionError("");
+        setDescriptionLoading(false);
+        return; // Выходим, так как нашли описание модели
+      }
+    }
+
+    // ПРИОРИТЕТ 2: Если модель не выбрана или у модели нет описания, показываем описание бренда
     // Ищем описание в загруженных данных брендов
-    // Важно: ищем по code, который соответствует выбранному brand
-    // Используем строгое сравнение, чтобы убедиться, что находим правильный бренд
     const selectedBrand = brands.find((b) => {
       const matches = String(b.code) === String(brand);
-      if (import.meta.env?.MODE === 'development' && matches) {
-        console.log('[Description] Found matching brand:', {
-          searchCode: brand,
-          foundCode: b.code,
-          foundName: b.name,
-          hasDescription: !!(b.Description || b.description),
-          hasDescriptionCapital: !!b.Description,
-          hasDescriptionLower: !!b.description,
-          hasImg: !!(b.Img && String(b.Img).trim() !== "")
-        });
-      }
       return matches;
     });
-    
-    if (import.meta.env?.MODE === 'development') {
-      console.log('[Description] Looking for brand code:', brand);
-      console.log('[Description] Available brand codes:', brands.map(b => ({ code: b.code, name: b.name })));
-      console.log('[Description] Selected brand result:', selectedBrand ? { 
-        code: selectedBrand.code, 
-        name: selectedBrand.name, 
-        hasDescription: !!selectedBrand.description,
-        descriptionLength: selectedBrand.description ? selectedBrand.description.length : 0,
-        hasImg: !!(selectedBrand.Img && String(selectedBrand.Img).trim() !== ""),
-        Img: selectedBrand.Img
-      } : 'NOT FOUND');
-    }
     
     // Если нашли бренд и у него есть описание, используем его
     if (selectedBrand) {
@@ -306,82 +292,35 @@ export default function Acoustic() {
       }
       
       // Проверяем description из разных возможных полей
-      // ВАЖНО: используем Description (с заглавной буквы) из исходного item, 
-      // так как это поле сохраняется явно в normalizeBrands
       const brandDescription = selectedBrand.Description || selectedBrand.description || "";
       const descriptionStr = String(brandDescription).trim();
       
-      if (import.meta.env?.MODE === 'development') {
-        console.log('[Description] Checking description for brand', brand, '(', selectedBrand.name, '):', {
-          hasDescription: !!selectedBrand.description,
-          hasDescriptionCapital: !!selectedBrand.Description,
-          descriptionValue: selectedBrand.Description ? selectedBrand.Description.substring(0, 50) + '...' : null,
-          descriptionLength: descriptionStr.length,
-          descriptionPreview: descriptionStr ? descriptionStr.substring(0, 100) + '...' : null
-        });
-      }
-      
       if (descriptionStr !== "") {
         // ВАЖНО: Дополнительная проверка - убеждаемся, что description действительно принадлежит этому бренду
-        // Проверяем, что description содержит название или код этого бренда
         const descriptionLower = descriptionStr.toLowerCase();
         const brandNameLower = selectedBrand.name.toLowerCase();
         const brandCodeLower = String(brand).toLowerCase();
         
-        // Проверяем, содержит ли description название или код этого бренда
         const containsBrandName = descriptionLower.includes(brandNameLower);
         const containsBrandCode = descriptionLower.includes(brandCodeLower);
         
-        if (import.meta.env?.MODE === 'development') {
-          console.log('[Description] Validation for brand', brand, '(', selectedBrand.name, '):', {
-            containsBrandName,
-            containsBrandCode,
-            brandName: selectedBrand.name,
-            brandCode: brand
-          });
-        }
-        
-        // Если description не содержит название или код бренда, это может быть описание другого бренда
-        // В этом случае не используем его
         if (!containsBrandName && !containsBrandCode) {
-          if (import.meta.env?.MODE === 'development') {
-            console.warn('[Description] ⚠️ Description does not contain brand name or code. Not using it for brand', brand);
-            console.warn('[Description] Description preview:', descriptionStr.substring(0, 100));
-          }
           setDescription("");
           setDescriptionError("");
           setDescriptionLoading(false);
           return;
         }
         
-        if (import.meta.env?.MODE === 'development') {
-          console.log('[Description] ✓ Setting description for brand', brand, '(', selectedBrand.name, ')');
-          console.log('[Description] Description length:', descriptionStr.length);
-          console.log('[Description] Description source:', selectedBrand.Description ? 'Description (capital)' : 'description (lowercase)');
-        }
         setDescription(descriptionStr);
         setDescriptionError("");
         setDescriptionLoading(false);
         return;
       } else {
-        // Если описание пустое, оставляем его пустым (уже очищено выше)
-        if (import.meta.env?.MODE === 'development') {
-          console.log('[Description] Brand', brand, 'has no description, leaving empty');
-        }
         return;
       }
     }
     
     // Если бренд не найден, оставляем description пустым
-    if (import.meta.env?.MODE === 'development') {
-      console.warn('[Description] ✗ Brand', brand, 'not found in brands list');
-    }
-    
-    console.log('[Description] Not found in brands data, trying API...', {
-      brand,
-      brandsCount: brands.length,
-      selectedBrand: selectedBrand ? { code: selectedBrand.code, name: selectedBrand.name } : null
-    });
 
     // Если описание не найдено в данных брендов, пытаемся загрузить из brandParams
     const controller = new AbortController();
@@ -418,12 +357,6 @@ export default function Acoustic() {
           json?.data?.description ||
           json?.Description ||
           "";
-        console.log('[Description] Loaded from API:', desc || '(empty)', {
-          hasJson: !!json,
-          jsonKeys: json ? Object.keys(json) : [],
-          hasData: !!json?.data,
-          dataKeys: json?.data ? Object.keys(json.data) : []
-        });
         setDescription(desc || "");
       } catch (e) {
         if (e.name !== "AbortError") {
@@ -435,7 +368,7 @@ export default function Acoustic() {
     })();
 
     return () => controller.abort();
-  }, [brand, brands, buildApiUrl]); // Зависимости: brand и brands - при изменении бренда description обновится
+  }, [brand, model, brands, fullOptionData, buildApiUrl]); // Добавлены model и fullOptionData в зависимости
 
   // Прокрутка к таблице после расчета
   useEffect(() => {

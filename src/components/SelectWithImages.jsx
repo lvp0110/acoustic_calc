@@ -25,45 +25,9 @@ export default function SelectWithImages({
   // Используем строгое сравнение для поиска правильного бренда
   const selectedOption = options.find((opt) => {
     const matches = String(opt.id) === String(value);
-    if (import.meta.env?.MODE === 'development' && paramType === 'brand' && matches) {
-      console.log('[SelectWithImages] Found matching option:', {
-        searchValue: value,
-        foundId: opt.id,
-        foundCode: opt.code,
-        foundName: opt.name,
-        hasImg: !!(opt.Img && String(opt.Img).trim() !== ""),
-        Img: opt.Img
-      });
-    }
     return matches;
   });
   const sectionAcc = SECTION_TITLES[paramType]?.acc || "опцию";
-
-  // Отладочное логирование для брендов
-  if (import.meta.env?.MODE === 'development' && paramType === 'brand') {
-    console.log('[SelectWithImages] Brand selection check:', {
-      value,
-      optionsCount: options.length,
-      selectedOption: selectedOption ? { 
-        id: selectedOption.id, 
-        code: selectedOption.code, 
-        name: selectedOption.name, 
-        Img: selectedOption.Img,
-        hasImg: !!(selectedOption.Img && String(selectedOption.Img).trim() !== "")
-      } : null,
-      allOptionIds: options.map(o => ({ id: o.id, code: o.code, name: o.name, Img: o.Img }))
-    });
-    if (selectedOption) {
-      // Проверяем соответствие
-      if (String(selectedOption.id) !== String(value) || (selectedOption.code && String(selectedOption.code) !== String(value))) {
-        console.error('[SelectWithImages] MISMATCH! value:', value, 'selectedOption.id:', selectedOption.id, 'selectedOption.code:', selectedOption.code);
-      }
-      const imageUrl = getImageUrl(selectedOption);
-      console.log('[SelectWithImages] Brand selected:', selectedOption.name, 'Image URL:', imageUrl);
-    } else {
-      console.warn('[SelectWithImages] No brand found for value:', value);
-    }
-  }
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -284,23 +248,8 @@ export default function SelectWithImages({
               // Важно: selectedOption должен соответствовать выбранному бренду (value === selectedOption.id === selectedOption.code)
               <>
                 {(() => {
-                  // Проверяем, что selectedOption соответствует выбранному бренду
-                  if (import.meta.env?.MODE === 'development') {
-                    console.log('[SelectWithImages] Brand selection verification:', {
-                      value,
-                      selectedOptionId: selectedOption?.id,
-                      selectedOptionCode: selectedOption?.code,
-                      matches: selectedOption?.id === value && selectedOption?.code === value,
-                      selectedOptionName: selectedOption?.name,
-                      selectedOptionImg: selectedOption?.Img
-                    });
-                  }
-                  
                   // Строгая проверка: убеждаемся, что selectedOption действительно соответствует value
                   if (!selectedOption) {
-                    if (import.meta.env?.MODE === 'development') {
-                      console.error('[SelectWithImages] No selectedOption for value:', value);
-                    }
                     return null;
                   }
                   
@@ -309,13 +258,6 @@ export default function SelectWithImages({
                   const codeMatches = !selectedOption.code || String(selectedOption.code) === String(value);
                   
                   if (!idMatches || !codeMatches) {
-                    if (import.meta.env?.MODE === 'development') {
-                      console.error('[SelectWithImages] MISMATCH! value:', value, 'selectedOption:', { 
-                        id: selectedOption.id, 
-                        code: selectedOption.code,
-                        name: selectedOption.name
-                      });
-                    }
                     return null;
                   }
                   
@@ -325,17 +267,8 @@ export default function SelectWithImages({
                   const brandCode = selectedOption.code || selectedOption.id;
                   const hasValidImg = brandImg && String(brandImg).trim() !== "";
                   
-                  if (import.meta.env?.MODE === 'development') {
-                    console.log('[SelectWithImages] ✓ Checking image for brand', selectedOption.name, '(code:', brandCode, 'id:', selectedOption.id, ')');
-                    console.log('[SelectWithImages] Brand Img field:', brandImg);
-                    console.log('[SelectWithImages] Has valid Img:', hasValidImg);
-                  }
-                  
                   // Если у бренда нет изображения, не отображаем его
                   if (!hasValidImg) {
-                    if (import.meta.env?.MODE === 'development') {
-                      console.log('[SelectWithImages] Brand', selectedOption.name, 'has no image, skipping');
-                    }
                     return null;
                   }
                   
@@ -350,27 +283,13 @@ export default function SelectWithImages({
                                          imgFileName === `${brandCodeLower}.jpg` ||
                                          imgFileName === `brand_${brandCodeLower}.jpg`;
                   
-                  if (import.meta.env?.MODE === 'development') {
-                    console.log('[SelectWithImages] Image filename validation:', {
-                      imgFileName,
-                      brandCode: brandCodeLower,
-                      matches: imgMatchesBrand
-                    });
-                  }
-                  
                   // Если изображение не соответствует коду бренда, не отображаем его
                   // Это предотвращает отображение изображений других брендов
                   if (!imgMatchesBrand) {
-                    if (import.meta.env?.MODE === 'development') {
-                      console.warn('[SelectWithImages] ⚠️ Image filename does not match brand code. Image:', brandImg, 'Brand code:', brandCode, '- NOT DISPLAYING');
-                    }
                     return null;
                   }
                   
                   const imageUrl = getImageUrl(selectedOption);
-                  if (import.meta.env?.MODE === 'development') {
-                    console.log('[SelectWithImages] Brand', selectedOption.name, 'imageUrl:', imageUrl);
-                  }
                   
                   // Отображаем изображение ТОЛЬКО если оно есть у этого бренда
                   if (imageUrl) {
@@ -379,18 +298,7 @@ export default function SelectWithImages({
                         src={imageUrl}
                         alt={selectedOption?.name}
                         onError={(e) => {
-                          console.error('[SelectWithImages] Image load error:', {
-                            src: e.currentTarget.src,
-                            paramType,
-                            option: selectedOption,
-                            imageUrl: imageUrl
-                          });
                           e.currentTarget.style.display = "none";
-                        }}
-                        onLoad={() => {
-                          if (import.meta.env?.MODE === 'development') {
-                            console.log('[SelectWithImages] Image loaded successfully:', imageUrl);
-                          }
                         }}
                         style={{
                           width: "50px",
@@ -401,9 +309,6 @@ export default function SelectWithImages({
                         }}
                       />
                     );
-                  }
-                  if (import.meta.env?.MODE === 'development') {
-                    console.warn('[SelectWithImages] No image URL for brand, selectedOption:', selectedOption);
                   }
                   return null;
                 })()}
@@ -435,9 +340,6 @@ export default function SelectWithImages({
                 {(() => {
                   const imageUrl = getImageUrl(selectedOption);
                   if (!imageUrl) {
-                    if (import.meta.env?.MODE === 'development' && paramType === 'brand') {
-                      console.warn('[SelectWithImages] No image URL for brand:', selectedOption);
-                    }
                     return null;
                   }
                   return (
@@ -445,17 +347,7 @@ export default function SelectWithImages({
                       src={imageUrl}
                       alt={selectedOption?.name}
                       onError={(e) => {
-                        console.error('[SelectWithImages] Image load error:', {
-                          src: e.currentTarget.src,
-                          paramType,
-                          option: selectedOption
-                        });
                         e.currentTarget.style.display = "none";
-                      }}
-                      onLoad={() => {
-                        if (import.meta.env?.MODE === 'development' && paramType === 'brand') {
-                          console.log('[SelectWithImages] Image loaded successfully:', imageUrl);
-                        }
                       }}
                       style={{
                         position: "absolute",
@@ -736,17 +628,6 @@ export default function SelectWithImages({
                   
                   if (imgMatchesBrand) {
                     url = getImageUrl(opt);
-                    if (import.meta.env?.MODE === 'development') {
-                      console.log('[SelectWithImages] Dropdown: Brand', opt.name, '(code:', brandCode, ') has matching image:', brandImg);
-                    }
-                  } else {
-                    if (import.meta.env?.MODE === 'development') {
-                      console.log('[SelectWithImages] Dropdown: Brand', opt.name, '(code:', brandCode, ') image does not match:', brandImg, '- NOT DISPLAYING');
-                    }
-                  }
-                } else {
-                  if (import.meta.env?.MODE === 'development') {
-                    console.log('[SelectWithImages] Dropdown: Brand', opt.name, '(code:', brandCode, ') has no image');
                   }
                 }
               } else {
