@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({ command }) => {
   // Для production (build) используем base path для GitHub Pages
   // Для development используем корень для удобства
   const base = command === 'build' ? '/acoustic_calc/' : '/';

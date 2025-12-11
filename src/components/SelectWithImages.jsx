@@ -293,12 +293,22 @@ export default function SelectWithImages({
                   
                   // Отображаем изображение ТОЛЬКО если оно есть у этого бренда
                   if (imageUrl) {
+                    // Определяем, нужен ли crossOrigin (только для внешних доменов)
+                    const isExternalUrl = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
+                    const needsCrossOrigin = isExternalUrl && !imageUrl.includes(window.location.hostname);
+                    
                     return (
                       <img
                         src={imageUrl}
                         alt={selectedOption?.name}
+                        {...(needsCrossOrigin && { crossOrigin: "anonymous" })}
                         onError={(e) => {
+                          console.error('[SelectWithImages] Failed to load image:', imageUrl);
+                          console.error('[SelectWithImages] Error details:', e);
                           e.currentTarget.style.display = "none";
+                        }}
+                        onLoad={() => {
+                          console.log('[SelectWithImages] Image loaded successfully:', imageUrl);
                         }}
                         style={{
                           width: "50px",
@@ -342,12 +352,22 @@ export default function SelectWithImages({
                   if (!imageUrl) {
                     return null;
                   }
+                  // Определяем, нужен ли crossOrigin (только для внешних доменов)
+                  const isExternalUrl = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
+                  const needsCrossOrigin = isExternalUrl && !imageUrl.includes(window.location.hostname);
+                  
                   return (
                     <img
                       src={imageUrl}
                       alt={selectedOption?.name}
+                      {...(needsCrossOrigin && { crossOrigin: "anonymous" })}
                       onError={(e) => {
+                        console.error('[SelectWithImages] Failed to load background image:', imageUrl);
+                        console.error('[SelectWithImages] Error details:', e);
                         e.currentTarget.style.display = "none";
+                      }}
+                      onLoad={() => {
+                        console.log('[SelectWithImages] Background image loaded successfully:', imageUrl);
                       }}
                       style={{
                         position: "absolute",
@@ -680,18 +700,34 @@ export default function SelectWithImages({
                         pointerEvents: "none",
                       }}
                     >
-                      <img
-                        src={url}
-                        alt={opt.name}
-                        onError={(e) => (e.currentTarget.style.display = "none")}
-                        style={{
-                          width: "96%",
-                          height: "96%",
-                          padding: "4px",
-                          display: "block",
-                          pointerEvents: "none",
-                        }}
-                      />
+                      {(() => {
+                        // Определяем, нужен ли crossOrigin (только для внешних доменов)
+                        const isExternalUrl = url.startsWith('http://') || url.startsWith('https://');
+                        const needsCrossOrigin = isExternalUrl && !url.includes(window.location.hostname);
+                        
+                        return (
+                          <img
+                            src={url}
+                            alt={opt.name}
+                            {...(needsCrossOrigin && { crossOrigin: "anonymous" })}
+                            onError={(e) => {
+                              console.error('[SelectWithImages] Failed to load image in dropdown:', url);
+                              console.error('[SelectWithImages] Error details:', e);
+                              e.currentTarget.style.display = "none";
+                            }}
+                            onLoad={() => {
+                              console.log('[SelectWithImages] Image loaded successfully in dropdown:', url);
+                            }}
+                            style={{
+                              width: "96%",
+                              height: "96%",
+                              padding: "4px",
+                              display: "block",
+                              pointerEvents: "none",
+                            }}
+                          />
+                        );
+                      })()}
                     </div>
                   ) : (
                     <div

@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import "./CalcControls.css";
 import { useAcoustic } from "../context/AcousticContext.jsx";
 import SelectText from "../components/SelectText.jsx";
-import { encodeTableData, decodeTableData } from "../utils/tableData.js";
+import { encodeTableData } from "../utils/tableData.js";
 
 export default function CalcControls(props) {
   const { BASE_URL, brand, model, color, size, perf, edge, fullOptionData, hasColor, hasSize, hasPerf, hasEdge } =
@@ -265,13 +265,6 @@ export default function CalcControls(props) {
       setCalcRows([]);
       setCalcLoading(true);
       setCalcError("");
-      const selected = {
-        model: fullOptionData?.model?.[model] || null,
-        color: fullOptionData?.color?.[color] || null,
-        size: fullOptionData?.size?.[size] || null,
-        perf: fullOptionData?.perf?.[perf] || null,
-        edge: fullOptionData?.edge?.[edge] || null,
-      };
       const params = new URLSearchParams();
       if (model) params.set("model", model);
       if (color) params.set("color", color);
@@ -299,7 +292,9 @@ export default function CalcControls(props) {
       let json;
       try {
         json = JSON.parse(text);
-      } catch {}
+      } catch {
+        // Игнорируем ошибки парсинга JSON
+      }
       if (!res.ok) {
         if (res.status === 404) {
           setShowModal(true);
@@ -473,7 +468,7 @@ export default function CalcControls(props) {
         document.execCommand("copy");
         alert("Ссылка скопирована в буфер обмена!");
         window.open(url, "_blank");
-      } catch (err) {
+      } catch {
         alert("Не удалось скопировать ссылку");
       }
       document.body.removeChild(textArea);

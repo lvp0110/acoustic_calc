@@ -6,7 +6,6 @@ import SelectWithImages from "../components/SelectWithImages.jsx";
 import SelectText from "../components/SelectText.jsx";
 import CalcControls from "./CalcControls.jsx";
 import CalcTable from "../components/CalcTable.jsx";
-import { decodeTableData } from "../utils/tableData.js";
 import "./Acoustic.css";
 
 export default function Acoustic() {
@@ -338,7 +337,9 @@ export default function Acoustic() {
         let json;
         try {
           json = JSON.parse(text);
-        } catch {}
+        } catch {
+          // Игнорируем ошибки парсинга JSON
+        }
 
         if (!res.ok) {
           // Если 404 - это нормально, description может отсутствовать
@@ -470,7 +471,7 @@ export default function Acoustic() {
     })();
 
     return () => controller.abort();
-  }, [brand, model, BASE_URL]);
+  }, [brand, model, buildApiUrl]);
 
   // Пока не готовы (не прочитан URL) — ничего не показываем
   if (!isReady) {

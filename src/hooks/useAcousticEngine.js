@@ -155,12 +155,15 @@ const buildApiUrl = (path) => {
       return '';
     }
     // В development используем относительный путь (будет проксироваться через vite)
-    return `/${cleanPath}`;
+    const relativeUrl = `/${cleanPath}`;
+    console.log('[buildApiUrl] Development mode - using relative URL:', relativeUrl, '(will be proxied to http://localhost:3005)');
+    return relativeUrl;
   }
   
   // Убираем завершающий слеш из BASE_URL, если он есть
   const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
   const finalUrl = `${cleanBase}/${cleanPath}`;
+  console.log('[buildApiUrl] Built URL:', finalUrl, '(BASE_URL:', BASE_URL, ')');
   
   return finalUrl;
 };
@@ -203,11 +206,36 @@ const getImageUrl = (option) => {
     return null;
   }
   
-  if (!String(imageFile).startsWith("http")) {
-    const imageUrl = buildApiUrl(`api/v1/constr/${imageFile}`);
-    return imageUrl;
+  // Если уже полный URL (начинается с http), возвращаем как есть
+  if (String(imageFile).startsWith("http")) {
+    return imageFile;
   }
-  return imageFile;
+  
+  // Формируем полный URL для изображений
+  // Если BASE_URL установлен, используем его
+  if (BASE_URL && BASE_URL.trim() !== "") {
+    const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+    // Убираем начальный слеш из imageFile, если он есть
+    const cleanImageFile = imageFile.startsWith('/') ? imageFile.slice(1) : imageFile;
+    const fullUrl = `${cleanBase}/api/v1/constr/${cleanImageFile}`;
+    console.log('[getImageUrl] Using BASE_URL:', fullUrl);
+    return fullUrl;
+  }
+  
+  // Если BASE_URL не установлен, определяем URL в зависимости от окружения
+  const mode = import.meta.env?.MODE || 'development';
+  let fullUrl;
+  // Убираем начальный слеш из imageFile, если он есть
+  const cleanImageFile = imageFile.startsWith('/') ? imageFile.slice(1) : imageFile;
+  if (mode === 'production') {
+    // В production используем полный URL к API серверу
+    fullUrl = `https://constrtodo.ru:3005/api/v1/constr/${cleanImageFile}`;
+  } else {
+    // В development используем localhost (как в proxy)
+    fullUrl = `http://localhost:3005/api/v1/constr/${cleanImageFile}`;
+  }
+  console.log('[getImageUrl] Generated URL (mode:', mode, '):', fullUrl);
+  return fullUrl;
 };
 
 // ——— hook engine ———
@@ -357,21 +385,60 @@ export function useAcousticEngine() {
         setBrandsLoading(true);
         setBrandsError("");
 
+        // Логируем URL для отладки
+        console.log('[useAcousticEngine] Fetching brands from:', brandsUrl);
+        
+        if (!brandsUrl || brandsUrl === '') {
+          throw new Error('URL для загрузки брендов не сформирован. Проверьте конфигурацию BASE_URL.');
+        }
+
         const res = await fetch(brandsUrl, { signal: controller.signal });
         const text = await res.text();
         let json;
         try {
           json = JSON.parse(text);
-        } catch {}
-        if (!res.ok) {
-          const msg = json?.message || json?.error || text || `HTTP ${res.status}`;
-          throw new Error(msg);
+        } catch (parseError) {
+          console.error('[useAcousticEngine] Ошибка парсинга JSON ответа:', parseError);
+          console.error('[useAcousticEngine] Ответ сервера (текст):', text.substring(0, 500));
         }
+        
+        if (!res.ok) {
+          console.error('[useAcousticEngine] Ошибка HTTP:', res.status, res.statusText);
+          console.error('[useAcousticEngine] URL:', brandsUrl);
+          console.error('[useAcousticEngine] Ответ сервера:', text.substring(0, 500));
+          
+          // Формируем понятное сообщение об ошибке
+          let errorMessage = '';
+          if (res.status === 500) {
+            errorMessage = 'Ошибка сервера (500). Сервер не может обработать запрос. ';
+            errorMessage += 'Проверьте, что сервер запущен и доступен. ';
+            if (json?.message || json?.error || json?.Message || json?.Error) {
+              errorMessage += `Детали: ${json?.message || json?.error || json?.Message || json?.Error}`;
+            }
+          } else {
+            errorMessage = json?.message || json?.error || json?.Message || json?.Error || text || `HTTP ${res.status} ${res.statusText}`;
+          }
+          
+          throw new Error(errorMessage);
+        }
+        
+        // Проверяем, что получили данные
+        if (!json) {
+          throw new Error('Сервер вернул пустой ответ');
+        }
+        
         const normalized = normalizeBrands(json);
+        
+        if (!normalized || normalized.length === 0) {
+          console.warn('[useAcousticEngine] Получен пустой список брендов');
+        }
+        
         setBrands(normalized);
       } catch (e) {
-        if (e.name !== "AbortError")
+        if (e.name !== "AbortError") {
+          console.error('[useAcousticEngine] Ошибка загрузки брендов:', e);
           setBrandsError(e.message || "Ошибка загрузки брендов");
+        }
       } finally {
         setBrandsLoading(false);
       }
@@ -416,7 +483,9 @@ export function useAcousticEngine() {
         let json;
         try {
           json = JSON.parse(text);
-        } catch {}
+        } catch {
+          // Игнорируем ошибки парсинга JSON
+        }
         if (!res.ok) {
           const msg = json?.message || json?.error || text || `HTTP ${res.status}`;
           throw new Error(msg);
@@ -478,7 +547,9 @@ export function useAcousticEngine() {
         let json;
         try {
           json = JSON.parse(text);
-        } catch {}
+        } catch {
+          // Игнорируем ошибки парсинга JSON
+        }
         if (!res.ok) {
           const msg = json?.message || json?.error || text || `HTTP ${res.status}`;
           throw new Error(msg);
@@ -575,7 +646,7 @@ export function useAcousticEngine() {
       }
     })();
     return () => controller.abort();
-  }, [modelParamsUrl]);
+  }, [modelParamsUrl, isReady]);
 
   // ——— 7) Сброс зависимых при смене модели ———
   useEffect(() => {
