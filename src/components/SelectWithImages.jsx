@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef, useEffect, useCallback, memo } from "react";
+import { brandIconMap } from "../utils/brandIcons";
 
 function SelectWithImages({
   paramType,
@@ -38,6 +39,42 @@ function SelectWithImages({
         .includes(s)
     );
   }, [options, q]);
+
+  // Готовим изображение выбранного бренда (API или локальный fallback)
+  const selectedBrandImage = useMemo(() => {
+    if (paramType !== "brand" || !selectedOption) return null;
+
+    const brandImg = selectedOption.Img;
+    const brandCode = selectedOption.code || selectedOption.id;
+    const mappedFile = brandIconMap[brandCode];
+    const hasValidImg = brandImg && String(brandImg).trim() !== "";
+
+    let imageUrl = null;
+    let isFallback = false;
+
+    if (hasValidImg) {
+      const imgFileName = String(brandImg).toLowerCase();
+      const brandCodeLower = String(brandCode).toLowerCase();
+      const imgMatchesBrand =
+        imgFileName.includes(`_${brandCodeLower}`) ||
+        imgFileName.includes(`brand_${brandCodeLower}`) ||
+        imgFileName.startsWith(`${brandCodeLower}_`) ||
+        imgFileName === `${brandCodeLower}.jpg` ||
+        imgFileName === `brand_${brandCodeLower}.jpg`;
+
+      if (imgMatchesBrand) {
+        imageUrl = getImageUrl(selectedOption);
+      }
+    }
+
+    if (!imageUrl && mappedFile) {
+      imageUrl = `/brand_icon/${mappedFile}`;
+      isFallback = true;
+    }
+
+    if (!imageUrl) return null;
+    return { url: imageUrl, isFallback, mappedFile };
+  }, [paramType, selectedOption, getImageUrl]);
 
   useEffect(() => {
     if (showTooltip && spanRef.current && containerRef.current) {
@@ -227,7 +264,7 @@ function SelectWithImages({
         }}
         style={{
           width: "100%",
-          padding: "0",
+          padding: paramType === "brand" ? "0 0 0 20px" : "0",
           border: "none",
           borderRadius: 16,
           backgroundColor: "#fff",
@@ -236,7 +273,7 @@ function SelectWithImages({
           alignItems: "center",
           justifyContent: "flex-start",
           position: "relative",
-          minHeight: 70,
+          minHeight: paramType === "brand" ? 90 : 70,
           overflow: "hidden",
         }}
         aria-label={`Выберите ${sectionAcc}`}
@@ -261,77 +298,58 @@ function SelectWithImages({
                     return null;
                   }
                   
-                  // Получаем изображение ТОЛЬКО для этого конкретного бренда
-                  // Убеждаемся, что Img поле принадлежит именно этому бренду
-                  const brandImg = selectedOption.Img;
-                  const brandCode = selectedOption.code || selectedOption.id;
-                  const hasValidImg = brandImg && String(brandImg).trim() !== "";
-                  
-                  // Если у бренда нет изображения, не отображаем его
-                  if (!hasValidImg) {
-                    return null;
-                  }
-                  
-                  // ВАЖНО: Проверяем, что имя файла изображения содержит код бренда
-                  // Это гарантирует, что изображение действительно принадлежит этому бренду
-                  const imgFileName = String(brandImg).toLowerCase();
-                  const brandCodeLower = String(brandCode).toLowerCase();
-                  // Проверяем, что имя файла содержит код бренда (например, "text_block_brand_dc.jpg" содержит "dc")
-                  const imgMatchesBrand = imgFileName.includes(`_${brandCodeLower}`) || 
-                                         imgFileName.includes(`brand_${brandCodeLower}`) ||
-                                         imgFileName.startsWith(`${brandCodeLower}_`) ||
-                                         imgFileName === `${brandCodeLower}.jpg` ||
-                                         imgFileName === `brand_${brandCodeLower}.jpg`;
-                  
-                  // Если изображение не соответствует коду бренда, не отображаем его
-                  // Это предотвращает отображение изображений других брендов
-                  if (!imgMatchesBrand) {
-                    return null;
-                  }
-                  
-                  const imageUrl = getImageUrl(selectedOption);
-                  
-                  // Отображаем изображение ТОЛЬКО если оно есть у этого бренда
-                  if (imageUrl) {
-                    // Определяем, нужен ли crossOrigin (только для внешних доменов)
-                    const isExternalUrl = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
-                    const needsCrossOrigin = isExternalUrl && !imageUrl.includes(window.location.hostname);
-                    
-                    return (
-                      <img
-                        src={imageUrl}
-                        alt={selectedOption?.name}
-                        {...(needsCrossOrigin && { crossOrigin: "anonymous" })}
-                        onError={(e) => {
-                          console.error('[SelectWithImages] Failed to load image:', imageUrl);
-                          console.error('[SelectWithImages] Error details:', e);
-                          e.currentTarget.style.display = "none";
-                        }}
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          objectFit: "contain",
-                          marginRight: "12px",
-                          flexShrink: 0,
-                        }}
-                      />
-                    );
-                  }
-                  return null;
+                  const imageUrl = selectedBrandImage?.url;
+                  const isFallback = selectedBrandImage?.isFallback;
+                  const mappedFile = selectedBrandImage?.mappedFile;
+
+                  if (!imageUrl) return null;
+
+                  const isExternalUrl =
+                    imageUrl.startsWith("http://") || imageUrl.startsWith("https://");
+                  const needsCrossOrigin =
+                    isExternalUrl && !imageUrl.includes(window.location.hostname);
+
+                  return (
+                    <img
+                      src={imageUrl}
+                      alt={selectedOption?.name}
+                      {...(needsCrossOrigin && { crossOrigin: "anonymous" })}
+                      onError={(e) => {
+                        if (!isFallback && mappedFile) {
+                          // Подставляем локальный fallback, если API-URL не загрузился
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = `/brand_icon/${mappedFile}`;
+                          return;
+                        }
+                        console.error("[SelectWithImages] Failed to load image:", imageUrl);
+                        console.error("[SelectWithImages] Error details:", e);
+                        e.currentTarget.style.display = "none";
+                      }}
+                      style={{
+                        width: "64px",
+                        height: "64px",
+                        objectFit: "contain",
+                        transform: "scale(4)",
+                        marginLeft: "50px",
+                      }}
+                    />
+                  );
                 })()}
-                <span
-                  ref={spanRef}
-                  style={{
-                    flex: 1,
-                    fontSize: "medium",
-                    textAlign: "left",
-                    padding: "0 12px",
-                  }}
-                  onMouseEnter={() => setShowTooltip(true)}
-                  onMouseLeave={() => setShowTooltip(false)}
-                >
-                  {selectedOption?.name}
-                </span>
+                {!selectedBrandImage?.url && (
+                  <span
+                    ref={spanRef}
+                    style={{
+                      flex: 1,
+                      fontSize: "medium",
+                      textAlign: "left",
+                      padding: "0 12px",
+                    }}
+                    onMouseEnter={() => setShowTooltip(true)}
+                    onMouseLeave={() => setShowTooltip(false)}
+                  >
+                    {selectedOption?.name}
+                  </span>
+                )}
               </>
             ) : (
               // Для остальных типов: изображение на фоне
@@ -623,26 +641,33 @@ function SelectWithImages({
             }}
           >
             {filtered.map((opt) => {
-              // Для брендов: проверяем, что изображение соответствует этому бренду
+              // Для брендов: пытаемся взять URL из API, иначе fallback из public/brand_icon
               let url = null;
+              let isFallback = false;
               if (paramType === "brand") {
                 const brandImg = opt.Img;
                 const brandCode = opt.code || opt.id;
+                const mappedFile = brandIconMap[brandCode];
                 const hasValidImg = brandImg && String(brandImg).trim() !== "";
-                
+
                 if (hasValidImg) {
-                  // Проверяем, что имя файла содержит код бренда
                   const imgFileName = String(brandImg).toLowerCase();
                   const brandCodeLower = String(brandCode).toLowerCase();
-                  const imgMatchesBrand = imgFileName.includes(`_${brandCodeLower}`) || 
-                                         imgFileName.includes(`brand_${brandCodeLower}`) ||
-                                         imgFileName.startsWith(`${brandCodeLower}_`) ||
-                                         imgFileName === `${brandCodeLower}.jpg` ||
-                                         imgFileName === `brand_${brandCodeLower}.jpg`;
-                  
+                  const imgMatchesBrand =
+                    imgFileName.includes(`_${brandCodeLower}`) ||
+                    imgFileName.includes(`brand_${brandCodeLower}`) ||
+                    imgFileName.startsWith(`${brandCodeLower}_`) ||
+                    imgFileName === `${brandCodeLower}.jpg` ||
+                    imgFileName === `brand_${brandCodeLower}.jpg`;
+
                   if (imgMatchesBrand) {
                     url = getImageUrl(opt);
                   }
+                }
+
+                if (!url && mappedFile) {
+                  url = `/brand_icon/${mappedFile}`;
+                  isFallback = true;
                 }
               } else {
                 // Для других типов используем стандартную логику
@@ -705,6 +730,11 @@ function SelectWithImages({
                             alt={opt.name}
                             {...(needsCrossOrigin && { crossOrigin: "anonymous" })}
                             onError={(e) => {
+                              if (!isFallback && brandIconMap[opt.code || opt.id]) {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = `/brand_icon/${brandIconMap[opt.code || opt.id]}`;
+                                return;
+                              }
                               console.error('[SelectWithImages] Failed to load image in dropdown:', url);
                               console.error('[SelectWithImages] Error details:', e);
                               e.currentTarget.style.display = "none";
