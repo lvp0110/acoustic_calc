@@ -1,6 +1,6 @@
-import { useMemo, useState, useRef, useEffect, useCallback } from "react";
+import { useMemo, useState, useRef, useEffect, useCallback, memo } from "react";
 
-export default function SelectWithImages({
+function SelectWithImages({
   paramType,
   value,
   onChange,
@@ -307,9 +307,6 @@ export default function SelectWithImages({
                           console.error('[SelectWithImages] Error details:', e);
                           e.currentTarget.style.display = "none";
                         }}
-                        onLoad={() => {
-                          console.log('[SelectWithImages] Image loaded successfully:', imageUrl);
-                        }}
                         style={{
                           width: "50px",
                           height: "50px",
@@ -365,9 +362,6 @@ export default function SelectWithImages({
                         console.error('[SelectWithImages] Failed to load background image:', imageUrl);
                         console.error('[SelectWithImages] Error details:', e);
                         e.currentTarget.style.display = "none";
-                      }}
-                      onLoad={() => {
-                        console.log('[SelectWithImages] Background image loaded successfully:', imageUrl);
                       }}
                       style={{
                         position: "absolute",
@@ -715,9 +709,6 @@ export default function SelectWithImages({
                               console.error('[SelectWithImages] Error details:', e);
                               e.currentTarget.style.display = "none";
                             }}
-                            onLoad={() => {
-                              console.log('[SelectWithImages] Image loaded successfully in dropdown:', url);
-                            }}
                             style={{
                               width: "96%",
                               height: "96%",
@@ -763,3 +754,16 @@ export default function SelectWithImages({
     </div>
   );
 }
+
+export default memo(SelectWithImages, (prev, next) => {
+  return (
+    prev.paramType === next.paramType &&
+    prev.value === next.value &&
+    prev.onChange === next.onChange &&
+    prev.options === next.options &&
+    prev.getImageUrl === next.getImageUrl &&
+    prev.SECTION_TITLES === next.SECTION_TITLES &&
+    prev.capitalize === next.capitalize &&
+    prev.brandParamsName === next.brandParamsName
+  );
+});

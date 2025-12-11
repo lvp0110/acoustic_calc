@@ -156,14 +156,12 @@ const buildApiUrl = (path) => {
     }
     // В development используем относительный путь (будет проксироваться через vite)
     const relativeUrl = `/${cleanPath}`;
-    console.log('[buildApiUrl] Development mode - using relative URL:', relativeUrl, '(will be proxied to http://localhost:3005)');
     return relativeUrl;
   }
   
   // Убираем завершающий слеш из BASE_URL, если он есть
   const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
   const finalUrl = `${cleanBase}/${cleanPath}`;
-  console.log('[buildApiUrl] Built URL:', finalUrl, '(BASE_URL:', BASE_URL, ')');
   
   return finalUrl;
 };
@@ -218,7 +216,6 @@ const getImageUrl = (option) => {
     // Убираем начальный слеш из imageFile, если он есть
     const cleanImageFile = imageFile.startsWith('/') ? imageFile.slice(1) : imageFile;
     const fullUrl = `${cleanBase}/api/v1/constr/${cleanImageFile}`;
-    console.log('[getImageUrl] Using BASE_URL:', fullUrl);
     return fullUrl;
   }
   
@@ -234,7 +231,6 @@ const getImageUrl = (option) => {
     // В development используем localhost (как в proxy)
     fullUrl = `http://localhost:3005/api/v1/constr/${cleanImageFile}`;
   }
-  console.log('[getImageUrl] Generated URL (mode:', mode, '):', fullUrl);
   return fullUrl;
 };
 
@@ -385,9 +381,6 @@ export function useAcousticEngine() {
         setBrandsLoading(true);
         setBrandsError("");
 
-        // Логируем URL для отладки
-        console.log('[useAcousticEngine] Fetching brands from:', brandsUrl);
-        
         if (!brandsUrl || brandsUrl === '') {
           throw new Error('URL для загрузки брендов не сформирован. Проверьте конфигурацию BASE_URL.');
         }

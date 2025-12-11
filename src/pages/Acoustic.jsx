@@ -1,4 +1,60 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
+
+// Мемоизированный селект вынесен за пределы компонента, чтобы не переопределяться на каждом рендере
+const MemoizedSelectComponent = memo(
+  function SelectComponent({
+    paramType,
+    value,
+    onChange,
+    options,
+    brandParamsNames,
+    getImageUrl,
+    SECTION_TITLES,
+    capitalize,
+  }) {
+    const hasImages = useMemo(
+      () => options.some((opt) => getImageUrl(opt)),
+      [options, getImageUrl]
+    );
+    const brandParamsName = brandParamsNames?.[paramType] || "";
+
+    if (hasImages) {
+      return (
+        <SelectWithImages
+          paramType={paramType}
+          value={value}
+          onChange={onChange}
+          options={options}
+          getImageUrl={getImageUrl}
+          SECTION_TITLES={SECTION_TITLES}
+          capitalize={capitalize}
+          brandParamsName={brandParamsName}
+        />
+      );
+    }
+
+    return (
+      <SelectText
+        paramType={paramType}
+        value={value}
+        onChange={onChange}
+        options={options}
+        SECTION_TITLES={SECTION_TITLES}
+        capitalize={capitalize}
+        brandParamsName={brandParamsName}
+      />
+    );
+  },
+  (prev, next) =>
+    prev.paramType === next.paramType &&
+    prev.value === next.value &&
+    prev.onChange === next.onChange &&
+    prev.options === next.options &&
+    prev.brandParamsNames === next.brandParamsNames &&
+    prev.getImageUrl === next.getImageUrl &&
+    prev.SECTION_TITLES === next.SECTION_TITLES &&
+    prev.capitalize === next.capitalize
+);
 import { useSearchParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { useAcoustic } from "../context/AcousticContext.jsx";
@@ -10,19 +66,22 @@ import "./Acoustic.css";
 
 export default function Acoustic() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tableCalcData, setTableCalcData] = useState(null);
-  const [tableCalcRows, setTableCalcRows] = useState([]);
+  const [tableState, setTableState] = useState({
+    brand: null,
+    model: null,
+    calcData: null,
+    calcRows: [],
+  });
+  const { brand: tableBrand, model: tableModel, calcData: tableCalcData, calcRows: tableCalcRows } = tableState;
   const [description, setDescription] = useState("");
   const [descriptionLoading, setDescriptionLoading] = useState(false);
   const [descriptionError, setDescriptionError] = useState("");
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [brandParamsNames, setBrandParamsNames] = useState({});
   const tableDataRemovedFromUrl = useRef(false); // Флаг, что tableData был удален из URL
-  const [tableBrand, setTableBrand] = useState(null); // Храним бренд, для которого была создана таблица (используем состояние для немедленного обновления)
-  const [tableModel, setTableModel] = useState(null); // Храним модель, для которой была создана таблица
   const prevBrandRef = useRef(null); // Для отслеживания смены бренда
   const prevModelRef = useRef(null); // Для отслеживания смены модели
-  const brandChangeInProgressRef = useRef(false); // Флаг для блокировки восстановления таблицы при смене бренда
+  const [brandChangeInProgress, setBrandChangeInProgress] = useState(false); // Флаг для блокировки восстановления таблицы при смене бренда (используем состояние для правильного рендера)
   const tableContainerRef = useRef(null); // Ref для контейнера таблицы
   const {
     BASE_URL,
@@ -64,75 +123,92 @@ export default function Acoustic() {
     hasModels,
   } = useAcoustic();
 
+  const resetTableState = useCallback(() => {
+    setTableState({
+      brand: null,
+      model: null,
+      calcData: null,
+      calcRows: [],
+    });
+  }, []);
+
+  const updateTableState = useCallback((next) => {
+    setTableState((prev) => {
+      const merged = typeof next === "function" ? next(prev) : next;
+      if (
+        prev.brand === merged.brand &&
+        prev.model === merged.model &&
+        prev.calcData === merged.calcData &&
+        prev.calcRows === merged.calcRows
+      ) {
+        return prev;
+      }
+      return merged;
+    });
+  }, []);
+
   // Сброс ссылки на бренд таблицы при смене бренда, чтобы скрыть таблицу
   useEffect(() => {
+    let timeoutId = null;
+    
     if (!isReady) {
       prevBrandRef.current = brand;
       prevModelRef.current = model;
       if (brand) {
         // При инициализации, если бренд есть, но tableBrand не совпадает - очищаем
         if (tableBrand !== null && tableBrand !== brand) {
-          setTableBrand(null);
-          setTableModel(null);
-          setTableCalcData(null);
-          setTableCalcRows([]);
+          resetTableState();
           tableDataRemovedFromUrl.current = false;
         }
       }
-      return;
+      return () => {
+        if (timeoutId) clearTimeout(timeoutId);
+      };
     }
 
     // Если бренд изменился, сбрасываем ссылку на бренд таблицы и очищаем данные
     if (prevBrandRef.current !== null && prevBrandRef.current !== brand) {
       // Устанавливаем флаг смены бренда
-      brandChangeInProgressRef.current = true;
+      setBrandChangeInProgress(true);
       
       // НЕМЕДЛЕННО скрываем таблицу, устанавливая tableBrand в null
-      setTableBrand(null);
-      setTableModel(null);
-      // Затем очищаем данные таблицы
-      setTableCalcData(null);
-      setTableCalcRows([]);
+      resetTableState();
       // Сбрасываем флаг восстановления
       tableDataRemovedFromUrl.current = false;
       
       // Сбрасываем флаг через небольшую задержку
-      setTimeout(() => {
-        brandChangeInProgressRef.current = false;
+      timeoutId = setTimeout(() => {
+        setBrandChangeInProgress(false);
       }, 100);
     }
     
     // Если модель изменилась, сбрасываем таблицу (нужен новый расчет для новой модели)
     if (prevModelRef.current !== null && prevModelRef.current !== model) {
-      setTableBrand(null);
-      setTableModel(null);
-      setTableCalcData(null);
-      setTableCalcRows([]);
+      resetTableState();
       tableDataRemovedFromUrl.current = false;
     }
     
     // Дополнительная проверка: если tableBrand не совпадает с текущим брендом, очищаем
     // Это важно для случая, когда бренд изменился, но useEffect не сработал
     if (tableBrand !== null && tableBrand !== brand) {
-      setTableBrand(null);
-      setTableModel(null);
-      setTableCalcData(null);
-      setTableCalcRows([]);
+      resetTableState();
       tableDataRemovedFromUrl.current = false;
     }
     
     // Дополнительная проверка: если tableModel не совпадает с текущей моделью, очищаем
     if (tableModel !== null && tableModel !== model) {
-      setTableBrand(null);
-      setTableModel(null);
-      setTableCalcData(null);
-      setTableCalcRows([]);
+      resetTableState();
       tableDataRemovedFromUrl.current = false;
     }
     
     prevBrandRef.current = brand;
     prevModelRef.current = model;
-  }, [brand, model, isReady, tableBrand, tableModel]);
+    
+    // Возвращаем функцию очистки для предотвращения утечки памяти
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [brand, model, isReady, tableBrand, tableModel, resetTableState]);
 
 
   // Функция для определения, есть ли изображения в опциях
@@ -141,58 +217,29 @@ export default function Acoustic() {
   };
 
   // Компонент-обертка для выбора правильного селекта
-  const SelectComponent = ({ paramType, value, onChange, options }) => {
-    const hasImages = hasImagesInOptions(options);
-    const brandParamsName = brandParamsNames[paramType] || "";
-
-    if (hasImages) {
-      return (
-        <SelectWithImages
-          paramType={paramType}
-          value={value}
-          onChange={onChange}
-          options={options}
-          getImageUrl={getImageUrl}
-          SECTION_TITLES={SECTION_TITLES}
-          capitalize={capitalize}
-          brandParamsName={brandParamsName}
-        />
-      );
-    } else {
-      return (
-        <SelectText
-          paramType={paramType}
-          value={value}
-          onChange={onChange}
-          options={options}
-          SECTION_TITLES={SECTION_TITLES}
-          capitalize={capitalize}
-          brandParamsName={brandParamsName}
-        />
-      );
-    }
-  };
+  const SelectComponent = useMemo(() => MemoizedSelectComponent, []);
 
   // Преобразование brands в формат для SelectWithImages: { id, name, ... }
   // Сохраняем все исходные поля из API, чтобы getImageUrl мог найти изображение
-  const brandOptions = brands.map((b) => ({
-    ...b, // Сохраняем все исходные поля (включая Img, Name, ShortName и т.д.)
-    id: b.code, // Перезаписываем id на code для SelectWithImages
-    name: b.name, // Перезаписываем name для единообразия
-  }));
+  const brandOptions = useMemo(
+    () =>
+      brands.map((b) => ({
+        ...b, // Сохраняем все исходные поля (включая Img, Name, ShortName и т.д.)
+        id: b.code, // Перезаписываем id на code для SelectWithImages
+        name: b.name, // Перезаписываем name для единообразия
+      })),
+    [brands]
+  );
 
   // Обертка для setBrand
   const handleBrandChange = (newBrand) => {
     // Если бренд действительно меняется (включая сброс на пустое значение)
     if (isReady && brand !== newBrand) {
       // Устанавливаем флаг, что идет смена бренда - это заблокирует восстановление таблицы
-      brandChangeInProgressRef.current = true;
+      setBrandChangeInProgress(true);
       
       // НЕМЕДЛЕННО скрываем таблицу и очищаем данные (до вызова setBrand)
-      setTableBrand(null); // Используем состояние для немедленного обновления UI
-      setTableModel(null); // Также сбрасываем модель таблицы
-      setTableCalcData(null);
-      setTableCalcRows([]);
+      resetTableState(); // Используем состояние для немедленного обновления UI
       tableDataRemovedFromUrl.current = false;
       
       // Сбрасываем описание
@@ -219,14 +266,54 @@ export default function Acoustic() {
       setBrand(newBrand);
       
       // Сбрасываем флаг через небольшую задержку, чтобы дать время всем useEffect выполниться
+      // Используем setTimeout в обработчике события - это безопасно, так как он не будет активен после размонтирования
       setTimeout(() => {
-        brandChangeInProgressRef.current = false;
+        setBrandChangeInProgress(false);
       }, 200);
     } else {
       // Если бренд не меняется, просто устанавливаем его
       setBrand(newBrand);
     }
   };
+
+  const handleTableDataChange = useCallback(
+    (calcData, calcRows) => {
+      // Если данных нет, сразу скрываем таблицу
+      if (!calcData && (!calcRows || calcRows.length === 0)) {
+        resetTableState();
+        return;
+      }
+
+      // Если данные есть, проверяем, что бренд и модель совпадают
+      if (tableBrand !== null && tableBrand !== brand) {
+        // Если бренд не совпадает, не сохраняем данные
+        return;
+      }
+
+      if (tableModel !== null && tableModel !== model) {
+        // Если модель не совпадает, не сохраняем данные
+        return;
+      }
+
+      updateTableState((prev) => {
+        if (
+          prev.brand === brand &&
+          prev.model === model &&
+          prev.calcData === calcData &&
+          prev.calcRows === calcRows
+        ) {
+          return prev;
+        }
+        return {
+          brand,
+          model,
+          calcData: calcData || null,
+          calcRows: calcRows || [],
+        };
+      });
+    },
+    [brand, model, tableBrand, tableModel, resetTableState, updateTableState]
+  );
 
   // ВАЖНО: Таблица НЕ должна восстанавливаться из URL!
   // Таблица показывается ТОЛЬКО после нажатия кнопки "Расчёт"
@@ -520,6 +607,10 @@ export default function Acoustic() {
                   value={model}
                   onChange={setModel}
                   options={paramOptions.model}
+                  brandParamsNames={brandParamsNames}
+                  getImageUrl={getImageUrl}
+                  SECTION_TITLES={SECTION_TITLES}
+                  capitalize={capitalize}
                 />
               </div>
             )}
@@ -539,6 +630,10 @@ export default function Acoustic() {
                     value={size}
                     onChange={setSize}
                     options={paramOptions.size}
+                    brandParamsNames={brandParamsNames}
+                    getImageUrl={getImageUrl}
+                    SECTION_TITLES={SECTION_TITLES}
+                    capitalize={capitalize}
                   />
                 )}
                 {hasColor && (
@@ -547,6 +642,10 @@ export default function Acoustic() {
                     value={color}
                     onChange={setColor}
                     options={paramOptions.color}
+                    brandParamsNames={brandParamsNames}
+                    getImageUrl={getImageUrl}
+                    SECTION_TITLES={SECTION_TITLES}
+                    capitalize={capitalize}
                   />
                 )}
                 {hasPerf && (
@@ -555,6 +654,10 @@ export default function Acoustic() {
                     value={perf}
                     onChange={setPerf}
                     options={paramOptions.perf}
+                    brandParamsNames={brandParamsNames}
+                    getImageUrl={getImageUrl}
+                    SECTION_TITLES={SECTION_TITLES}
+                    capitalize={capitalize}
                   />
                 )}
                 {hasEdge && (
@@ -563,6 +666,10 @@ export default function Acoustic() {
                     value={edge}
                     onChange={setEdge}
                     options={paramOptions.edge}
+                    brandParamsNames={brandParamsNames}
+                    getImageUrl={getImageUrl}
+                    SECTION_TITLES={SECTION_TITLES}
+                    capitalize={capitalize}
                   />
                 )}
               </div>
@@ -573,33 +680,7 @@ export default function Acoustic() {
           {brand && model && !depLoading && !depError && hasAnyDependent && (
             <div className="block-3">
               <CalcControls
-                onTableDataChange={(calcData, calcRows) => {
-                  // Если данных нет, сразу скрываем таблицу
-                  if (!calcData && (!calcRows || calcRows.length === 0)) {
-                    setTableBrand(null);
-                    setTableModel(null);
-                    setTableCalcData(null);
-                    setTableCalcRows([]);
-                    return;
-                  }
-                  
-                  // Если данные есть, проверяем, что бренд и модель совпадают
-                  if (tableBrand !== null && tableBrand !== brand) {
-                    // Если бренд не совпадает, не сохраняем данные
-                    return;
-                  }
-                  
-                  if (tableModel !== null && tableModel !== model) {
-                    // Если модель не совпадает, не сохраняем данные
-                    return;
-                  }
-                  
-                  // Сохраняем данные только если бренд и модель совпадают
-                  setTableCalcData(calcData);
-                  setTableCalcRows(calcRows);
-                  setTableBrand(brand);
-                  setTableModel(model);
-                }}
+                onTableDataChange={handleTableDataChange}
               />
             </div>
           )}
@@ -634,7 +715,7 @@ export default function Acoustic() {
 
         {/* Блок 4: Таблица результатов */}
         {/* Таблица показывается ТОЛЬКО если бренд и модель совпадают с теми, для которых был выполнен расчет */}
-        {!brandChangeInProgressRef.current &&
+        {!brandChangeInProgress &&
          tableBrand === brand && 
          tableModel === model &&
          tableBrand !== null &&

@@ -1,6 +1,6 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, memo } from "react";
 
-export default function SelectText({
+function SelectText({
   paramType,
   value,
   onChange,
@@ -353,3 +353,17 @@ export default function SelectText({
     </div>
   );
 }
+
+export default memo(SelectText, (prev, next) => {
+  return (
+    prev.paramType === next.paramType &&
+    prev.value === next.value &&
+    prev.onChange === next.onChange &&
+    prev.options === next.options &&
+    prev.SECTION_TITLES === next.SECTION_TITLES &&
+    prev.capitalize === next.capitalize &&
+    prev.showClearButton === next.showClearButton &&
+    prev.showArrow === next.showArrow &&
+    prev.brandParamsName === next.brandParamsName
+  );
+});
