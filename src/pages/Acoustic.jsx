@@ -1,4 +1,12 @@
 import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
+import { useSearchParams } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+import { useAcoustic } from "../context/AcousticContext.jsx";
+import SelectWithImages from "../components/SelectWithImages.jsx";
+import SelectText from "../components/SelectText.jsx";
+import CalcControls from "./CalcControls.jsx";
+import CalcTable from "../components/CalcTable.jsx";
+import "./Acoustic.css";
 
 // Мемоизированный селект вынесен за пределы компонента, чтобы не переопределяться на каждом рендере
 const MemoizedSelectComponent = memo(
@@ -55,14 +63,6 @@ const MemoizedSelectComponent = memo(
     prev.SECTION_TITLES === next.SECTION_TITLES &&
     prev.capitalize === next.capitalize
 );
-import { useSearchParams } from "react-router-dom";
-import ReactMarkdown from "react-markdown";
-import { useAcoustic } from "../context/AcousticContext.jsx";
-import SelectWithImages from "../components/SelectWithImages.jsx";
-import SelectText from "../components/SelectText.jsx";
-import CalcControls from "./CalcControls.jsx";
-import CalcTable from "../components/CalcTable.jsx";
-import "./Acoustic.css";
 
 export default function Acoustic() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -209,12 +209,6 @@ export default function Acoustic() {
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, [brand, model, isReady, tableBrand, tableModel, resetTableState]);
-
-
-  // Функция для определения, есть ли изображения в опциях
-  const hasImagesInOptions = (options) => {
-    return options.some((opt) => getImageUrl(opt));
-  };
 
   // Компонент-обертка для выбора правильного селекта
   const SelectComponent = useMemo(() => MemoizedSelectComponent, []);

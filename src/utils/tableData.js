@@ -17,27 +17,6 @@ export const encodeTableData = (calcData, calcRows) => {
   }
 };
 
-export const decodeTableData = (encoded) => {
-  try {
-    if (!encoded) return { calcData: null, calcRows: [] };
-    // Правильное декодирование: сначала из base64, потом из UTF-8
-    const utf8 = atob(encoded);
-    const json = decodeURIComponent(escape(utf8));
-    const data = JSON.parse(json);
-    return {
-      calcData: data.calcData || null,
-      calcRows: data.calcRows || [],
-    };
-  } catch (e) {
-    console.error("Ошибка декодирования данных таблицы:", e, e.message);
-    return { calcData: null, calcRows: [] };
-  }
-};
-
-
-
-
-
 
 
 

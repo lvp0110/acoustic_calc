@@ -657,23 +657,10 @@ export function useAcousticEngine() {
     setEdge("");
   }, [model, isReady]);
 
-  // Экспортируем buildApiUrl для использования в других компонентах
-  const buildApiUrlForExport = (path) => {
-    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-    if (!BASE_URL || BASE_URL === '') {
-      if (import.meta.env?.MODE === 'production') {
-        return '';
-      }
-      return `/${cleanPath}`;
-    }
-    const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
-    return `${cleanBase}/${cleanPath}`;
-  };
-
   return {
     // базовое
     BASE_URL,
-    buildApiUrl: buildApiUrlForExport,
+    buildApiUrl,
     SECTION_TITLES,
     capitalize,
     getImageUrl,

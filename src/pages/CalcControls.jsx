@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import "./CalcControls.css";
 import { useAcoustic } from "../context/AcousticContext.jsx";
@@ -6,7 +6,7 @@ import SelectText from "../components/SelectText.jsx";
 import { encodeTableData } from "../utils/tableData.js";
 
 export default function CalcControls(props) {
-  const { BASE_URL, brand, model, color, size, perf, edge, fullOptionData, hasColor, hasSize, hasPerf, hasEdge } =
+  const { buildApiUrl, brand, model, color, size, perf, edge, fullOptionData, hasColor, hasSize, hasPerf, hasEdge } =
     useAcoustic();
   const { onTableDataChange } = props;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -211,23 +211,12 @@ export default function CalcControls(props) {
   }, [width, height, mode]);
 
   const v2Urls = useMemo(() => {
-    const buildApiUrl = (path) => {
-      const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-      if (!BASE_URL || BASE_URL === "") {
-        return `/${cleanPath}`;
-      }
-      const cleanBase = BASE_URL.endsWith("/")
-        ? BASE_URL.slice(0, -1)
-        : BASE_URL;
-      return `${cleanBase}/${cleanPath}`;
-    };
-
     return {
       params: buildApiUrl("api/v2/constr/calc/params"),
       calcBase: buildApiUrl("api/v2/constr/calc"),
       excel: buildApiUrl("api/v2/constr/calc/excel"),
     };
-  }, [BASE_URL]);
+  }, [buildApiUrl]);
 
   const numeric = (val) => {
     const n = Number(String(val).replace(",", "."));
