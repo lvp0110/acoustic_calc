@@ -22,7 +22,6 @@ export default function CalcControls(props) {
   const [calcError, setCalcError] = useState("");
   const [calcRows, setCalcRows] = useState([]);
   const [calcData, setCalcData] = useState(null);
-  const [showModal, setShowModal] = useState(false);
   const isInitialized = useRef(false);
   const lastCalcParams = useRef("");
   const prevBrand = useRef(brand);
@@ -162,7 +161,6 @@ export default function CalcControls(props) {
       setCalcError("");
       setCalcRows([]);
       setCalcData(null);
-      setShowModal(false);
       
       // Очищаем параметры калькулятора из URL
       setSearchParams(
@@ -249,11 +247,10 @@ export default function CalcControls(props) {
 
   // 2) Явный расчет по кнопке
   const onCalculate = async () => {
-    // if (!hasValidInput) return;
     if (!hasValidInput) {
       alert("Пожалуйста, заполните все обязательные поля для расчёта.");
       return;
-    };
+    }
     try {
       setCalcData(null);
       setCalcRows([]);
@@ -290,11 +287,6 @@ export default function CalcControls(props) {
         // Игнорируем ошибки парсинга JSON
       }
       if (!res.ok) {
-        if (res.status === 404) {
-          setShowModal(true);
-          setCalcLoading(false);
-          return;
-        }
         const msg =
           json?.message || json?.error || text || `HTTP ${res.status}`;
         throw new Error(msg);
@@ -565,7 +557,6 @@ export default function CalcControls(props) {
         <button
           type="button"
           onClick={onCalculate}
-          // disabled={!hasValidInput || calcLoading}
           style={{
             backgroundColor: hasValidInput ? "#006BCF" : undefined,
             color: hasValidInput ? "#fff" : undefined,
@@ -595,28 +586,6 @@ export default function CalcControls(props) {
       {calcLoading && <div style={{ marginTop: 8 }}>Расчёт…</div>}
       {calcError && (
         <div style={{ marginTop: 8, color: "crimson" }}>{calcError}</div>
-      )}
-
-      {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Выберите все данные для расчета</h3>
-              <button
-                className="modal-close"
-                onClick={() => setShowModal(false)}
-              >
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              <p>Выберите все данные для расчета</p>
-            </div>
-            <div className="modal-footer">
-              <button onClick={() => setShowModal(false)}>Закрыть</button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

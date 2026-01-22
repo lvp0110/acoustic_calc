@@ -22,7 +22,7 @@ body {
   background-color: #f5f5f7;
   font-size: large;
 }
-/* #F5F5F7  242424 */
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -40,9 +40,7 @@ h1 {
 select {
   height: 100px;
   border-radius: 16px;
-  /* text-align: center; */
   font-size: large;
-  
 }
 
 button {
