@@ -15,8 +15,8 @@ function SelectWithImages({
   const [q, setQ] = useState("");
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({
-    right: 0,
-    bottom: 0,
+    top: 0,
+    width: 0,
   });
   const [dropdownStyle, setDropdownStyle] = useState({});
   const spanRef = useRef(null);
@@ -78,12 +78,15 @@ function SelectWithImages({
 
   useEffect(() => {
     if (showTooltip && spanRef.current && containerRef.current) {
-      const spanRect = spanRef.current.getBoundingClientRect();
-      const containerRect = containerRef.current.getBoundingClientRect();
-      setTooltipPosition({
-        right: containerRect.right - spanRect.right,
-        bottom: containerRect.bottom - spanRect.top + 8,
-      });
+      const button = spanRef.current.closest('button');
+      if (button) {
+        const buttonRect = button.getBoundingClientRect();
+        const containerRect = containerRef.current.getBoundingClientRect();
+        setTooltipPosition({
+          top: buttonRect.top - containerRect.top,
+          width: buttonRect.width,
+        });
+      }
     }
   }, [showTooltip]);
 
@@ -539,29 +542,31 @@ function SelectWithImages({
         <div
           style={{
             position: "absolute",
-            bottom: tooltipPosition.bottom,
-            right: tooltipPosition.right,
+            top: tooltipPosition.top,
+            left: 0,
+            width: tooltipPosition.width,
+            transform: "translateY(-100%)",
             padding: "8px 12px",
             backgroundColor: "#333",
             color: "#fff",
             borderRadius: 8,
             fontSize: "large",
             zIndex: 1000,
-            width: "max-content",
-            maxWidth: "300px",
             whiteSpace: "normal",
             wordWrap: "break-word",
             boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
             pointerEvents: "none",
+            marginTop: "-8px",
+            boxSizing: "border-box",
           }}
         >
           {selectedOption.description}
           <div
             style={{
               position: "absolute",
-              top: "100%",
-              right: 12,
-              marginTop: -1,
+              bottom: "-6px",
+              left: "50%",
+              transform: "translateX(-50%)",
               width: 0,
               height: 0,
               borderLeft: "6px solid transparent",
