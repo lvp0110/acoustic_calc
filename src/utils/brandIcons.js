@@ -8,6 +8,8 @@ export const brandIcons = [
   { brandCode: 'sp', file: 'icon_Sonaspray.png' },
   { brandCode: 'sb', file: 'icon_SoundBoard.png' },
   { brandCode: 'sl', file: 'icon_Soundlux.png' },
+  { brandCode: 'ca', file: 'icon_Soundline.png' },
+  { brandCode: 'ca_ng', file: 'icon_Soundline.png' },
 ];
 
 // Quick lookup: brand code -> filename.

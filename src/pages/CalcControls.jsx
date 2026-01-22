@@ -223,6 +223,7 @@ export default function CalcControls(props) {
     return Number.isFinite(n) ? n : NaN;
   };
 
+  
   const hasValidInput = useMemo(() => {
     // Проверяем обязательные параметры: бренд и модель
     if (!brand || !model) return false;
@@ -248,7 +249,11 @@ export default function CalcControls(props) {
 
   // 2) Явный расчет по кнопке
   const onCalculate = async () => {
-    if (!hasValidInput) return;
+    // if (!hasValidInput) return;
+    if (!hasValidInput) {
+      alert("Пожалуйста, заполните все обязательные поля для расчёта.");
+      return;
+    };
     try {
       setCalcData(null);
       setCalcRows([]);
@@ -509,7 +514,7 @@ export default function CalcControls(props) {
           <>
             <input
               type="text"
-              placeholder="ширина"
+              placeholder="ширина (мм)"
               value={width}
               onChange={(e) => setWidth(e.target.value)}
               onKeyDown={(e) => {
@@ -521,7 +526,7 @@ export default function CalcControls(props) {
             />
             <input
               type="text"
-              placeholder="высота"
+              placeholder="высота (мм)"
               value={height}
               onChange={(e) => setHeight(e.target.value)}
               onKeyDown={(e) => {
@@ -560,7 +565,7 @@ export default function CalcControls(props) {
         <button
           type="button"
           onClick={onCalculate}
-          disabled={!hasValidInput || calcLoading}
+          // disabled={!hasValidInput || calcLoading}
           style={{
             backgroundColor: hasValidInput ? "#006BCF" : undefined,
             color: hasValidInput ? "#fff" : undefined,
