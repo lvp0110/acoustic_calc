@@ -22,6 +22,7 @@ export default function CalcControls(props) {
   const [calcError, setCalcError] = useState("");
   const [calcRows, setCalcRows] = useState([]);
   const [calcData, setCalcData] = useState(null);
+  const [notification, setNotification] = useState("");
   const isInitialized = useRef(false);
   const lastCalcParams = useRef("");
   const prevBrand = useRef(brand);
@@ -248,7 +249,9 @@ export default function CalcControls(props) {
   // 2) Явный расчет по кнопке
   const onCalculate = async () => {
     if (!hasValidInput) {
-      alert("Пожалуйста, заполните все обязательные поля для расчёта.");
+      setNotification("Пожалуйста, заполните все обязательные поля для расчёта");
+      // Автоматически скрываем уведомление через 3 секунды
+      setTimeout(() => setNotification(""), 3000);
       return;
     }
     try {
@@ -586,6 +589,20 @@ export default function CalcControls(props) {
       {calcLoading && <div style={{ marginTop: 8 }}>Расчёт…</div>}
       {calcError && (
         <div style={{ marginTop: 8, color: "crimson" }}>{calcError}</div>
+      )}
+      {notification && (
+        <div
+          style={{
+            marginTop: 8,
+            padding: "12px 16px",
+            backgroundColor: "#006BCF",
+            borderRadius: "16px",
+            color: "white",
+            textAlign: "center",
+          }}
+        >
+          {notification}
+        </div>
       )}
     </div>
   );
