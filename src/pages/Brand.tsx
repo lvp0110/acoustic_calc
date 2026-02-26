@@ -13,14 +13,15 @@ export default function Brand() {
     queryFn: () =>
       getBrandParams(brandCode, search).then((res) => res.data.data),
     enabled: !!brandCode,
+    placeholderData: (prev) => prev,
   });
 
   const onFieldChange = (code: string, value: string) => {
     navigate({
-      search: {
-        ...search,
-        [code]: value,
-      },
+      search:
+        code === "model"
+          ? { [code]: value || undefined }
+          : { ...search, [code]: value || undefined },
       from: "/$brandCode",
       replace: true,
     });
