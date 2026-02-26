@@ -1,43 +1,40 @@
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "@tanstack/react-router";
-import { getAcousticCategories } from "../api";
+import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
+import { getBrandParams } from "../api";
+import BrandForm from "../components/BrandForm";
 
 export default function Brand() {
-  const { brandCode } = useParams({ strict: false });
+  const { brandCode } = useParams({ from: "/$brandCode" });
+  const search = useSearch({ from: "/$brandCode" });
+  const navigate = useNavigate({ from: "/$brandCode" });
 
-  const {
-    data: categories,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["acousticCategories"],
-    queryFn: () => getAcousticCategories().then((res) => res.data.data),
+  const { data } = useQuery({
+    queryKey: ["brandParams", brandCode, search],
+    queryFn: () =>
+      getBrandParams(brandCode, search).then((res) => res.data.data),
+    enabled: !!brandCode,
   });
 
-  if (isLoading) return <p>Загрузка...</p>;
-  if (error) return <p>Ошибка: {(error as Error).message}</p>;
-
-  const brand = categories?.find((cat) => cat.ShortName === brandCode);
-
-  if (!brand) return <p>Бренд «{brandCode}» не найден</p>;
+  const onFieldChange = (code: string, value: string) => {
+    navigate({
+      search: {
+        ...search,
+        [code]: value,
+      },
+      from: "/$brandCode",
+      replace: true,
+    });
+  };
 
   return (
     <div>
-      <h1>{brand.Name}</h1>
-      <p>Код: {brand.ShortName}</p>
-      {brand.Img && <p>Изображение: {brand.Img}</p>}
-      {brand.Description && (
-        <div dangerouslySetInnerHTML={{ __html: brand.Description }} />
-      )}
-      {brand.Models && (
-        <>
-          <h2>Модели</h2>
-          <ul>
-            {brand.Models.map((model) => (
-              <li key={model}>{model}</li>
-            ))}
-          </ul>
-        </>
+      <h1>{brandCode}</h1>
+      {data && (
+        <BrandForm
+          fields={data}
+          values={search}
+          onFieldChange={onFieldChange}
+        />
       )}
     </div>
   );
