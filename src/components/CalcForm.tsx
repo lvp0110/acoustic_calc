@@ -7,7 +7,7 @@ export interface CalcFormResult {
   surface: string;
   mode: InputMode;
   area?: number;
-  width?: number;
+  length?: number;
   height?: number;
 }
 
@@ -20,14 +20,19 @@ export default function CalcForm({ surfaces, onCalculate }: CalcFormProps) {
   const [surface, setSurface] = useState(surfaces[0]?.Code ?? "");
   const [mode, setMode] = useState<InputMode>("area");
   const [area, setArea] = useState("");
-  const [width, setWidth] = useState("");
+  const [length, setLength] = useState("");
   const [height, setHeight] = useState("");
 
   const handleSubmit = () => {
     if (mode === "area") {
       onCalculate({ surface, mode, area: Number(area) });
     } else {
-      onCalculate({ surface, mode, width: Number(width), height: Number(height) });
+      onCalculate({
+        surface,
+        mode,
+        length: Number(length),
+        height: Number(height),
+      });
     }
   };
 
@@ -91,8 +96,8 @@ export default function CalcForm({ surfaces, onCalculate }: CalcFormProps) {
               type="number"
               min="0"
               step="0.01"
-              value={width}
-              onChange={(e) => setWidth(e.target.value)}
+              value={length}
+              onChange={(e) => setLength(e.target.value)}
             />
           </div>
           <div>

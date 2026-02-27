@@ -1,13 +1,18 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
-import { getBrandParams, getCalcParams } from "../api";
+import { getBrandParams, getCalcParams, getCalcResult } from "../api";
+import type { CalcFormResult } from "../components/CalcForm";
 import BrandForm from "../components/BrandForm";
 import CalcForm from "../components/CalcForm";
+import CalcResult from "../components/CalcResult";
 
 export default function Brand() {
   const { brandCode } = useParams({ from: "/$brandCode" });
   const search = useSearch({ from: "/$brandCode" });
   const navigate = useNavigate({ from: "/$brandCode" });
+
+  const [calcRequest, setCalcRequest] = useState<CalcFormResult | null>(null);
 
   const { data } = useQuery({
     queryKey: ["brandParams", brandCode, search],
@@ -17,11 +22,8 @@ export default function Brand() {
     placeholderData: (prev) => prev,
   });
 
-  // Все поля заполнены — запрашиваем параметры калькулятора
   const allFieldsFilled =
-    !!data &&
-    data.length > 0 &&
-    data.every((field) => !!search[field.code]);
+    !!data && data.length > 0 && data.every((field) => !!search[field.code]);
 
   const { data: calcParams } = useQuery({
     queryKey: ["calcParams", brandCode, search],
@@ -30,7 +32,28 @@ export default function Brand() {
     enabled: allFieldsFilled,
   });
 
+  const calcQueryParams = calcRequest
+    ? {
+        ...search,
+        type: calcRequest.surface,
+        ...(calcRequest.mode === "area"
+          ? { square: String(calcRequest.area) }
+          : {
+              length: String(calcRequest.length),
+              height: String(calcRequest.height),
+            }),
+      }
+    : null;
+
+  const { data: calcResult } = useQuery({
+    queryKey: ["calcResult", brandCode, calcQueryParams],
+    queryFn: () =>
+      getCalcResult(brandCode, calcQueryParams!).then((res) => res.data.data),
+    enabled: !!calcQueryParams,
+  });
+
   const onFieldChange = (code: string, value: string) => {
+    setCalcRequest(null);
     navigate({
       search:
         code === "model"
@@ -41,8 +64,8 @@ export default function Brand() {
     });
   };
 
-  const onCalculate = (result: unknown) => {
-    console.log("calculate", result);
+  const onCalculate = (result: CalcFormResult) => {
+    setCalcRequest(result);
   };
 
   return (
@@ -61,6 +84,7 @@ export default function Brand() {
           onCalculate={onCalculate}
         />
       )}
+      {calcResult && <CalcResult data={calcResult} />}
     </div>
   );
 }
