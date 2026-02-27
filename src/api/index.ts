@@ -40,10 +40,32 @@ export interface BrandParamsResponse {
   data: BrandParam[];
 }
 
+export interface SurfaceType {
+  Name: string;
+  Code: string;
+}
+
+export interface CalcParamsResponse {
+  code: number;
+  data: {
+    SurfacesTypes: SurfaceType[];
+  };
+}
+
 // --- API functions ---
 
 export const getAcousticCategories = () => {
   return baseInstance.get<AcousticCategoriesResponse>("/v1/AcousticCategories");
+};
+
+export const getCalcParams = (
+  brandCode: string,
+  params?: Record<string, string | undefined>,
+) => {
+  return baseInstance.get<CalcParamsResponse>(
+    `/v2/constr/calc/params/${brandCode}`,
+    { params },
+  );
 };
 
 export const getBrandParams = (
