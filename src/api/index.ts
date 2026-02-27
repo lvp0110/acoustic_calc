@@ -52,6 +52,38 @@ export interface CalcParamsResponse {
   };
 }
 
+export interface CalcColumn {
+  id: string;
+  name: string;
+}
+
+export interface CalcRowItem {
+  code: string;
+  category: string;
+  name: string;
+  amount: number;
+  amount_horizontal: number | null;
+  amount_vertical: number | null;
+  units: string;
+  comment: string;
+}
+
+export interface CalcRow {
+  id: string;
+  items: CalcRowItem[];
+}
+
+export interface CalcResultData {
+  title: string;
+  columns: CalcColumn[];
+  rows: CalcRow[];
+}
+
+export interface CalcResultResponse {
+  code: number;
+  data: CalcResultData;
+}
+
 // --- API functions ---
 
 export const getAcousticCategories = () => {
@@ -64,6 +96,16 @@ export const getCalcParams = (
 ) => {
   return baseInstance.get<CalcParamsResponse>(
     `/v2/constr/calc/params/${brandCode}`,
+    { params },
+  );
+};
+
+export const getCalcResult = (
+  brandCode: string,
+  params: Record<string, string | undefined>,
+) => {
+  return baseInstance.get<CalcResultResponse>(
+    `/v2/constr/calc/${brandCode}`,
     { params },
   );
 };
