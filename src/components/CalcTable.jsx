@@ -86,4 +86,3 @@ export default function CalcTable({ calcData, calcRows }) {
     </div>
   ) : null;
 }
-

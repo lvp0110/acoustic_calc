@@ -710,7 +710,7 @@ export default function Acoustic() {
         {/* Блок 4: Таблица результатов */}
         {/* Таблица показывается ТОЛЬКО если бренд и модель совпадают с теми, для которых был выполнен расчет */}
         {!brandChangeInProgress &&
-         tableBrand === brand && 
+         tableBrand === brand &&
          tableModel === model &&
          tableBrand !== null &&
          tableModel !== null &&

@@ -23,7 +23,16 @@ export default function CalcForm({ surfaces, onCalculate }: CalcFormProps) {
   const [length, setLength] = useState("");
   const [height, setHeight] = useState("");
 
+  const isFormFilled =
+    mode === "area"
+      ? area.trim() !== "" && Number(area) > 0
+      : length.trim() !== "" &&
+      height.trim() !== "" &&
+      Number(length) > 0 &&
+      Number(height) > 0;
+
   const handleSubmit = () => {
+    if (!isFormFilled) return;
     if (mode === "area") {
       onCalculate({ surface, mode, area: Number(area) });
     } else {
@@ -37,14 +46,25 @@ export default function CalcForm({ surfaces, onCalculate }: CalcFormProps) {
   };
 
   return (
-    <div>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSubmit();
+      }}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 0.46fr 0.5fr",
+        gap: "16px 16px",
+        alignItems: "start",
+        marginTop: "16px",
+      }}
+    >
       <div>
-        <label htmlFor="surface">Поверхность</label>
-        <br />
         <select
           id="surface"
           value={surface}
           onChange={(e) => setSurface(e.target.value)}
+          style={{ width: "100%"}}
         >
           {surfaces.map((s) => (
             <option key={s.Code} value={s.Code}>
@@ -58,25 +78,29 @@ export default function CalcForm({ surfaces, onCalculate }: CalcFormProps) {
         <button
           type="button"
           onClick={() => setMode("area")}
-          style={{ fontWeight: mode === "area" ? "bold" : "normal" }}
+          style={{
+            color: mode === "area" ? "white" : "var(--color-index)",
+            background: mode === "area" ? "var(--color-index)" : "white",
+          }}
         >
-          ПЛОЩАДЬ
+          Площадь
         </button>
+      </div>
+      <div>
         <button
           type="button"
           onClick={() => setMode("dimensions")}
-          style={{ fontWeight: mode === "dimensions" ? "bold" : "normal" }}
+          style={{
+            color: mode === "area" ? "var(--color-index)" : "white",
+            background: mode === "area" ? "white" : "var(--color-index)"
+          }}
         >
-          РАЗМЕРЫ
+          Размеры
         </button>
       </div>
 
       {mode === "area" ? (
-        <div>
-          <label htmlFor="area">
-            Площадь, м<sup>2</sup>
-          </label>
-          <br />
+        <div style={{ gridColumn: "span 2" }}>
           <input
             id="area"
             type="number"
@@ -84,13 +108,12 @@ export default function CalcForm({ surfaces, onCalculate }: CalcFormProps) {
             step="0.01"
             value={area}
             onChange={(e) => setArea(e.target.value)}
+            placeholder="площадь, м2"
           />
         </div>
       ) : (
-        <div>
+        <>
           <div>
-            <label htmlFor="width">Ширина, м</label>
-            <br />
             <input
               id="width"
               type="number"
@@ -98,11 +121,10 @@ export default function CalcForm({ surfaces, onCalculate }: CalcFormProps) {
               step="0.01"
               value={length}
               onChange={(e) => setLength(e.target.value)}
+              placeholder="ширина, мм"
             />
           </div>
-          <div>
-            <label htmlFor="height">Высота, м</label>
-            <br />
+          <div style={{ gridColumn: "span 2" }}>
             <input
               id="height"
               type="number"
@@ -110,14 +132,24 @@ export default function CalcForm({ surfaces, onCalculate }: CalcFormProps) {
               step="0.01"
               value={height}
               onChange={(e) => setHeight(e.target.value)}
+              placeholder="высота, мм"
             />
           </div>
-        </div>
+        </>
       )}
-
-      <button type="button" onClick={handleSubmit}>
-        Расчёт
-      </button>
-    </div>
+      <div>
+        <button
+          type="submit"
+          disabled={!isFormFilled}
+          style={{
+            color: isFormFilled ? "white" : "var(--color-muted, #999)",
+            background: isFormFilled ? "var(--color-index)" : "var(--color-muted-bg, #eee)",
+            cursor: isFormFilled ? "pointer" : "not-allowed",
+          }}
+        >
+          Расчёт
+        </button>
+      </div>
+    </form>
   );
 }

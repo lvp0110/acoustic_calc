@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { getBrandParams, getCalcParams, getCalcResult } from "../api";
+import { brandIconMap } from "../utils/brandIcons";
 import type { CalcFormResult } from "../components/CalcForm";
 import BrandForm from "../components/BrandForm";
 import CalcForm from "../components/CalcForm";
@@ -68,9 +69,19 @@ export default function Brand() {
     setCalcRequest(result);
   };
 
+  const iconFile = brandCode ? brandIconMap[brandCode] : null;
+
   return (
     <div>
-      <h1>{brandCode}</h1>
+      {iconFile ? (
+        <img
+          src={`/brand_icon/${iconFile}`}
+          alt={brandCode ?? ""}
+          style={{ height: "10em", verticalAlign: "middle" }}
+        />
+      ) : (
+        <h1>{brandCode}</h1>
+      )}
       {data && (
         <BrandForm
           fields={data}

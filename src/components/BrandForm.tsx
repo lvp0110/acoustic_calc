@@ -1,4 +1,5 @@
 import type { BrandParam } from "../api";
+import ListSelect from "./ListSelect";
 
 interface BrandFormProps {
   fields: BrandParam[];
@@ -6,30 +7,36 @@ interface BrandFormProps {
   onFieldChange: (code: string, value: string) => void;
 }
 
+const isModelField = (field: BrandParam) =>
+  field.code === "model" || field.name.toLowerCase().includes("модел");
+
 export default function BrandForm({
   fields,
   values,
   onFieldChange,
 }: BrandFormProps) {
   return (
-    <div>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "4px 16px",
+        alignItems: "start",
+      }}
+    >
       {fields.map((field) => (
-        <div key={field.code}>
-          <label htmlFor={field.code}>{field.name}</label>
-          <br />
-          <select
-            id={field.code}
-            value={values[field.code] ?? ""}
-            onChange={(e) => onFieldChange(field.code, e.target.value)}
-          >
-            <option value="">-- выберите --</option>
-            {field.list.map((option) => (
-              <option key={option.code} value={option.code}>
-                {option.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <ListSelect
+          key={field.code}
+          id={field.code}
+          label={field.name}
+          options={field.list}
+          value={values[field.code] ?? ""}
+          onChange={(value) => onFieldChange(field.code, value)}
+          placeholder={field.name}
+          style={{
+            gridColumn: isModelField(field) ? "1 / -1" : undefined,
+          }}
+        />
       ))}
     </div>
   );

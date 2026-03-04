@@ -183,7 +183,7 @@ export default function CalcControls(props) {
         onTableDataChange(null, []);
       }
     }
-    
+
     prevBrand.current = brand;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brand, setSearchParams]);
