@@ -13,15 +13,26 @@ export interface CalcFormResult {
 
 interface CalcFormProps {
   surfaces: SurfaceType[];
+  values: CalcFormResult | null;
   onCalculate: (result: CalcFormResult) => void;
 }
 
-export default function CalcForm({ surfaces, onCalculate }: CalcFormProps) {
-  const [surface, setSurface] = useState(surfaces[0]?.Code ?? "");
-  const [mode, setMode] = useState<InputMode>("area");
-  const [area, setArea] = useState("");
-  const [length, setLength] = useState("");
-  const [height, setHeight] = useState("");
+export default function CalcForm({
+  surfaces,
+  values,
+  onCalculate,
+}: CalcFormProps) {
+  const [surface, setSurface] = useState(
+    values?.surface ?? surfaces[0]?.Code ?? "",
+  );
+  const [mode, setMode] = useState<InputMode>(values?.mode ?? "area");
+  const [area, setArea] = useState(values?.area ? String(values.area) : "");
+  const [length, setLength] = useState(
+    values?.length ? String(values.length) : "",
+  );
+  const [height, setHeight] = useState(
+    values?.height ? String(values.height) : "",
+  );
 
   const isFormFilled =
     mode === "area"
