@@ -2,9 +2,10 @@ import type { CalcResultData } from "../api";
 
 interface CalcResultProps {
   data: CalcResultData;
+  onSelectChange?: (rowId: string, itemCode: string) => void;
 }
 
-export default function CalcResult({ data }: CalcResultProps) {
+export default function CalcResult({ data, onSelectChange }: CalcResultProps) {
   const columns = data.columns.filter((col) => col.id !== "code");
 
   return (
@@ -19,17 +20,43 @@ export default function CalcResult({ data }: CalcResultProps) {
           </tr>
         </thead>
         <tbody>
-          {data.rows.flatMap((row) =>
-            row.items.map((item) => (
-              <tr key={item.code}>
+          {data.rows.map((row) => {
+            if (row.items.length === 1) {
+              const item = row.items[0];
+              return (
+                <tr key={item.code}>
+                  {columns.map((col) => (
+                    <td key={col.id}>{item[col.id as keyof typeof item]}</td>
+                  ))}
+                </tr>
+              );
+            }
+
+            const firstItem = row.items[0];
+            return (
+              <tr key={row.id}>
                 {columns.map((col) => (
                   <td key={col.id}>
-                    {item[col.id as keyof typeof item]}
+                    {col.id === "name" ? (
+                      <select
+                        onChange={(e) =>
+                          onSelectChange?.(row.id, e.target.value)
+                        }
+                      >
+                        {row.items.map((item) => (
+                          <option key={item.code} value={item.code}>
+                            {item.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      firstItem[col.id as keyof typeof firstItem]
+                    )}
                   </td>
                 ))}
               </tr>
-            )),
-          )}
+            );
+          })}
         </tbody>
       </table>
     </div>

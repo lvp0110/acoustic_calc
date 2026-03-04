@@ -68,6 +68,14 @@ export default function Brand() {
     setCalcRequest(result);
   };
 
+  const onArticulChange = (_: string, itemCode: string) => {
+    navigate({
+      search: { ...search, articuls: itemCode },
+      from: "/$brandCode",
+      replace: true,
+    });
+  };
+
   return (
     <div>
       <h1>{brandCode}</h1>
@@ -84,7 +92,9 @@ export default function Brand() {
           onCalculate={onCalculate}
         />
       )}
-      {calcResult && <CalcResult data={calcResult} />}
+      {calcResult && (
+        <CalcResult data={calcResult} onSelectChange={onArticulChange} />
+      )}
     </div>
   );
 }
