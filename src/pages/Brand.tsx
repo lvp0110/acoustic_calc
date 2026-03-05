@@ -115,7 +115,7 @@ export default function Brand() {
   const iconFile = brandCode ? brandIconMap[brandCode] : null;
 
   return (
-    <div>
+    <div className="main-unit" >
       {iconFile ? (
         <img
           src={`/brand_icon/${iconFile}`}

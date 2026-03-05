@@ -65,7 +65,7 @@ export default function CalcForm({
       style={{
         display: "grid",
         gridTemplateColumns: "1fr 0.46fr 0.5fr",
-        gap: "16px 16px",
+        gap: "16px 8px",
         alignItems: "start",
         marginTop: "16px",
       }}

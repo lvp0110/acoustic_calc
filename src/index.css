@@ -9,7 +9,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --control-height: 60px;
+  --control-height: 50px;
   --color-index: #006BCF;
 }
 
@@ -19,7 +19,29 @@ body {
   font-size: large;
   margin: 10px;
 }
+.main-unit {
+  width: 450px;
+}
 
+@media (max-width: 768px) {
+  .main-unit {
+    width: 100%;
+  }
+}
+
+.brand-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 8px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .brand-form {
+    grid-template-columns: 1fr;
+    gap: 2px 4px;
+  }
+}
 a {
   font-weight: 500;
   color: #646cff;

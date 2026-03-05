@@ -16,14 +16,7 @@ export default function BrandForm({
   onFieldChange,
 }: BrandFormProps) {
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "4px 16px",
-        alignItems: "start",
-      }}
-    >
+    <div className="brand-form">
       {fields.map((field) => (
         <ListSelect
           key={field.code}
@@ -33,9 +26,7 @@ export default function BrandForm({
           value={values[field.code] ?? ""}
           onChange={(value) => onFieldChange(field.code, value)}
           placeholder={field.name}
-          style={{
-            gridColumn: isModelField(field) ? "1 / -1" : undefined,
-          }}
+          style={isModelField(field) ? { gridColumn: "1 / -1" } : undefined}
         />
       ))}
     </div>
