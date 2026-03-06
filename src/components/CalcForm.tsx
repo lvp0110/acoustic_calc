@@ -15,12 +15,15 @@ interface CalcFormProps {
   surfaces: SurfaceType[];
   values: CalcFormResult | null;
   onCalculate: (result: CalcFormResult) => void;
+  /** Стили только для текста в select выбора стена/потолок (например fontSize, color, fontFamily) */
+  surfaceSelectTextStyle?: React.CSSProperties;
 }
 
 export default function CalcForm({
   surfaces,
   values,
   onCalculate,
+  surfaceSelectTextStyle,
 }: CalcFormProps) {
   const [surface, setSurface] = useState(
     values?.surface ?? surfaces[0]?.Code ?? "",
@@ -65,7 +68,7 @@ export default function CalcForm({
       style={{
         display: "grid",
         gridTemplateColumns: "1fr 0.46fr 0.5fr",
-        gap: "16px 8px",
+        gap: "8px 8px",
         alignItems: "start",
         marginTop: "16px",
       }}
@@ -73,9 +76,10 @@ export default function CalcForm({
       <div>
         <select
           id="surface"
+          className="calc-form__surface-select"
           value={surface}
           onChange={(e) => setSurface(e.target.value)}
-          style={{ width: "100%"}}
+          style={{ width: "100%", ...surfaceSelectTextStyle }}
         >
           {surfaces.map((s) => (
             <option key={s.Code} value={s.Code}>

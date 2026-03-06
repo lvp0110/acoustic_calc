@@ -21,7 +21,7 @@ export default function CalcTable({ calcData, calcRows }) {
             <thead>
               <tr>
                 {cols.map((c) => (
-                  <th key={c.id} style={{ borderBottom: "1px solid #ddd", textAlign: "left", padding: "6px 8px" }}>{c.name}</th>
+                  <th key={c.id}>{c.name}</th>
                 ))}
               </tr>
             </thead>
@@ -31,7 +31,7 @@ export default function CalcTable({ calcData, calcRows }) {
                 return items.map((item, iIdx) => (
                   <tr key={`${rIdx}-${iIdx}`}>
                     {cols.map((c) => (
-                      <td key={c.id} style={{ borderBottom: "1px solid #eee", padding: "6px 8px" }}>
+                      <td key={c.id}>
                         {String(item?.[c.id] ?? row?.[c.id] ?? "")}
                       </td>
                     ))}
@@ -57,7 +57,7 @@ export default function CalcTable({ calcData, calcRows }) {
             <thead>
               <tr>
                 {cols.map((c) => (
-                  <th key={c} style={{ borderBottom: "1px solid #ddd", textAlign: "left", padding: "6px 8px" }}>{c}</th>
+                  <th key={c}>{c}</th>
                 ))}
               </tr>
             </thead>
@@ -65,9 +65,7 @@ export default function CalcTable({ calcData, calcRows }) {
               {calcRows.map((row, idx) => (
                 <tr key={idx}>
                   {cols.map((c) => (
-                    <td key={c} style={{ borderBottom: "1px solid #eee", padding: "6px 8px" }}>
-                      {String(row?.[c] ?? "")}
-                    </td>
+                    <td key={c}>{String(row?.[c] ?? "")}</td>
                   ))}
                 </tr>
               ))}

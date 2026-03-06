@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { getBrandParams, getCalcParams, getCalcResult } from "../api";
@@ -8,6 +9,7 @@ import CalcForm from "../components/CalcForm";
 import CalcResult from "../components/CalcResult";
 
 export default function Brand() {
+  const formsColumnRef = useRef<HTMLDivElement | null>(null);
   const { brandCode } = useParams({ from: "/$brandCode" });
   const search = useSearch({ from: "/$brandCode" });
   const navigate = useNavigate({ from: "/$brandCode" });
@@ -115,33 +117,40 @@ export default function Brand() {
   const iconFile = brandCode ? brandIconMap[brandCode] : null;
 
   return (
-    <div className="main-unit" >
-      {iconFile ? (
-        <img
-          src={`/brand_icon/${iconFile}`}
-          alt={brandCode ?? ""}
-          style={{ height: "10em", verticalAlign: "middle" }}
-        />
-      ) : (
-        <h1>{brandCode}</h1>
-      )}
-      {data && (
-        <BrandForm
-          fields={data}
-          values={search}
-          onFieldChange={onFieldChange}
-        />
-      )}
-      {calcParams && (
-        <CalcForm
-          surfaces={calcParams.SurfacesTypes}
-          values={calcRequest}
-          onCalculate={onCalculate}
-        />
-      )}
-      {calcResult && (
-        <CalcResult data={calcResult} onSelectChange={onArticulChange} />
-      )}
+    <div className="main-unit">
+      <div className="brand-page-layout">
+        <div ref={formsColumnRef} className="brand-page-forms">
+          {iconFile ? (
+            <img
+              src={`/brand_icon/${iconFile}`}
+              alt={brandCode ?? ""}
+              style={{ height: "10em", verticalAlign: "middle" }}
+            />
+          ) : (
+            <h1>{brandCode}</h1>
+          )}
+          {data && (
+            <BrandForm
+              fields={data}
+              values={search}
+              onFieldChange={onFieldChange}
+              dropdownAlignToRef={formsColumnRef}
+            />
+          )}
+          {calcParams && (
+            <CalcForm
+              surfaces={calcParams.SurfacesTypes}
+              values={calcRequest}
+              onCalculate={onCalculate}
+            />
+          )}
+        </div>
+        {calcResult && (
+          <div className="brand-page-result">
+            <CalcResult data={calcResult} onSelectChange={onArticulChange} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

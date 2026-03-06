@@ -29,17 +29,48 @@ body {
   }
 }
 
+@media (min-width: 1024px) {
+  .main-unit {
+    width: 100%;
+    max-width: 1400px;
+  }
+}
+
+.brand-page-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+@media (min-width: 1024px) {
+  .brand-page-layout {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 32px;
+  }
+
+  .brand-page-forms {
+    flex: 0 0 auto;
+    min-width: 450px;
+  }
+
+  .brand-page-result {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
 .brand-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2px 8px;
+  gap: 8px 8px;
   align-items: start;
 }
 
 @media (max-width: 768px) {
   .brand-form {
     grid-template-columns: 1fr;
-    gap: 2px 4px;
+    gap: 8px 8px;
   }
 }
 a {
@@ -58,16 +89,27 @@ h1 {
 
 select {
   height: var(--control-height);
-  border-radius: 16px;
+  border: none;
+  border-radius: 8px;
   font-size: large;
-  background: #f5f5f7;
+  background-color: #ffffff;
   color: #131314;
+}
+
+/* Только стили текста как у list-select--text (остальное — от глобального select) */
+.calc-form__surface-select {
+  color: #131314;
+  text-align: left;
+  font-size: 18px;
+  line-height: 1.5;
+  font-family: inherit;
+  font-weight: 400;
 }
 
 button {
   width: 100%;
   height: var(--control-height);
-  border-radius: 16px;
+  border-radius: 8px;
   color: rgb(82, 81, 81);
   border: none;
   font-size: large;
@@ -78,7 +120,7 @@ button {
 input {
   width: 100%;
   height: var(--control-height);
-  border-radius: 16px;
+  border-radius: 8px;
   border: none;
   font-size: large;
   background-color: #ffffff;
@@ -87,7 +129,134 @@ input {
   text-align: center;
 }
 
-table {
-  color: rgb(184, 181, 181);
-  font-size: large;
+/* Таблица в стиле карточки: контейнер + сама таблица */
+.result-table-wrap,
+.calc-table-block {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  overflow: hidden;
+}
+
+.result-table,
+.calc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  color: #333;
+}
+
+.result-table thead,
+.calc-table thead {
+  background-color: #f5f5f5;
+}
+
+.result-table th,
+.calc-table th {
+  background-color: #fff;
+  font-weight: 700;
+  color: #333;
+  text-align: left;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.result-table th:nth-child(n + 2),
+.calc-table th:nth-child(n + 2) {
+  text-align: right;
+}
+
+.result-table tbody tr,
+.calc-table tbody tr {
+  background-color: #ffffff;
+}
+
+.result-table td,
+.calc-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  color: #555;
+  font-weight: 400;
+}
+
+.result-table td:nth-child(n + 2),
+.calc-table td:nth-child(n + 2) {
+  text-align: right;
+}
+
+.result-table tbody tr:last-child td,
+.calc-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Выпадающий выбор в ячейке — как синяя ссылка с шевроном */
+.result-table .cell-select-wrap,
+.calc-table .cell-select-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.result-table select.cell-select,
+.calc-table select.cell-select {
+  color: var(--color-index);
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  /* background: transparent; */
+  cursor: pointer;
+  padding: 0 20px 0 0;
+  appearance: none;
+  /* background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236c757d' d='M6 8L2 4h8z'/%3E%3C/svg%3E"); */
+  background-repeat: no-repeat;
+  background-position: right 0 center;
+}
+
+.result-table select.cell-select:hover,
+.calc-table select.cell-select:hover {
+  text-decoration: underline;
+}
+
+.result-table select.cell-select option,
+.calc-table select.cell-select option {
+  color: #333;
+  background: #fff;
+}
+
+/* ListSelect с вариантом "только текст" (например, выбор размера) — простой список */
+.list-select--text .list-select-dropdown--text {
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.list-select--text .list-select-option--text {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  margin: 0;
+  min-height: auto;
+  height: auto;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #131314;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: none;
+  font-size: 20px;
+}
+
+.list-select--text .list-select-option--text:hover {
+  background-color: #f0f0f0;
+}
+
+/* Текст в option (селект размеров): управляйте высотой через font-size и line-height */
+.list-select--text .list-select-option--text span,
+.list-select--text .list-select-option-text--plain {
+  font-size: 18px;
+  line-height: 1.5;
 }
