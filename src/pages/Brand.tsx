@@ -1,19 +1,29 @@
 import { useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
-import { getBrandParams, getCalcParams, getCalcResult } from "../api";
+import { getBrandParams, getCalcParams, getCalcResult, getAcousticCategories } from "../api";
 import { brandIconMap } from "../utils/brandIcons";
 import type { CalcFormResult } from "../components/CalcForm";
 import BrandForm from "../components/BrandForm";
 import CalcForm from "../components/CalcForm";
 import CalcResult from "../components/CalcResult";
 import { getOptionImageUrl } from "../api/get-base-url";
+import BrandDescription from "../components/BrandDescription";
 
 export default function Brand() {
   const formsColumnRef = useRef<HTMLDivElement | null>(null);
   const { brandCode } = useParams({ from: "/$brandCode" });
   const search = useSearch({ from: "/$brandCode" });
   const navigate = useNavigate({ from: "/$brandCode" });
+
+  const { data: acousticCategories } = useQuery({
+    queryKey: ["acousticCategories"],
+    queryFn: () => getAcousticCategories().then((res) => res.data.data),
+  });
+
+  const brandCategory = acousticCategories?.find(
+    (cat) => cat.ShortName === brandCode
+  );
 
   const { data } = useQuery({
     queryKey: ["brandParams", brandCode, search],
@@ -173,6 +183,9 @@ export default function Brand() {
               />
             )}
           </div>
+          {brandCategory?.Description && (
+            <BrandDescription html={brandCategory.Description} />
+          )}
           {data && (
             <BrandForm
               fields={data}
