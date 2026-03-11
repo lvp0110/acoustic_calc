@@ -211,7 +211,8 @@ export default function CalcControls(props) {
 
   const v2Urls = useMemo(() => {
     return {
-      params: buildApiUrl("api/v2/constr/calc/params"),
+      // params не используется (закомментировано как лишний код):
+      // params: buildApiUrl("api/v2/constr/calc/params"),
       calcBase: buildApiUrl("api/v2/constr/calc"),
       excel: buildApiUrl("api/v2/constr/calc/excel"),
     };

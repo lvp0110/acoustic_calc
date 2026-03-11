@@ -8,7 +8,7 @@ export interface ListSelectOption {
   section_img?: string;
 }
 
-function getOptionImageUrl(option: ListSelectOption): string | null {
+export function getOptionImageUrl(option: { img?: string; section_img?: string }): string | null {
   const imageFile =
     (option.img && option.img.trim() !== "")
       ? option.img
@@ -92,7 +92,7 @@ export default function ListSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
-  // const selectedOption = options.find((o) => o.code === value);
+  // Лишний код (не используется): const selectedOption = options.find((o) => o.code === value);
   const hasImages = variant !== "text" && options.some((option) => getOptionImageUrl(option) !== null);
   const isTextVariant = variant === "text";
 
@@ -105,22 +105,8 @@ export default function ListSelect({
         ...style,
       }}
     >
-      {/* <label
-        htmlFor={id}
-        style={{
-          display: "block",
-          position: "relative",
-          marginBottom: -12,
-          marginLeft: 14,
-          color: "var(--color-index)",
-          opacity: value ? 1 : 0,
-          transition: "opacity 0.5s ease",
-          background: "none", //#f5f5f7
-          width: "fit-content",
-        }}
-      >
-        {label}
-      </label> */}
+      {/* Лишний код (не используется): label для select
+      <label htmlFor={id} style={{...}}>{label}</label> */}
       <select
         id={id}
         value={value}
@@ -184,7 +170,7 @@ export default function ListSelect({
           >
             {options.map((option) => {
               const imgUrl = isTextVariant ? null : getOptionImageUrl(option);
-              // const isSelected = selectedOption?.code === option.code;
+              // Лишний код (не используется): const isSelected = selectedOption?.code === option.code;
 
               return (
                 <button

@@ -33,7 +33,7 @@ export default function BrandForm({
           placeholder={field.name}
           style={isModelField(field) ? { gridColumn: "1 / -1" } : undefined}
           dropdownAlignToRef={dropdownAlignToRef}
-          variant={isSizeField(field) ? "text" : "default"}
+          variant={isSizeField(field) || isModelField(field) ? "text" : "default"}
         />
       ))}
     </div>

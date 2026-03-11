@@ -7,6 +7,7 @@ import type { CalcFormResult } from "../components/CalcForm";
 import BrandForm from "../components/BrandForm";
 import CalcForm from "../components/CalcForm";
 import CalcResult from "../components/CalcResult";
+import { getOptionImageUrl } from "../components/ListSelect";
 
 export default function Brand() {
   const formsColumnRef = useRef<HTMLDivElement | null>(null);
@@ -116,19 +117,62 @@ export default function Brand() {
 
   const iconFile = brandCode ? brandIconMap[brandCode] : null;
 
+  const findSelectedOption = (
+    code: string,
+    nameSubstr: string
+  ) => {
+    const field = data?.find(
+      (f) => f.code === code || f.name.toLowerCase().includes(nameSubstr)
+    );
+    const selectedCode = field ? search[field.code] : undefined;
+    const option = field?.list.find((o) => o.code === selectedCode);
+    const imageUrl = option ? getOptionImageUrl(option) : null;
+    return { option, imageUrl };
+  };
+
+  const { option: selectedColorOption, imageUrl: colorImageUrl } =
+    findSelectedOption("color", "цвет");
+  const { option: selectedPerfOption, imageUrl: perfImageUrl } =
+    findSelectedOption("perf", "перфор");
+  const { option: selectedEdgeOption, imageUrl: edgeImageUrl } =
+    findSelectedOption("edge", "кромк");
+
   return (
     <div className="main-unit">
       <div className="brand-page-layout">
         <div ref={formsColumnRef} className="brand-page-forms">
-          {iconFile ? (
-            <img
-              src={`/brand_icon/${iconFile}`}
-              alt={brandCode ?? ""}
-              style={{ height: "10em", verticalAlign: "middle" }}
-            />
-          ) : (
-            <h1>{brandCode}</h1>
-          )}
+          <div className="brand-page-header-images">
+            {iconFile ? (
+              <img
+                src={`/brand_icon/${iconFile}`}
+                alt={brandCode ?? ""}
+                className="brand-page-header-image"
+              />
+            ) : (
+              <h1>{brandCode}</h1>
+            )}
+            {colorImageUrl && (
+              <img
+                src={colorImageUrl}
+                alt={selectedColorOption?.name ?? "Цвет"}
+                className="brand-page-header-image"
+              />
+            )}
+            {perfImageUrl && (
+              <img
+                src={perfImageUrl}
+                alt={selectedPerfOption?.name ?? "Перфорация"}
+                className="brand-page-header-image"
+              />
+            )}
+            {edgeImageUrl && (
+              <img
+                src={edgeImageUrl}
+                alt={selectedEdgeOption?.name ?? "Кромка"}
+                className="brand-page-header-image"
+              />
+            )}
+          </div>
           {data && (
             <BrandForm
               fields={data}

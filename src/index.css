@@ -10,7 +10,7 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   --control-height: 50px;
-  --color-index: #006BCF;
+  --color-index: #006bcf;
 }
 
 body {
@@ -40,6 +40,23 @@ body {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.brand-page-header-images {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.brand-page-header-image {
+  width: 25%;
+  height: 100px;
+  object-fit: contain;
+  border-radius: 8px;
+  vertical-align: middle;
+  border: solid;
+  padding: 4px;
 }
 
 @media (min-width: 1024px) {
