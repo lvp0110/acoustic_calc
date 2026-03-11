@@ -242,38 +242,3 @@ input {
   background: #fff;
 }
 
-/* ListSelect с вариантом "только текст" (например, выбор размера) — простой список */
-.list-select--text .list-select-dropdown--text {
-  padding: 4px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.list-select--text .list-select-option--text {
-  display: block;
-  width: 100%;
-  padding: 10px 12px;
-  margin: 0;
-  min-height: auto;
-  height: auto;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  color: #131314;
-  text-align: left;
-  cursor: pointer;
-  box-shadow: none;
-  font-size: 20px;
-}
-
-.list-select--text .list-select-option--text:hover {
-  background-color: #f0f0f0;
-}
-
-/* Текст в option (селект размеров): управляйте высотой через font-size и line-height */
-.list-select--text .list-select-option--text span,
-.list-select--text .list-select-option-text--plain {
-  font-size: 18px;
-  line-height: 1.5;
-}

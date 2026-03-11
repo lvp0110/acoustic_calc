@@ -7,7 +7,7 @@ import type { CalcFormResult } from "../components/CalcForm";
 import BrandForm from "../components/BrandForm";
 import CalcForm from "../components/CalcForm";
 import CalcResult from "../components/CalcResult";
-import { getOptionImageUrl } from "../components/ListSelect";
+import { getOptionImageUrl } from "../api/get-base-url";
 
 export default function Brand() {
   const formsColumnRef = useRef<HTMLDivElement | null>(null);
