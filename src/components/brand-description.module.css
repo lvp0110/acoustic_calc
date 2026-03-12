@@ -1,7 +1,9 @@
 .description {
+  display: none;
   font-size: 14px;
   line-height: 1.6;
   color: #333;
+  width: 100%;
 }
 
 .description p {

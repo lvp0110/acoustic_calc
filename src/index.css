@@ -25,35 +25,39 @@ body {
 .brand-page-layout {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 
 .brand-page-header-images {
-  display: none;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: nowrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 8px;
+  row-gap: 8px;
+  justify-items: center;
+  margin-bottom: 16px;
 }
 
 .brand-page-header-image {
-  width: 25%;
-  height: 100px;
+  width: 100%;
+  height: 150px;
   object-fit: contain;
   border-radius: 8px;
   vertical-align: middle;
   border: solid;
   padding: 4px;
+  box-sizing: border-box;
 }
 
 @media (min-width: 1024px) {
   .brand-page-layout {
     flex-direction: row;
     align-items: flex-start;
-    gap: 32px;
+    gap: 16px;
   }
 
   .brand-page-forms {
-    flex: 1 0 auto;
+    flex: 1 1 auto;
+    max-width: 40%;
   }
 
   .brand-page-result {

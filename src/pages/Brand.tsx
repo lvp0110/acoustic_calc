@@ -183,9 +183,6 @@ export default function Brand() {
               />
             )}
           </div>
-          {brandCategory?.Description && (
-            <BrandDescription html={brandCategory.Description} />
-          )}
           {data && (
             <BrandForm
               fields={data}
@@ -204,6 +201,9 @@ export default function Brand() {
         </div>
         {calcResult && (
           <div className="brand-page-result">
+            {brandCategory?.Description && (
+              <BrandDescription html={brandCategory.Description} />
+            )}
             <CalcResult data={calcResult} onSelectChange={onArticulChange} />
           </div>
         )}
