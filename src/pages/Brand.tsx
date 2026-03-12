@@ -147,6 +147,16 @@ export default function Brand() {
   const { option: selectedEdgeOption, imageUrl: edgeImageUrl } =
     findSelectedOption("edge", "кромк");
 
+  const modelField = data?.find(
+    (f) => f.code === "model" || f.name.toLowerCase().includes("модел")
+  );
+  const selectedModelCode = modelField ? search[modelField.code] : undefined;
+  const selectedModelOption = selectedModelCode
+    ? modelField?.list.find((o) => o.code === selectedModelCode)
+    : undefined;
+  const descriptionToShow =
+    selectedModelOption?.description?.trim() || brandCategory?.Description;
+
   return (
     <div className="main-unit">
       <div className="brand-page-layout">
@@ -199,12 +209,14 @@ export default function Brand() {
             />
           )}
         </div>
-        {calcResult && (
+        {(descriptionToShow || calcResult) && (
           <div className="brand-page-result">
-            {brandCategory?.Description && (
-              <BrandDescription html={brandCategory.Description} />
+            {descriptionToShow && (
+              <BrandDescription content={descriptionToShow} />
             )}
-            <CalcResult data={calcResult} onSelectChange={onArticulChange} />
+            {calcResult && (
+              <CalcResult data={calcResult} onSelectChange={onArticulChange} />
+            )}
           </div>
         )}
       </div>
