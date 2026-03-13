@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from "react";
 import type { CalcResultData } from "../api";
+import styles from "./list-select.module.css";
 
 interface CalcResultProps {
   data: CalcResultData;
@@ -6,10 +8,29 @@ interface CalcResultProps {
 }
 
 export default function CalcResult({ data, onSelectChange }: CalcResultProps) {
+  const [openRowId, setOpenRowId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
   const columns = data.columns.filter((col) => col.id !== "code");
 
+  useEffect(() => {
+    if (!openRowId) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setOpenRowId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openRowId]);
+
   return (
-    <div>
+    <div ref={containerRef}>
       {data.title ? <h4>{data.title}</h4> : null}
       <div className="result-table-wrap">
         <table className="result-table">
@@ -39,19 +60,49 @@ export default function CalcResult({ data, onSelectChange }: CalcResultProps) {
                   {columns.map((col) => (
                     <td key={col.id}>
                       {col.id === "name" ? (
-                        <select
-                          className="cell-select"
-                          value={firstItem.code}
-                          onChange={(e) =>
-                            onSelectChange?.(row.id, e.target.value)
-                          }
+                        <div
+                          className="cell-select-wrap"
+                          style={{
+                            position: "relative",
+                            display: "inline-block",
+                          }}
                         >
-                          {row.items.map((item) => (
-                            <option key={item.code} value={item.code}>
-                              {item.name}
-                            </option>
-                          ))}
-                        </select>
+                          <button
+                            type="button"
+                            className={styles.optionText}
+                            onClick={() =>
+                              setOpenRowId((prev) =>
+                                prev === row.id ? null : row.id,
+                              )
+                            }
+                            style={{ height: "auto" }}
+                          >
+                            <span className={styles.optionTextLabel}>
+                              {firstItem.name}
+                            </span>
+                          </button>
+                          {openRowId === row.id && (
+                            <div
+                              className={`${styles.dropdown} ${styles.dropdownText}`}
+                            >
+                              {row.items.map((item) => (
+                                <button
+                                  key={item.code}
+                                  type="button"
+                                  className={styles.optionText}
+                                  onClick={() => {
+                                    onSelectChange?.(row.id, item.code);
+                                    setOpenRowId(null);
+                                  }}
+                                >
+                                  <span className={styles.optionTextLabel}>
+                                    {item.name}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       ) : (
                         firstItem[col.id as keyof typeof firstItem]
                       )}

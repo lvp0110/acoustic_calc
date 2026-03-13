@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { SurfaceType } from "../api";
+import styles from "./list-select.module.css";
 
 type InputMode = "area" | "dimensions";
 
@@ -37,6 +38,25 @@ export default function CalcForm({
     values?.height ? String(values.height) : "",
   );
 
+  const [surfaceOpen, setSurfaceOpen] = useState(false);
+  const surfaceContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!surfaceOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        surfaceContainerRef.current &&
+        !surfaceContainerRef.current.contains(e.target as Node)
+      ) {
+        setSurfaceOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [surfaceOpen]);
+
   const isFormFilled =
     mode === "area"
       ? area.trim() !== "" && Number(area) > 0
@@ -73,20 +93,38 @@ export default function CalcForm({
         marginTop: "16px",
       }}
     >
-      <div>
-        <select
+      <div
+        ref={surfaceContainerRef}
+        style={{ position: "relative", width: "100%" }}
+      >
+        <button
           id="surface"
-          className="calc-form__surface-select"
-          value={surface}
-          onChange={(e) => setSurface(e.target.value)}
+          type="button"
+          className={`${styles.trigger} calc-form__surface-select`}
+          onClick={() => setSurfaceOpen((prev) => !prev)}
           style={{ width: "100%", ...surfaceSelectTextStyle }}
         >
-          {surfaces.map((s) => (
-            <option key={s.Code} value={s.Code}>
-              {s.Name}
-            </option>
-          ))}
-        </select>
+          {surfaces.find((s) => s.Code === surface)?.Name ??
+            surfaces[0]?.Name ??
+            ""}
+        </button>
+        {surfaceOpen && surfaces.length > 0 && (
+          <div className={`${styles.dropdown} ${styles.dropdownText}`}>
+            {surfaces.map((s) => (
+              <button
+                key={s.Code}
+                type="button"
+                className={styles.optionText}
+                onClick={() => {
+                  setSurface(s.Code);
+                  setSurfaceOpen(false);
+                }}
+              >
+                <span className={styles.optionTextLabel}>{s.Name}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div>
