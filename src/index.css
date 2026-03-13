@@ -136,8 +136,7 @@ input {
   text-align: center;
 }
 
-/* Таблица в стиле карточки: контейнер + сама таблица */
-.result-table-wrap,
+/* Таблица в стиле карточки: контейнер калькулятора */
 .calc-table-block {
   background-color: #ffffff;
   border-radius: 8px;
@@ -146,7 +145,7 @@ input {
   overflow: hidden;
 }
 
-.result-table,
+/* Таблица калькулятора */
 .calc-table {
   width: 100%;
   border-collapse: collapse;
@@ -155,12 +154,10 @@ input {
   color: #333;
 }
 
-.result-table thead,
 .calc-table thead {
   background-color: #f5f5f5;
 }
 
-.result-table th,
 .calc-table th {
   background-color: #fff;
   font-weight: 700;
@@ -170,17 +167,14 @@ input {
   border-bottom: 1px solid #e8e8e8;
 }
 
-.result-table th:nth-child(n + 2),
 .calc-table th:nth-child(n + 2) {
   text-align: right;
 }
 
-.result-table tbody tr,
 .calc-table tbody tr {
   background-color: #ffffff;
 }
 
-.result-table td,
 .calc-table td {
   padding: 12px 16px;
   border-bottom: 1px solid #eee;
@@ -188,25 +182,21 @@ input {
   font-weight: 400;
 }
 
-.result-table td:nth-child(n + 2),
 .calc-table td:nth-child(n + 2) {
   text-align: right;
 }
 
-.result-table tbody tr:last-child td,
 .calc-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-/* Выпадающий выбор в ячейке — как синяя ссылка с шевроном */
-.result-table .cell-select-wrap,
+/* Выпадающий выбор в ячейке калькулятора — как синяя ссылка с шевроном */
 .calc-table .cell-select-wrap {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-.result-table select.cell-select,
 .calc-table select.cell-select {
   color: var(--color-index);
   font-size: 14px;
@@ -221,12 +211,10 @@ input {
   background-position: right 0 center;
 }
 
-.result-table select.cell-select:hover,
 .calc-table select.cell-select:hover {
   text-decoration: underline;
 }
 
-.result-table select.cell-select option,
 .calc-table select.cell-select option {
   color: #333;
   background: #fff;
