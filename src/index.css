@@ -58,7 +58,7 @@ body {
   .brand-page-forms {
     flex: 1 1 auto;
     max-width: 40%;
-    min-width: 40%;
+    min-width: 35%;
   }
 
   .brand-page-result {
