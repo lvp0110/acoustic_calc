@@ -100,7 +100,7 @@ export default function CalcForm({
         <button
           id="surface"
           type="button"
-          className={`${styles.trigger} calc-form__surface-select`}
+          className={`${styles.trigger} ${surfaceOpen ? styles.triggerOpen : ""} calc-form__surface-select`}
           onClick={() => setSurfaceOpen((prev) => !prev)}
           style={{ width: "100%", ...surfaceSelectTextStyle }}
         >

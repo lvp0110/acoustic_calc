@@ -54,7 +54,29 @@
    display: inline-flex;
    align-items: center;
    gap: 4px;
+  position: relative;
+  padding-right: 14px; /* место под галочку */
  }
+
+.result-table .cell-select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-right: 2px solid var(--color-index);
+  border-bottom: 2px solid var(--color-index);
+  transform: translateY(-50%) rotate(45deg);
+  transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  pointer-events: none;
+}
+
+.result-table .cell-select-wrap:focus-within::after {
+  border-right-color: var(--color-index);
+  border-bottom-color: var(--color-index);
+  transform: translateY(-50%) rotate(225deg);
+}
 
  .result-table select.cell-select {
   -webkit-appearance: none;

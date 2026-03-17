@@ -40,19 +40,21 @@ export default function CalcResult({ data, onSelectChange }: CalcResultProps) {
                   {columns.map((col) => (
                     <td key={col.id}>
                       {col.id === "name" ? (
-                        <select
-                          className="cell-select"
-                          value={firstItem.code}
-                          onChange={(e) =>
-                            onSelectChange?.(row.id, e.target.value)
-                          }
-                        >
-                          {row.items.map((item) => (
-                            <option key={item.code} value={item.code}>
-                              {item.name}
-                            </option>
-                          ))}
-                        </select>
+                        <span className="cell-select-wrap">
+                          <select
+                            className="cell-select"
+                            value={firstItem.code}
+                            onChange={(e) =>
+                              onSelectChange?.(row.id, e.target.value)
+                            }
+                          >
+                            {row.items.map((item) => (
+                              <option key={item.code} value={item.code}>
+                                {item.name}
+                              </option>
+                            ))}
+                          </select>
+                        </span>
                       ) : (
                         firstItem[col.id as keyof typeof firstItem]
                       )}
