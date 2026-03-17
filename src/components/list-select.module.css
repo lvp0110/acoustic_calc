@@ -90,8 +90,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  row-gap: 2px;
   text-align: center;
+  margin-top: 8px;
 }
 
 .optionText {
