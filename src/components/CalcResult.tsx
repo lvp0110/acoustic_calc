@@ -36,7 +36,11 @@ export default function CalcResult({ data, onSelectChange }: CalcResultProps) {
     <div ref={rootRef}>
       {data.title ? <h4>{data.title}</h4> : null}
       <div className="result-table-wrap">
-      <button style={{width:"auto", border: "solid green 2px", color: "green"}}>Excel</button>
+        
+        <button style={{ width: "auto", border: "solid green 2px", color: "green" }}>
+          Excel
+        </button>
+       
         <table className="result-table">
           <thead>
             <tr>
