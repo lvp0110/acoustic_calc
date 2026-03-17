@@ -175,7 +175,7 @@ export default function Brand() {
               <img
                 src={colorImageUrl}
                 alt={selectedColorOption?.name ?? "Цвет"}
-                className="brand-page-header-image"
+                className="brand-page-header-image brand-page-header-image--cover"
               />
             )}
             {perfImageUrl && (

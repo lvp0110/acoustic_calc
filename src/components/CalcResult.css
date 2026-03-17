@@ -72,15 +72,14 @@
   pointer-events: none;
 }
 
-.result-table .cell-select-wrap:focus-within::after {
+.result-table .cell-select-wrap:focus-within::after,
+.result-table .cell-select-wrap[data-open="true"]::after {
   border-right-color: var(--color-index);
   border-bottom-color: var(--color-index);
   transform: translateY(-50%) rotate(225deg);
 }
 
- .result-table select.cell-select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
+.result-table .cell-select-trigger {
    color: var(--color-index);
    font-size: 14px;
    font-weight: 500;
@@ -93,14 +92,57 @@
   outline: none;
   border-radius: 0;
   width: 100%;
+  text-align: left;
+  line-height: 1.2;
  }
 
- .result-table select.cell-select:hover {
+.result-table .cell-select-trigger:hover {
    text-decoration: none;
  }
 
- .result-table select.cell-select option {
-  all: unset;
+.result-table .cell-select-menu {
+  position: absolute;
+  left: 0;
+  top: auto;
+  bottom: calc(100% + 6px);
+  z-index: 50;
+  min-width: max(220px, 100%);
+  max-width: 360px;
+  max-height: 240px;
+  overflow: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.result-table .cell-select-menu li {
+  margin: 0;
+  padding: 0;
+}
+
+.result-table .cell-select-option {
+  width: 100%;
+  display: block;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
   color: #333;
-  background-color: #fff;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.result-table .cell-select-option:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.result-table .cell-select-option.is-selected {
+  background: rgba(0, 0, 0, 0.06);
+  font-weight: 600;
  }

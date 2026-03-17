@@ -48,6 +48,10 @@ body {
   box-sizing: border-box;
 }
 
+.brand-page-header-image--cover {
+  object-fit: cover;
+}
+
 @media (min-width: 1024px) {
   .brand-page-layout {
     flex-direction: row;

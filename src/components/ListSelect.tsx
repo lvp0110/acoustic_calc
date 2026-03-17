@@ -22,6 +22,8 @@ interface ListSelectProps {
   dropdownAlignToRef?: React.RefObject<HTMLElement | null>;
   /** Вариант "text" — выпадающий список только с текстом, без картинок и сетки (для размеров и т.п.) */
   variant?: "default" | "text";
+  /** Как вписывать изображения в карточки опций (по умолчанию contain) */
+  imageObjectFit?: "contain" | "cover";
 }
 
 const DROPDOWN_FULLWIDTH_BREAKPOINT = 768;
@@ -36,6 +38,7 @@ export default function ListSelect({
   style,
   dropdownAlignToRef,
   variant = "default",
+  imageObjectFit = "contain",
 }: ListSelectProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -89,6 +92,10 @@ export default function ListSelect({
       <div className={dropdownClass} style={dropdownStyle}>
         {options.map((option) => {
           const imgUrl = isTextVariant ? null : getOptionImageUrl(option);
+          const optionImgClass =
+            imageObjectFit === "cover"
+              ? `${styles.optionImg} ${styles.optionImgCover}`
+              : styles.optionImg;
           const optionClass = [
             isTextVariant ? styles.optionText : styles.option,
             twoColumns && styles.optionGrid,
@@ -106,7 +113,7 @@ export default function ListSelect({
                 setOpen(false);
               }}
             >
-              {imgUrl && <img src={imgUrl} alt={option.name} className={styles.optionImg} />}
+              {imgUrl && <img src={imgUrl} alt={option.name} className={optionImgClass} />}
               <span className={isTextVariant ? styles.optionTextLabel : styles.optionLabel}>
                 {option.name}
               </span>

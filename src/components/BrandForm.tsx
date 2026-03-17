@@ -14,6 +14,10 @@ const isModelField = (field: BrandParam) =>
 const isSizeField = (field: BrandParam) =>
   field.code === "size" || field.name.toLowerCase().includes("размер");
 
+const isColorSelectImageField = (field: BrandParam) =>
+  field.type === "select_image" &&
+  (field.code === "color" || field.name.toLowerCase().includes("цвет"));
+
 export default function BrandForm({
   fields,
   values,
@@ -34,6 +38,7 @@ export default function BrandForm({
           style={isModelField(field) ? { gridColumn: "1 / -1" } : undefined}
           dropdownAlignToRef={dropdownAlignToRef}
           variant={isSizeField(field) || isModelField(field) ? "text" : "default"}
+          imageObjectFit={isColorSelectImageField(field) ? "cover" : "contain"}
         />
       ))}
     </div>
