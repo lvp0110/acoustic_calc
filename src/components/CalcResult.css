@@ -280,7 +280,7 @@ body.dark .result-table .cell-select-option.is-selected {
 
   /* Выпадающее меню в карточке: открываем вниз и не вылезаем за экран */
   .result-table .cell-select-menu {
-    top: calc(100% + 6px);
+    top: auto;
     bottom: auto;
     left: 0;
     right: 0;
