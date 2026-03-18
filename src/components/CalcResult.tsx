@@ -37,7 +37,7 @@ export default function CalcResult({ data, onSelectChange }: CalcResultProps) {
       {data.title ? <h4>{data.title}</h4> : null}
       <div className="result-table-wrap">
         
-        <button style={{ width: "auto", border: "solid green 2px", color: "green" }}>
+        <button style={{ width: "auto", border: "solid green 2px", color: "green",marginBottom: 12 }}>
           Excel
         </button>
        
@@ -56,7 +56,11 @@ export default function CalcResult({ data, onSelectChange }: CalcResultProps) {
                 return (
                   <tr key={item.code}>
                     {columns.map((col) => (
-                      <td key={col.id}>{item[col.id as keyof typeof item]}</td>
+                      <td key={col.id} data-label={col.name}>
+                        <span className="result-cell-value">
+                          {item[col.id as keyof typeof item]}
+                        </span>
+                      </td>
                     ))}
                   </tr>
                 );
@@ -70,7 +74,7 @@ export default function CalcResult({ data, onSelectChange }: CalcResultProps) {
               return (
                 <tr key={row.id}>
                   {columns.map((col) => (
-                    <td key={col.id}>
+                    <td key={col.id} data-label={col.name}>
                       {col.id === "name" ? (
                         <span
                           className="cell-select-wrap"
@@ -117,7 +121,9 @@ export default function CalcResult({ data, onSelectChange }: CalcResultProps) {
                           ) : null}
                         </span>
                       ) : (
-                        firstItem[col.id as keyof typeof firstItem]
+                        <span className="result-cell-value">
+                          {firstItem[col.id as keyof typeof firstItem]}
+                        </span>
                       )}
                     </td>
                   ))}

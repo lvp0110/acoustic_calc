@@ -10,12 +10,30 @@
   -moz-osx-font-smoothing: grayscale;
   --control-height: 50px;
   --color-index: #006bcf;
+
+  /* Theme tokens (default: light) */
+  --bg: #f5f5f7;
+  --text: #131314;
+  --surface: #ffffff;
+  --surface-text: #131314;
+  --border: rgba(19, 19, 20, 0.18);
+  --muted: rgba(19, 19, 20, 0.65);
 }
 
 body {
-  background-color: #f5f5f7;
+  background-color: var(--bg);
+  color: var(--text);
   font-size: large;
   margin: 10px;
+}
+
+body.dark {
+  --bg: #0f1115;
+  --text: #f5f6f8;
+  --surface: #171a21;
+  --surface-text: #f5f6f8;
+  --border: rgba(255, 255, 255, 0.22);
+  --muted: rgba(245, 246, 248, 0.72);
 }
 
 .main-unit {
@@ -46,6 +64,11 @@ body {
   border: solid;
   padding: 4px;
   box-sizing: border-box;
+  background-color: #ffffff; /* блоки с картинками — белые даже в тёмной теме */
+}
+
+body.dark .brand-page-header-image {
+  background-color: #dfdddd;
 }
 
 .brand-page-header-image--cover {
@@ -100,16 +123,26 @@ h1 {
 
 select {
   height: var(--control-height);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: 8px;
   font-size: large;
-  background-color: #ffffff;
+  background-color: var(--surface);
+  color: var(--surface-text);
+}
+
+body.dark select {
+  background-color: #dfdddd; /* фон выпадающих списков */
+  color: #131314;
+}
+
+body.dark select option {
+  background-color: #dfdddd;
   color: #131314;
 }
 
 /* Только стили текста как у list-select--text (остальное — от глобального select) */
 .calc-form__surface-select {
-  color: #131314;
+  color: var(--surface-text);
   text-align: left;
   font-size: 18px;
   line-height: 1.5;
@@ -121,28 +154,52 @@ button {
   width: 100%;
   height: var(--control-height);
   border-radius: 8px;
-  color: rgb(82, 81, 81);
+  color: var(--surface-text);
   border: none;
+  box-shadow: none;
   font-size: large;
   font-family: "montsserat", sans-serif;
-  background-color: #ffffff;
+  background-color: var(--surface);
   box-sizing: border-box;
 }
+
+body.dark button {
+  color: #ffffff; /* текст внутри кнопок белый */
+  border-color: #ffffff; /* border у кнопок белый */
+  background-color: transparent;
+  border-style: solid;
+  border-width: 1px;
+  box-shadow: none;
+}
+
+.brands-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.theme-toggle {
+  width: auto;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
 input {
   width: 100%;
   height: var(--control-height);
   border-radius: 8px;
-  border: none;
+  border: 1px solid var(--border);
   font-size: large;
-  background-color: #ffffff;
+  background-color: var(--surface);
   box-sizing: border-box;
-  color: black;
+  color: var(--surface-text);
   text-align: center;
 }
 
 /* Таблица в стиле карточки: контейнер калькулятора */
 .calc-table-block {
-  background-color: #ffffff;
+  background-color: var(--surface);
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   padding: 16px;
@@ -155,20 +212,20 @@ input {
   border-collapse: collapse;
   font-family: system-ui, -apple-system, sans-serif;
   font-size: 14px;
-  color: #333;
+  color: var(--surface-text); /* текст в таблице белый в dark */
 }
 
 .calc-table thead {
-  background-color: #f5f5f5;
+  background-color: transparent;
 }
 
 .calc-table th {
-  background-color: #fff;
+  background-color: transparent;
   font-weight: 700;
-  color: #333;
+  color: var(--surface-text);
   text-align: left;
   padding: 14px 16px;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid var(--border);
 }
 
 .calc-table th:nth-child(n + 2) {
@@ -176,13 +233,13 @@ input {
 }
 
 .calc-table tbody tr {
-  background-color: #ffffff;
+  background-color: transparent;
 }
 
 .calc-table td {
   padding: 12px 16px;
-  border-bottom: 1px solid #eee;
-  color: #555;
+  border-bottom: 1px solid var(--border);
+  color: var(--surface-text);
   font-weight: 400;
 }
 
@@ -242,7 +299,12 @@ input {
 }
 
 .calc-table select.cell-select option {
-  color: #333;
+  color: #131314;
   background: #fff;
+}
+
+body.dark .calc-table select.cell-select option {
+  color: #131314;
+  background: #dfdddd;
 }
 

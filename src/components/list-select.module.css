@@ -3,7 +3,7 @@
 }
 
 .trigger {
-  color: #131314;
+  color: var(--surface-text);
   text-align: left;
   padding: 0 32px 0 12px;
   cursor: pointer;
@@ -17,8 +17,8 @@
   top: 50%;
   width: 4px;
   height: 4px;
-  border-right: 2px solid #131314;
-  border-bottom: 2px solid #131314;
+  border-right: 2px solid var(--surface-text);
+  border-bottom: 2px solid var(--surface-text);
   transform: translateY(-50%) rotate(45deg);
   transition: transform 0.2s ease-in-out;
   pointer-events: none;
@@ -40,7 +40,7 @@
   right: 0;
   margin-top: 4px;
   padding-top: 12px;
-  background-color: #fff;
+  background-color: #fff; /* выпадающий список как "блоки с картинками" — белый фон */
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -52,8 +52,8 @@
 .dropdownGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  column-gap: 1px;
+  row-gap: 4px;
+  column-gap: 4px;
 }
 
 @media (max-width: 375px) {
@@ -73,11 +73,13 @@
 
 .option {
   border-radius: 8px;
-  padding-bottom: 8px;
   cursor: pointer;
-  display: block;
+  display: flex;
+  flex-direction: column;
   text-align: left;
   height: 150px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 @media (max-width: 375px) {
@@ -90,9 +92,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  row-gap: 2px;
   text-align: center;
-  margin-top: 8px;
+  padding: 0;
+}
+
+@media (max-width: 375px) {
+  .optionGrid {
+    padding: revert;
+  }
 }
 
 .optionText {
@@ -116,10 +123,31 @@
   background-color: #f0f0f0;
 }
 
+/* Dark theme dropdown */
+:global(body.dark) .dropdown {
+  background-color: #dfdddd;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+:global(body.dark) .optionText {
+  color: #131314;
+}
+
+:global(body.dark) .optionText:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+:global(body.dark) .optionLabel,
+:global(body.dark) .optionTextLabel {
+  color: #131314; /* как в светлой теме */
+}
+
 /* ───── Image & label ───── */
 
 .optionImg {
   width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
   height: 100%;
   object-fit: contain;
   border-radius: 12px;
@@ -132,6 +160,13 @@
 .optionLabel {
   font-size: 16px;
   line-height: 1.2;
+  flex: 0 0 auto;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .optionTextLabel {

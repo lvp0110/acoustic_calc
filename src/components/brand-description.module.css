@@ -12,6 +12,12 @@
   margin-bottom: 8px;
 }
 
+:global(body.dark) .description {
+  color: #ffffff;
+  background-color: var(--surface);
+  border: 1px solid #ffffff;
+}
+
 .description p {
   margin: 0 0 0.75em;
 }
