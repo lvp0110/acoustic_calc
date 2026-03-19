@@ -41,7 +41,16 @@ export default function ListSelect({
   imageObjectFit = "contain",
 }: ListSelectProps) {
   const [open, setOpen] = useState(false);
+  const [, forceUpdate] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleResize = () => forceUpdate((n) => n + 1);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;

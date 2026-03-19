@@ -42,10 +42,22 @@ body.dark {
 
 .brand-page-layout {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 16px;
 }
-
+.brand-page-forms {
+  flex: 0 0 35%;
+}
+@media (max-width: 1024px) {
+  .brand-page-forms {
+    flex: 0 0 50%;
+  }
+}
+@media (max-width: 768px) {
+  .brand-page-layout {
+    flex-direction: column;
+  }
+}
 .brand-page-header-images {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -75,26 +87,6 @@ body.dark .brand-page-header-image {
   object-fit: cover;
 }
 
-@media (min-width: 768px) {
-  .brand-page-layout {
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 16px;
-  }
-
-  .brand-page-forms {
-    flex: 1 1 auto;
-    max-width: 40%;
-    min-width: 35%;
-    width: 50%;
-  }
-
-  .brand-page-result {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-}
-
 .brand-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -102,7 +94,7 @@ body.dark .brand-page-header-image {
   align-items: start;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1440px) {
   .brand-form {
     grid-template-columns: 1fr;
     gap: 8px 8px;
@@ -308,4 +300,3 @@ body.dark .calc-table select.cell-select option {
   color: #131314;
   background: #dfdddd;
 }
-
