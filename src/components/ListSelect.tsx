@@ -26,7 +26,7 @@ interface ListSelectProps {
   imageObjectFit?: "contain" | "cover";
 }
 
-const DROPDOWN_FULLWIDTH_BREAKPOINT = 768;
+const DROPDOWN_FULLWIDTH_BREAKPOINT = 1;
 
 export default function ListSelect({
   id,
@@ -69,19 +69,19 @@ export default function ListSelect({
     const formRect = useFullWidth ? dropdownAlignToRef.current!.getBoundingClientRect() : null;
     const triggerRect = useFullWidth ? containerRef.current!.getBoundingClientRect() : null;
 
-    const dropdownStyle: React.CSSProperties =
+    const dropdownStyle: React.CSSProperties | undefined =
       useFullWidth && formRect && triggerRect
-        ? {
-            position: "fixed",
-            left: formRect.left,
-            top: triggerRect.bottom + 4,
-            width: formRect.width,
-            maxHeight: `min(70vh, ${window.innerHeight - triggerRect.bottom - 24}px)`,
-          }
-        : {};
+        ? ({
+            "--list-select-left": `${formRect.left}px`,
+            "--list-select-top": `${triggerRect.bottom + 4}px`,
+            "--list-select-width": `${formRect.width}px`,
+            "--list-select-max-height": "min(70vh, 600px)",
+          } as React.CSSProperties)
+        : undefined;
 
     const dropdownClass = [
       styles.dropdown,
+      useFullWidth && styles.dropdownFullWidth,
       isTextVariant && styles.dropdownText,
       twoColumns && styles.dropdownGrid,
     ]

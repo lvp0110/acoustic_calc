@@ -49,6 +49,18 @@
   overflow-y: auto;
 }
 
+.dropdownFullWidth {
+  position: fixed;
+  left: var(--list-select-left);
+  top: var(--list-select-top);
+  width: var(--list-select-width);
+  max-height: var(--list-select-max-height);
+}
+@media (max-width: 375px) {
+  .dropdownFullWidth {
+    position: static;
+  }
+}
 .dropdownGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;

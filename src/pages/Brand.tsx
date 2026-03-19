@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { getBrandParams, getCalcParams, getCalcResult, getAcousticCategories } from "../api";
@@ -10,8 +10,15 @@ import CalcResult from "../components/CalcResult";
 import { getOptionImageUrl } from "../api/get-base-url";
 import BrandDescription from "../components/BrandDescription";
 
+function normalizeCategoryImageUrl(url: string): string {
+  // Backend sometimes returns 0.0.0.0 which is not always reachable from the browser.
+  return url.replace(/:\/\/0\.0\.0\.0(?=:\d+|\/)/, "://localhost");
+}
+
 export default function Brand() {
   const formsColumnRef = useRef<HTMLDivElement | null>(null);
+  const calcResultTopRef = useRef<HTMLDivElement | null>(null);
+  const scrollToResultPendingRef = useRef(false);
   const { brandCode } = useParams({ from: "/$brandCode" });
   const search = useSearch({ from: "/$brandCode" });
   const navigate = useNavigate({ from: "/$brandCode" });
@@ -77,6 +84,19 @@ export default function Brand() {
     enabled: !!calcQueryParams,
   });
 
+  useEffect(() => {
+    if (!scrollToResultPendingRef.current) return;
+    if (!calcResult) return;
+
+    scrollToResultPendingRef.current = false;
+    requestAnimationFrame(() => {
+      calcResultTopRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }, [calcResult]);
+
   const onFieldChange = (code: string, value: string) => {
     navigate({
       search:
@@ -96,6 +116,7 @@ export default function Brand() {
   };
 
   const onCalculate = (result: CalcFormResult) => {
+    scrollToResultPendingRef.current = true;
     navigate({
       search: {
         ...search,
@@ -126,6 +147,10 @@ export default function Brand() {
   };
 
   const iconFile = brandCode ? brandIconMap[brandCode] : null;
+  const categoryHeaderImageUrlRaw = brandCategory?.Img?.trim();
+  const categoryHeaderImageUrl = categoryHeaderImageUrlRaw
+    ? getOptionImageUrl({ img: normalizeCategoryImageUrl(categoryHeaderImageUrlRaw) })
+    : null;
 
   const findSelectedOption = (
     code: string,
@@ -162,7 +187,13 @@ export default function Brand() {
       <div className="brand-page-layout">
         <div ref={formsColumnRef} className="brand-page-forms">
           <div className="brand-page-header-images">
-            {iconFile ? (
+            {categoryHeaderImageUrl ? (
+              <img
+                src={categoryHeaderImageUrl}
+                alt={brandCategory?.Name ?? brandCode ?? ""}
+                className="brand-page-header-image brand-page-header-image--cover"
+              />
+            ) : iconFile ? (
               <img
                 src={`/brand_icon/${iconFile}`}
                 alt={brandCode ?? ""}
@@ -211,6 +242,7 @@ export default function Brand() {
         </div>
         {(descriptionToShow || calcResult) && (
           <div className="brand-page-result">
+            <div ref={calcResultTopRef} />
             {descriptionToShow && (
               <BrandDescription content={descriptionToShow} />
             )}
