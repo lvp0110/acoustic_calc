@@ -54,6 +54,7 @@ export default function Brand() {
     queryFn: () =>
       getCalcParams(brandCode, search).then((res) => res.data.data),
     enabled: allFieldsFilled,
+    placeholderData: (prev) => prev,
   });
 
   const calcRequest: CalcFormResult | null =
@@ -88,6 +89,7 @@ export default function Brand() {
     queryFn: () =>
       getCalcResult(brandCode, calcQueryParams!).then((res) => res.data.data),
     enabled: !!calcQueryParams,
+    placeholderData: (prev) => prev,
   });
 
   useEffect(() => {
