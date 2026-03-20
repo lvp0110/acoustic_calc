@@ -5,9 +5,14 @@ import "./CalcResult.css";
 interface CalcResultProps {
   data: CalcResultData;
   onSelectChange?: (rowId: string, itemCode: string) => void;
+  excelUrl?: string;
 }
 
-export default function CalcResult({ data, onSelectChange }: CalcResultProps) {
+export default function CalcResult({
+  data,
+  onSelectChange,
+  excelUrl,
+}: CalcResultProps) {
   const columns = data.columns.filter((col) => col.id !== "code");
   const [openRowId, setOpenRowId] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -16,7 +21,8 @@ export default function CalcResult({ data, onSelectChange }: CalcResultProps) {
   useEffect(() => {
     function onPointerDown(e: PointerEvent) {
       if (!rootRef.current) return;
-      if (e.target instanceof Node && rootRef.current.contains(e.target)) return;
+      if (e.target instanceof Node && rootRef.current.contains(e.target))
+        return;
       setOpenRowId(null);
     }
 
@@ -36,11 +42,24 @@ export default function CalcResult({ data, onSelectChange }: CalcResultProps) {
     <div ref={rootRef}>
       {data.title ? <h4>{data.title}</h4> : null}
       <div className="result-table-wrap">
-        
-        <button style={{ width: "auto", border: "solid green 2px", color: "green",marginBottom: 12 }}>
-          Excel
-        </button>
-       
+        {excelUrl && (
+          <a
+            href={excelUrl}
+            download
+            style={{
+              width: "auto",
+              border: "solid green 2px",
+              color: "green",
+              marginBottom: 12,
+              display: "inline-block",
+              padding: "8px 16px",
+              textDecoration: "none",
+            }}
+          >
+            Excel
+          </a>
+        )}
+
         <table className="result-table">
           <thead>
             <tr>
@@ -87,7 +106,9 @@ export default function CalcResult({ data, onSelectChange }: CalcResultProps) {
                             aria-expanded={openRowId === row.id}
                             aria-controls={listboxId}
                             onClick={() =>
-                              setOpenRowId((prev) => (prev === row.id ? null : row.id))
+                              setOpenRowId((prev) =>
+                                prev === row.id ? null : row.id,
+                              )
                             }
                           >
                             {selectedItem.name}

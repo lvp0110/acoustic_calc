@@ -104,10 +104,9 @@ export const getCalcResult = (
   brandCode: string,
   params: Record<string, string | undefined>,
 ) => {
-  return baseInstance.get<CalcResultResponse>(
-    `/v2/constr/calc/${brandCode}`,
-    { params },
-  );
+  return baseInstance.get<CalcResultResponse>(`/v2/constr/calc/${brandCode}`, {
+    params,
+  });
 };
 
 export const getBrandParams = (
@@ -117,4 +116,23 @@ export const getBrandParams = (
   return baseInstance.get<BrandParamsResponse>(`/v1/brandParams/${brandCode}`, {
     params,
   });
+};
+
+export const getExcelDownloadUrl = (
+  brandCode: string,
+  params: Record<string, string | string[] | undefined>,
+): string => {
+  const baseUrl = getBaseUrl();
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined) return;
+    if (Array.isArray(value)) {
+      value.forEach((v) => searchParams.append(key, v));
+    } else {
+      searchParams.set(key, value);
+    }
+  });
+
+  return `${baseUrl}/v2/constr/calc/excel/${brandCode}?${searchParams.toString()}`;
 };

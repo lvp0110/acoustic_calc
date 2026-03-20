@@ -1,7 +1,13 @@
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
-import { getBrandParams, getCalcParams, getCalcResult, getAcousticCategories } from "../api";
+import {
+  getBrandParams,
+  getCalcParams,
+  getCalcResult,
+  getAcousticCategories,
+  getExcelDownloadUrl,
+} from "../api";
 import { brandIconMap } from "../utils/brandIcons";
 import type { CalcFormResult } from "../components/CalcForm";
 import BrandForm from "../components/BrandForm";
@@ -29,7 +35,7 @@ export default function Brand() {
   });
 
   const brandCategory = acousticCategories?.find(
-    (cat) => cat.ShortName === brandCode
+    (cat) => cat.ShortName === brandCode,
   );
 
   const { data } = useQuery({
@@ -149,15 +155,14 @@ export default function Brand() {
   const iconFile = brandCode ? brandIconMap[brandCode] : null;
   const categoryHeaderImageUrlRaw = brandCategory?.Img?.trim();
   const categoryHeaderImageUrl = categoryHeaderImageUrlRaw
-    ? getOptionImageUrl({ img: normalizeCategoryImageUrl(categoryHeaderImageUrlRaw) })
+    ? getOptionImageUrl({
+        img: normalizeCategoryImageUrl(categoryHeaderImageUrlRaw),
+      })
     : null;
 
-  const findSelectedOption = (
-    code: string,
-    nameSubstr: string
-  ) => {
+  const findSelectedOption = (code: string, nameSubstr: string) => {
     const field = data?.find(
-      (f) => f.code === code || f.name.toLowerCase().includes(nameSubstr)
+      (f) => f.code === code || f.name.toLowerCase().includes(nameSubstr),
     );
     const selectedCode = field ? search[field.code] : undefined;
     const option = field?.list.find((o) => o.code === selectedCode);
@@ -173,7 +178,7 @@ export default function Brand() {
     findSelectedOption("edge", "кромк");
 
   const modelField = data?.find(
-    (f) => f.code === "model" || f.name.toLowerCase().includes("модел")
+    (f) => f.code === "model" || f.name.toLowerCase().includes("модел"),
   );
   const selectedModelCode = modelField ? search[modelField.code] : undefined;
   const selectedModelOption = selectedModelCode
@@ -247,7 +252,16 @@ export default function Brand() {
               <BrandDescription content={descriptionToShow} />
             )}
             {calcResult && (
-              <CalcResult data={calcResult} onSelectChange={onArticulChange} />
+              <CalcResult
+                data={calcResult}
+                onSelectChange={onArticulChange}
+                excelUrl={getExcelDownloadUrl(brandCode, {
+                  ...search,
+                  articuls: calcResult.rows.flatMap((row) =>
+                    row.items.map((item) => item.code),
+                  ),
+                })}
+              />
             )}
           </div>
         )}
