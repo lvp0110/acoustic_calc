@@ -43,21 +43,10 @@ export default function CalcResult({
       {data.title ? <h4>{data.title}</h4> : null}
       <div className="result-table-wrap">
         {excelUrl && (
-          <a
-            href={excelUrl}
-            download
-            style={{
-              width: "auto",
-              border: "solid green 2px",
-              color: "green",
-              marginBottom: 12,
-              display: "inline-block",
-              padding: "8px 16px",
-              textDecoration: "none",
-            }}
-          >
-            Excel
-          </a>
+          <a className="tooltip-wrapper" href={excelUrl} download>
+          <img src="public/Excel_icon.png" alt="Excel" width={50} />
+          <span className="tooltip-text">Выгрузить таблицу</span>
+        </a>
         )}
 
         <table className="result-table">

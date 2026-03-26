@@ -289,3 +289,40 @@ body.dark .result-table .cell-select-option.is-selected {
     max-width: calc(100vw - 24px);
   }
 }
+.tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-text {
+  position: absolute;
+  bottom: 14px;
+  left: 50px;
+  color: black;
+  font-weight: 300;
+  background: white;
+  padding: 5px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  /* скрыто по умолчанию */
+  width: 0;
+  opacity: 0;
+}
+
+/* при наведении */
+.tooltip-wrapper:hover .tooltip-text {
+  opacity: 1;
+  width: 16ch; /* длина текста */
+  animation: typing .5s steps(22) forwards;
+}
+
+/* анимация печати */
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 16ch;
+  }
+}
