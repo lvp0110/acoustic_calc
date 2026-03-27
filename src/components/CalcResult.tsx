@@ -40,13 +40,12 @@ export default function CalcResult({
 
   return (
     <div ref={rootRef}>
-      {data.title ? <h4>{data.title}</h4> : null}
       <div className="result-table-wrap">
         {excelUrl && (
           <a className="tooltip-wrapper" href={excelUrl} download>
-          <img src="public/Excel_icon.png" alt="Excel" width={50} />
-          <span className="tooltip-text">Выгрузить таблицу</span>
-        </a>
+            <img src="public/Excel_icon.png" alt="Excel" width={50} />
+            <span className="tooltip-text">Выгрузить таблицу</span>
+          </a>
         )}
 
         <table className="result-table">
@@ -142,6 +141,9 @@ export default function CalcResult({
             })}
           </tbody>
         </table>
+        {data.title ? (
+          <div className="result-table-title-footer" style={{color: "#ff6400"}}>{data.title}</div>
+        ) : null}
       </div>
     </div>
   );

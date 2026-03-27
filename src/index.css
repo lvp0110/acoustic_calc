@@ -73,7 +73,7 @@ body.dark {
   object-fit: contain;
   border-radius: 8px;
   vertical-align: middle;
-  border: solid 1px;
+  border: solid 1px darkgray;
   padding: 4px;
   box-sizing: border-box;
   background-color: #ffffff; /* блоки с картинками — белые даже в тёмной теме */

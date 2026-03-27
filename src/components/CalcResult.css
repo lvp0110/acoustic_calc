@@ -6,6 +6,16 @@
    overflow: hidden;
  }
 
+ .result-table-title-footer {
+   margin-top: 12px;
+   padding-top: 14px;
+   border-top: 1px solid var(--border);
+   font-size: 15px;
+   font-weight: 600;
+   color: var(--surface-text);
+   line-height: 1.4;
+ }
+
  .result-table {
    width: 100%;
    border-collapse: collapse;
