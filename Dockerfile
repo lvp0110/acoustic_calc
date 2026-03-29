@@ -18,6 +18,10 @@ RUN npm ci --omit=dev
 COPY server.js ./
 COPY --from=builder /app/dist ./dist
 
+# Create certs directory and copy certificates
+RUN mkdir -p /app/certs
+COPY certs/ /app/certs/
+
 # Expose both HTTP and HTTPS ports
 EXPOSE 3000 3443
 
