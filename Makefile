@@ -1,11 +1,12 @@
 IMAGE_NAME = acoustic-calc
-PORT = 3000
 
 build:
 	docker build -t $(IMAGE_NAME) .
 
 run:
-	docker run -d --name $(IMAGE_NAME) -e BASE_URL=$(BASE_URL) -p $(PORT):3000 $(IMAGE_NAME)
+	docker run --name $(IMAGE_NAME) -p 3003:3000 -p 3446:3443 \
+		-e BASE_URL=$(BASE_URL) \
+		-d $(IMAGE_NAME)
 
 stop:
 	docker stop $(IMAGE_NAME)
