@@ -1,7 +1,7 @@
 IMAGE_NAME = acoustic-calc
 
 build:
-	docker build -t $(IMAGE_NAME) -f Dockerfile ..
+	cp .dockerignore ../.dockerignore && docker build -t $(IMAGE_NAME) -f Dockerfile .. && rm ../.dockerignore
 
 run:
 	docker run --name $(IMAGE_NAME) -p 3003:3000 -p 3446:3443 \
