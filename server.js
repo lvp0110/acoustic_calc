@@ -24,6 +24,18 @@ app.use(
   createProxyMiddleware({
     target: BASE_URL,
     changeOrigin: true,
+    on: {
+      proxyReq: (_proxyReq, req) => {
+        console.log(`[proxy] --> ${req.method} ${req.originalUrl} -> ${BASE_URL}${req.url}`);
+      },
+      proxyRes: (proxyRes, req) => {
+        console.log(`[proxy] <-- ${proxyRes.statusCode} ${req.method} ${req.originalUrl}`);
+      },
+      error: (err, req, res) => {
+        console.error(`[proxy] error ${req.method} ${req.originalUrl}: ${err.message}`);
+        res.status(502).json({ error: 'Proxy error', message: err.message });
+      },
+    },
   })
 );
 
