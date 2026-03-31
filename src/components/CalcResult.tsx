@@ -1,5 +1,6 @@
 import type { CalcResultData } from "../api";
 import { useEffect, useId, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import "./CalcResult.css";
 
 interface CalcResultProps {
@@ -142,7 +143,9 @@ export default function CalcResult({
           </tbody>
         </table>
         {data.title ? (
-          <div className="result-table-title-footer" style={{color: "#ff6400"}}>{data.title}</div>
+          <div className="result-table-title-footer" style={{ color: "#ff6400" }}>
+            <ReactMarkdown>{data.title}</ReactMarkdown>
+          </div>
         ) : null}
       </div>
     </div>

@@ -11,9 +11,27 @@
    padding-top: 14px;
    border-top: 1px solid var(--border);
    font-size: 15px;
-   font-weight: 600;
+   font-weight: 400;
    color: var(--surface-text);
    line-height: 1.4;
+ }
+
+ .result-table-title-footer p {
+   margin: 0;
+ }
+
+ .result-table-title-footer p + p {
+   margin-top: 0.5em;
+ }
+
+ .result-table-title-footer a {
+   color: inherit;
+   text-decoration: underline;
+ }
+
+ .result-table-title-footer strong,
+ .result-table-title-footer b {
+   font-weight: 700;
  }
 
  .result-table {
