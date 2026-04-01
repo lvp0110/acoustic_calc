@@ -44,7 +44,7 @@ export default function CalcResult({
       <div className="result-table-wrap">
         {excelUrl && (
           <a className="tooltip-wrapper" href={excelUrl} download>
-            <img src="public/Excel_icon.png" alt="Excel" width={50} />
+            <img src="/Excel_icon.png" alt="Excel" width={50} />
             <span className="tooltip-text">Выгрузить таблицу</span>
           </a>
         )}
@@ -143,7 +143,10 @@ export default function CalcResult({
           </tbody>
         </table>
         {data.title ? (
-          <div className="result-table-title-footer" style={{ color: "#ff6400" }}>
+          <div
+            className="result-table-title-footer"
+            style={{ color: "#ff6400" }}
+          >
             <ReactMarkdown>{data.title}</ReactMarkdown>
           </div>
         ) : null}
