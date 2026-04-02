@@ -168,16 +168,55 @@
   line-height: 1.5;
 }
 
+/*
+ * Превью под полем: лимит задаётся одной переменной на обёртке и на img.
+ * Не использовать max-height: % на img — при авто-высоте родителя в flex это часто даёт «пробитие» блока.
+ */
+.selectedPreviewWrap {
+  --selected-preview-max: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 12px;
+  max-height: var(--selected-preview-max);
+  box-sizing: border-box;
+  overflow: hidden;
+  min-height: 0;
+  padding-inline: 0;
+  line-height: 0;
+}
+
 .selectedPreview {
   display: block;
-  width: 100%;
-  max-height: 220px;
-  margin-top: 12px;
+  box-sizing: border-box;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: var(--selected-preview-max);
+  min-width: 0;
+  min-height: 0;
+  flex-shrink: 1;
+  margin: 0;
   object-fit: contain;
+  object-position: center;
+}
+
+/* Планшеты / узкие колонки формы */
+@media (max-width: 600px) {
+  .selectedPreviewWrap {
+    --selected-preview-max: 200px;
+  }
 }
 
 @media (max-width: 375px) {
-  .selectedPreview {
-    max-height: 180px;
+  .selectedPreviewWrap {
+    --selected-preview-max: 180px;
+  }
+}
+
+@media (max-width: 320px) {
+  .selectedPreviewWrap {
+    --selected-preview-max: 150px;
   }
 }

@@ -1,0 +1,87 @@
+/* Общая сетка и оформление для .calc-table и .result-table */
+
+.calc-table,
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Montserrat", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  color: var(--surface-text);
+}
+
+.calc-table thead,
+.result-table thead {
+  background-color: transparent;
+}
+
+.calc-table th,
+.result-table th {
+  background-color: transparent;
+  font-weight: 700;
+  color: var(--surface-text);
+  text-align: left;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.calc-table th:nth-child(n + 2),
+.result-table th:nth-child(n + 2) {
+  text-align: right;
+}
+
+.calc-table tbody tr,
+.result-table tbody tr {
+  background-color: transparent;
+}
+
+.calc-table td,
+.result-table td {
+  position: relative;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--surface-text);
+  font-weight: 400;
+}
+
+.calc-table td:nth-child(n + 2),
+.result-table td:nth-child(n + 2) {
+  text-align: right;
+}
+
+.calc-table tbody tr:last-child td,
+.result-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Обёртка ячейки с выбором: шеврон (native select или кастомный триггер) */
+.calc-table .cell-select-wrap,
+.result-table .cell-select-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+  padding-right: 14px;
+}
+
+.calc-table .cell-select-wrap::after,
+.result-table .cell-select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-right: 2px solid var(--color-index);
+  border-bottom: 2px solid var(--color-index);
+  transform: translateY(-50%) rotate(45deg);
+  transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  pointer-events: none;
+}
+
+.calc-table .cell-select-wrap:focus-within::after,
+.result-table .cell-select-wrap:focus-within::after,
+.result-table .cell-select-wrap[data-open="true"]::after {
+  border-right-color: var(--color-index);
+  border-bottom-color: var(--color-index);
+  transform: translateY(-50%) rotate(225deg);
+}

@@ -1,10 +1,10 @@
- .result-table-wrap {
-   background-color: var(--surface);
-   border-radius: 8px;
-   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-   padding: 16px;
-   overflow: hidden;
- }
+.result-table-wrap {
+  background-color: var(--surface);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  overflow: hidden;
+}
 
 .result-export-actions {
   display: flex;
@@ -232,117 +232,42 @@ body.dark .kp-form__submit:disabled {
   background: color-mix(in srgb, #fff 12%, transparent);
 }
 
- .result-table-title-footer {
-   margin-top: 12px;
-   padding-top: 14px;
-   border-top: 1px solid var(--border);
-   font-size: 15px;
-   font-weight: 400;
-   color: var(--surface-text);
-   line-height: 1.4;
- }
-
- .result-table-title-footer p {
-   margin: 0;
- }
-
- .result-table-title-footer p + p {
-   margin-top: 0.5em;
- }
-
- .result-table-title-footer a {
-   color: inherit;
-   text-decoration: underline;
- }
-
- .result-table-title-footer strong,
- .result-table-title-footer b {
-   font-weight: 700;
- }
-
- .result-table {
-   width: 100%;
-   border-collapse: collapse;
-   font-family: system-ui, -apple-system, sans-serif;
-   font-size: 14px;
-   color: var(--surface-text); /* текст в таблице белый в dark */
- }
-
- .result-table thead {
-   background-color: transparent;
- }
-
- .result-table th {
-   background-color: transparent;
-   font-weight: 700;
-   color: var(--surface-text);
-   text-align: left;
-   padding: 14px 16px;
-   border-bottom: 1px solid var(--border);
- }
-
- .result-table th:nth-child(n + 2) {
-   text-align: right;
- }
-
- .result-table tbody tr {
-   background-color: transparent;
- }
-
- .result-table td {
-   padding: 12px 16px;
-   border-bottom: 1px solid var(--border);
-   color: var(--surface-text);
-   font-weight: 400;
- }
-
- .result-table td:nth-child(n + 2) {
-   text-align: right;
- }
-
- .result-table tbody tr:last-child td {
-   border-bottom: none;
- }
-
-.result-table td {
-  position: relative;
+.result-table-title-footer {
+  margin-top: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--surface-text);
+  line-height: 1.4;
 }
 
- .result-table .cell-select-wrap {
-   display: inline-flex;
-   align-items: center;
-   gap: 4px;
-  position: relative;
-  padding-right: 14px; /* место под галочку */
- }
-
-.result-table .cell-select-wrap::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 50%;
-  width: 4px;
-  height: 4px;
-  border-right: 2px solid var(--color-index);
-  border-bottom: 2px solid var(--color-index);
-  transform: translateY(-50%) rotate(45deg);
-  transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out;
-  pointer-events: none;
+.result-table-title-footer p {
+  margin: 0;
 }
 
-.result-table .cell-select-wrap:focus-within::after,
-.result-table .cell-select-wrap[data-open="true"]::after {
-  border-right-color: var(--color-index);
-  border-bottom-color: var(--color-index);
-  transform: translateY(-50%) rotate(225deg);
+.result-table-title-footer p + p {
+  margin-top: 0.5em;
 }
+
+.result-table-title-footer a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.result-table-title-footer strong,
+.result-table-title-footer b {
+  font-weight: 700;
+}
+
+/* Сетка .result-table — src/styles/data-table.css */
 
 .result-table .cell-select-trigger {
-   color: var(--color-index);
-   font-size: 14px;
-   font-weight: 500;
-   border: none;
-   cursor: pointer;
+  color: var(--color-index);
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
   padding: 0;
   margin: 0;
   background: none;
@@ -352,11 +277,11 @@ body.dark .kp-form__submit:disabled {
   width: 100%;
   text-align: left;
   line-height: 1.2;
- }
+}
 
 .result-table .cell-select-trigger:hover {
-   text-decoration: none;
- }
+  text-decoration: none;
+}
 
 .result-table .cell-select-menu {
   position: absolute;
@@ -403,7 +328,7 @@ body.dark .kp-form__submit:disabled {
 .result-table .cell-select-option.is-selected {
   background: rgba(0, 0, 0, 0.06);
   font-weight: 600;
- }
+}
 
 body.dark .result-table .cell-select-menu {
   background: #dfdddd;

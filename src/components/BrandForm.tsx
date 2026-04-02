@@ -1,3 +1,4 @@
+import { useCallback, useState } from "react";
 import type { BrandParam } from "../api";
 import ListSelect from "./ListSelect";
 
@@ -55,50 +56,59 @@ function groupFieldsForBrandForm(fields: BrandParam[]) {
   return groups;
 }
 
-function renderListSelect(
-  field: BrandParam,
-  values: BrandFormProps["values"],
-  onFieldChange: BrandFormProps["onFieldChange"],
-  dropdownAlignToRef: BrandFormProps["dropdownAlignToRef"],
-) {
-  return (
-    <ListSelect
-      key={field.code}
-      id={field.code}
-      label={field.name}
-      options={field.list}
-      value={values[field.code] ?? ""}
-      onChange={(value) => onFieldChange(field.code, value)}
-      placeholder={field.name}
-      style={isModelField(field) ? { gridColumn: "1 / -1" } : undefined}
-      dropdownAlignToRef={dropdownAlignToRef}
-      variant={isSizeField(field) || isModelField(field) ? "text" : "default"}
-      imageObjectFit={isColorSelectImageField(field) ? "cover" : "contain"}
-      selectedImageBelow={isEdgeOrPerforationImageField(field)}
-    />
-  );
-}
-
 export default function BrandForm({
   fields,
   values,
   onFieldChange,
   dropdownAlignToRef,
 }: BrandFormProps) {
+  const [edgePreviewHeights, setEdgePreviewHeights] = useState<Record<string, number>>({});
+  const setEdgeFieldPreviewHeight = useCallback((fieldCode: string, height: number) => {
+    setEdgePreviewHeights((prev) => (prev[fieldCode] === height ? prev : { ...prev, [fieldCode]: height }));
+  }, []);
+
+  const renderListSelect = (field: BrandParam, edgeRowFields?: BrandParam[]) => {
+    const isEdge = isEdgeOrPerforationImageField(field);
+    const maxPreviewH =
+      edgeRowFields && isEdge
+        ? Math.max(0, ...edgeRowFields.map((f) => edgePreviewHeights[f.code] ?? 0))
+        : 0;
+    return (
+      <ListSelect
+        key={field.code}
+        id={field.code}
+        label={field.name}
+        options={field.list}
+        value={values[field.code] ?? ""}
+        onChange={(value) => onFieldChange(field.code, value)}
+        placeholder={field.name}
+        style={isModelField(field) ? { gridColumn: "1 / -1" } : undefined}
+        dropdownAlignToRef={dropdownAlignToRef}
+        variant={isSizeField(field) || isModelField(field) ? "text" : "default"}
+        imageObjectFit={isColorSelectImageField(field) ? "cover" : "contain"}
+        selectedImageBelow={isEdge}
+        selectedPreviewMinHeight={
+          edgeRowFields && isEdge && maxPreviewH > 0 ? maxPreviewH : undefined
+        }
+        onSelectedPreviewHeight={
+          edgeRowFields && isEdge ? (h) => setEdgeFieldPreviewHeight(field.code, h) : undefined
+        }
+      />
+    );
+  };
+
   const groups = groupFieldsForBrandForm(fields);
   return (
     <div className="brand-form">
       {groups.map((group) =>
         group.kind === "single" ? (
-          renderListSelect(group.field, values, onFieldChange, dropdownAlignToRef)
+          renderListSelect(group.field)
         ) : (
           <div
             key={group.fields.map((f) => f.code).join("-")}
             className="brand-form__edge-perf-row"
           >
-            {group.fields.map((field) =>
-              renderListSelect(field, values, onFieldChange, dropdownAlignToRef),
-            )}
+            {group.fields.map((field) => renderListSelect(field, group.fields))}
           </div>
         ),
       )}

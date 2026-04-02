@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getOptionImageUrl } from "../api/get-base-url";
 import styles from "./list-select.module.css";
 
@@ -26,10 +26,20 @@ interface ListSelectProps {
   imageObjectFit?: "contain" | "cover";
   /** Дополнительно показать крупное превью выбранного варианта под полем (кромки, перфорация и т.п.). */
   selectedImageBelow?: boolean;
+  /** Общая min-height блока превью в строке кромка+перфорация (по наибольшему изображению). */
+  selectedPreviewMinHeight?: number;
+  /** Сообщить измеренную высоту превью (при загрузке и resize) для синхронизации с соседним полем. */
+  onSelectedPreviewHeight?: (height: number) => void;
 }
 
 /** На узком экране сетка опций с картинками — одна колонка, если нет изображений в списке */
 const DROPDOWN_TWO_COLUMN_MIN_WIDTH = 768;
+
+function readSelectedPreviewMaxPx(wrap: HTMLElement): number {
+  const raw = getComputedStyle(wrap).getPropertyValue("--selected-preview-max").trim();
+  const n = parseFloat(raw);
+  return Number.isFinite(n) && n > 0 ? n : 220;
+}
 
 export default function ListSelect({
   id,
@@ -43,11 +53,17 @@ export default function ListSelect({
   variant = "default",
   imageObjectFit = "contain",
   selectedImageBelow = false,
+  selectedPreviewMinHeight,
+  onSelectedPreviewHeight,
 }: ListSelectProps) {
   const [open, setOpen] = useState(false);
   const [, forceUpdate] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerWrapRef = useRef<HTMLDivElement | null>(null);
+  const selectedPreviewWrapRef = useRef<HTMLDivElement | null>(null);
+  const selectedPreviewImgRef = useRef<HTMLImageElement | null>(null);
+  const onSelectedPreviewHeightRef = useRef(onSelectedPreviewHeight);
+  onSelectedPreviewHeightRef.current = onSelectedPreviewHeight;
 
   useEffect(() => {
     if (!open) return;
@@ -81,6 +97,44 @@ export default function ListSelect({
       : null;
   const selectedLabel =
     options.find((o) => o.code === value)?.name ?? (placeholder ?? label);
+
+  useEffect(() => {
+    if (!selectedImageBelow) return;
+    if (!selectedPreviewUrl) {
+      onSelectedPreviewHeightRef.current?.(0);
+    }
+  }, [selectedPreviewUrl, selectedImageBelow]);
+
+  const syncSelectedPreviewHeight = Boolean(onSelectedPreviewHeight);
+
+  useLayoutEffect(() => {
+    if (!syncSelectedPreviewHeight || !selectedImageBelow || !selectedPreviewUrl) {
+      return;
+    }
+    const wrap = selectedPreviewWrapRef.current;
+    if (!wrap) return;
+
+    const measure = () => {
+      const w = selectedPreviewWrapRef.current;
+      const img = selectedPreviewImgRef.current;
+      const report = onSelectedPreviewHeightRef.current;
+      if (!report || !w || !img || !img.naturalWidth) return;
+      const pw = w.clientWidth;
+      if (!pw) return;
+      const cap = readSelectedPreviewMaxPx(w);
+      const rawH = (pw / img.naturalWidth) * img.naturalHeight;
+      report(Math.min(rawH, cap));
+    };
+
+    measure();
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(wrap);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [selectedPreviewUrl, selectedImageBelow, syncSelectedPreviewHeight]);
 
   function renderDropdown() {
     const wideViewport = window.innerWidth > DROPDOWN_TWO_COLUMN_MIN_WIDTH;
@@ -160,12 +214,35 @@ export default function ListSelect({
         {open && options.length > 0 && renderDropdown()}
       </div>
       {selectedPreviewUrl && selectedOption && (
-        <img
-          src={selectedPreviewUrl}
-          alt={selectedOption.name}
-          className={styles.selectedPreview}
-          loading="lazy"
-        />
+        <div
+          ref={selectedPreviewWrapRef}
+          className={styles.selectedPreviewWrap}
+          style={
+            selectedPreviewMinHeight != null && selectedPreviewMinHeight > 0
+              ? { minHeight: selectedPreviewMinHeight }
+              : undefined
+          }
+        >
+          <img
+            ref={selectedPreviewImgRef}
+            src={selectedPreviewUrl}
+            alt={selectedOption.name}
+            className={styles.selectedPreview}
+            loading="lazy"
+            onLoad={() => {
+              const report = onSelectedPreviewHeightRef.current;
+              if (!report) return;
+              const w = selectedPreviewWrapRef.current;
+              const img = selectedPreviewImgRef.current;
+              if (!w || !img?.naturalWidth) return;
+              const pw = w.clientWidth;
+              if (!pw) return;
+              const cap = readSelectedPreviewMaxPx(w);
+              const rawH = (pw / img.naturalWidth) * img.naturalHeight;
+              report(Math.min(rawH, cap));
+            }}
+          />
+        </div>
       )}
     </div>
   );
