@@ -2,6 +2,10 @@
   position: relative;
 }
 
+.triggerWrap {
+  position: relative;
+}
+
 .trigger {
   color: var(--surface-text);
   text-align: left;
@@ -50,28 +54,18 @@
 }
 
 .dropdownFullWidth {
-  position: fixed;
+  position: absolute;
   left: var(--list-select-left);
-  top: var(--list-select-top);
+  right: auto;
+  top: 100%;
   width: var(--list-select-width);
   max-height: var(--list-select-max-height);
-}
-@media (max-width: 375px) {
-  .dropdownFullWidth {
-    position: static;
-  }
 }
 .dropdownGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   row-gap: 4px;
   column-gap: 4px;
-}
-
-@media (max-width: 375px) {
-  .dropdownGrid {
-    gap: 1px;
-  }
 }
 
 .dropdownText {
@@ -94,24 +88,12 @@
   box-sizing: border-box;
 }
 
-@media (max-width: 375px) {
-  .option {
-    height: 180px;
-  }
-}
-
 .optionGrid {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   padding: 0;
-}
-
-@media (max-width: 375px) {
-  .optionGrid {
-    padding: revert;
-  }
 }
 
 .optionText {
@@ -184,4 +166,18 @@
 .optionTextLabel {
   font-size: 18px;
   line-height: 1.5;
+}
+
+.selectedPreview {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  margin-top: 12px;
+  object-fit: contain;
+}
+
+@media (max-width: 375px) {
+  .selectedPreview {
+    max-height: 180px;
+  }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import {
@@ -24,7 +24,9 @@ function normalizeCategoryImageUrl(url: string): string {
 export default function Brand() {
   const formsColumnRef = useRef<HTMLDivElement | null>(null);
   const calcResultTopRef = useRef<HTMLDivElement | null>(null);
+  const colorHeaderImgRef = useRef<HTMLImageElement | null>(null);
   const scrollToResultPendingRef = useRef(false);
+  const [colorHeaderImageShown, setColorHeaderImageShown] = useState(false);
   const { brandCode } = useParams({ from: "/$brandCode" });
   const search = useSearch({ from: "/$brandCode" });
   const navigate = useNavigate({ from: "/$brandCode" });
@@ -174,10 +176,18 @@ export default function Brand() {
 
   const { option: selectedColorOption, imageUrl: colorImageUrl } =
     findSelectedOption("color", "цвет");
-  const { option: selectedPerfOption, imageUrl: perfImageUrl } =
-    findSelectedOption("perf", "перфор");
-  const { option: selectedEdgeOption, imageUrl: edgeImageUrl } =
-    findSelectedOption("edge", "кромк");
+
+  useLayoutEffect(() => {
+    if (!colorImageUrl) {
+      setColorHeaderImageShown(false);
+      return;
+    }
+    setColorHeaderImageShown(false);
+    const el = colorHeaderImgRef.current;
+    if (el?.complete && el.naturalHeight !== 0) {
+      setColorHeaderImageShown(true);
+    }
+  }, [colorImageUrl]);
 
   const modelField = data?.find(
     (f) => f.code === "model" || f.name.toLowerCase().includes("модел"),
@@ -194,11 +204,19 @@ export default function Brand() {
       <div className="brand-page-layout">
         <div ref={formsColumnRef} className="brand-page-forms">
           <div className="brand-page-header-images">
-            {categoryHeaderImageUrl ? (
+            {colorImageUrl ? (
               <img
-                src={categoryHeaderImageUrl}
-                alt={brandCategory?.Name ?? brandCode ?? ""}
-                className="brand-page-header-image brand-page-header-image--cover"
+                ref={colorHeaderImgRef}
+                src={colorImageUrl}
+                alt={selectedColorOption?.name ?? "Цвет"}
+                className={
+                  "brand-page-header-image brand-page-header-image--cover" +
+                  (colorHeaderImageShown
+                    ? ""
+                    : " brand-page-header-image--color-loading")
+                }
+                onLoad={() => setColorHeaderImageShown(true)}
+                onError={() => setColorHeaderImageShown(true)}
               />
             ) : iconFile ? (
               <img
@@ -206,29 +224,14 @@ export default function Brand() {
                 alt={brandCode ?? ""}
                 className="brand-page-header-image"
               />
-            ) : (
-              <h1>{brandCode}</h1>
-            )}
-            {colorImageUrl && (
+            ) : categoryHeaderImageUrl ? (
               <img
-                src={colorImageUrl}
-                alt={selectedColorOption?.name ?? "Цвет"}
+                src={categoryHeaderImageUrl}
+                alt={brandCategory?.Name ?? brandCode ?? ""}
                 className="brand-page-header-image brand-page-header-image--cover"
               />
-            )}
-            {perfImageUrl && (
-              <img
-                src={perfImageUrl}
-                alt={selectedPerfOption?.name ?? "Перфорация"}
-                className="brand-page-header-image"
-              />
-            )}
-            {edgeImageUrl && (
-              <img
-                src={edgeImageUrl}
-                alt={selectedEdgeOption?.name ?? "Кромка"}
-                className="brand-page-header-image"
-              />
+            ) : (
+              <h1>{brandCode}</h1>
             )}
           </div>
           {data && (
@@ -244,6 +247,7 @@ export default function Brand() {
               surfaces={calcParams.SurfacesTypes}
               values={calcRequest}
               onCalculate={onCalculate}
+              betweenRadiogroupsText="Для более точного расчёта нажмите кнопку «Размеры»"
             />
           )}
         </div>
@@ -255,6 +259,7 @@ export default function Brand() {
             )}
             {calcResult && (
               <CalcResult
+                brandCode={brandCode}
                 data={calcResult}
                 onSelectChange={onArticulChange}
                 excelUrl={getExcelDownloadUrl(brandCode, {

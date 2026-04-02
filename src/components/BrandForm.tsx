@@ -18,29 +18,90 @@ const isColorSelectImageField = (field: BrandParam) =>
   field.type === "select_image" &&
   (field.code === "color" || field.name.toLowerCase().includes("цвет"));
 
+/** Кромки и перфорация: картинка только после выбора, под списком */
+const isEdgeOrPerforationImageField = (field: BrandParam) => {
+  if (field.type !== "select_image") return false;
+  const code = field.code.toLowerCase();
+  const name = field.name.toLowerCase();
+  return (
+    name.includes("кромк") ||
+    name.includes("перфорац") ||
+    code.includes("edge") ||
+    code.includes("perfor")
+  );
+};
+
+/** На узком экране (≤375px) кромка и перфорация — в одной строке */
+function groupFieldsForBrandForm(fields: BrandParam[]) {
+  type Group =
+    | { kind: "single"; field: BrandParam }
+    | { kind: "edgePerfRow"; fields: BrandParam[] };
+  const groups: Group[] = [];
+  let i = 0;
+  while (i < fields.length) {
+    const field = fields[i];
+    if (isEdgeOrPerforationImageField(field)) {
+      const row: BrandParam[] = [];
+      while (i < fields.length && isEdgeOrPerforationImageField(fields[i])) {
+        row.push(fields[i]);
+        i++;
+      }
+      groups.push({ kind: "edgePerfRow", fields: row });
+    } else {
+      groups.push({ kind: "single", field });
+      i++;
+    }
+  }
+  return groups;
+}
+
+function renderListSelect(
+  field: BrandParam,
+  values: BrandFormProps["values"],
+  onFieldChange: BrandFormProps["onFieldChange"],
+  dropdownAlignToRef: BrandFormProps["dropdownAlignToRef"],
+) {
+  return (
+    <ListSelect
+      key={field.code}
+      id={field.code}
+      label={field.name}
+      options={field.list}
+      value={values[field.code] ?? ""}
+      onChange={(value) => onFieldChange(field.code, value)}
+      placeholder={field.name}
+      style={isModelField(field) ? { gridColumn: "1 / -1" } : undefined}
+      dropdownAlignToRef={dropdownAlignToRef}
+      variant={isSizeField(field) || isModelField(field) ? "text" : "default"}
+      imageObjectFit={isColorSelectImageField(field) ? "cover" : "contain"}
+      selectedImageBelow={isEdgeOrPerforationImageField(field)}
+    />
+  );
+}
+
 export default function BrandForm({
   fields,
   values,
   onFieldChange,
   dropdownAlignToRef,
 }: BrandFormProps) {
+  const groups = groupFieldsForBrandForm(fields);
   return (
     <div className="brand-form">
-      {fields.map((field) => (
-        <ListSelect
-          key={field.code}
-          id={field.code}
-          label={field.name}
-          options={field.list}
-          value={values[field.code] ?? ""}
-          onChange={(value) => onFieldChange(field.code, value)}
-          placeholder={field.name}
-          style={isModelField(field) ? { gridColumn: "1 / -1" } : undefined}
-          dropdownAlignToRef={dropdownAlignToRef}
-          variant={isSizeField(field) || isModelField(field) ? "text" : "default"}
-          imageObjectFit={isColorSelectImageField(field) ? "cover" : "contain"}
-        />
-      ))}
+      {groups.map((group) =>
+        group.kind === "single" ? (
+          renderListSelect(group.field, values, onFieldChange, dropdownAlignToRef)
+        ) : (
+          <div
+            key={group.fields.map((f) => f.code).join("-")}
+            className="brand-form__edge-perf-row"
+          >
+            {group.fields.map((field) =>
+              renderListSelect(field, values, onFieldChange, dropdownAlignToRef),
+            )}
+          </div>
+        ),
+      )}
     </div>
   );
 }

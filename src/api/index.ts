@@ -136,3 +136,55 @@ export const getExcelDownloadUrl = (
 
   return `${baseUrl}/v2/constr/calc/excel/${brandCode}?${searchParams.toString()}`;
 };
+
+export interface SubmitKpFormBody {
+  brandCode: string;
+  name: string;
+  phone: string;
+  email: string;
+  note: string;
+}
+
+const KP_REQUEST_EMAIL = "123vik@mail.ru";
+
+/** Заявка на КП — отправка на почту через FormSubmit (без своего бэкенда). */
+export const submitKpForm = async (body: SubmitKpFormBody) => {
+  const url = `https://formsubmit.co/ajax/${encodeURIComponent(KP_REQUEST_EMAIL)}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      _subject: `Заявка на КП${body.brandCode ? ` — ${body.brandCode}` : ""}`,
+      _captcha: false,
+      Имя: body.name,
+      Телефон: body.phone,
+      Email: body.email,
+      Примечание: body.note || "—",
+      "Код бренда": body.brandCode || "—",
+    }),
+  });
+  const data: unknown = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error(
+      typeof data === "object" && data && "message" in data && typeof (data as { message: unknown }).message === "string"
+        ? (data as { message: string }).message
+        : `Ошибка отправки (${res.status})`,
+    );
+  }
+  if (
+    data &&
+    typeof data === "object" &&
+    "success" in data &&
+    (data as { success: unknown }).success !== true &&
+    String((data as { success: unknown }).success) !== "true"
+  ) {
+    const msg =
+      "message" in data && typeof (data as { message: unknown }).message === "string"
+        ? (data as { message: string }).message
+        : "Заявка не принята";
+    throw new Error(msg);
+  }
+};

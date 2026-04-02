@@ -18,15 +18,18 @@ interface ListSelectProps {
   onChange: (value: string) => void;
   placeholder?: string;
   style?: React.CSSProperties;
-  /** При ширине экрана > 768px выпадающий список выравнивается по этому контейнеру (на всю ширину) и в 2 колонки */
+  /** Выпадающий список выравнивается по этому контейнеру на всю его ширину (ширина блока формы и т.п.) */
   dropdownAlignToRef?: React.RefObject<HTMLElement | null>;
   /** Вариант "text" — выпадающий список только с текстом, без картинок и сетки (для размеров и т.п.) */
   variant?: "default" | "text";
   /** Как вписывать изображения в карточки опций (по умолчанию contain) */
   imageObjectFit?: "contain" | "cover";
+  /** Дополнительно показать крупное превью выбранного варианта под полем (кромки, перфорация и т.п.). */
+  selectedImageBelow?: boolean;
 }
 
-const DROPDOWN_FULLWIDTH_BREAKPOINT = 1;
+/** На узком экране сетка опций с картинками — одна колонка, если нет изображений в списке */
+const DROPDOWN_TWO_COLUMN_MIN_WIDTH = 768;
 
 export default function ListSelect({
   id,
@@ -39,10 +42,12 @@ export default function ListSelect({
   dropdownAlignToRef,
   variant = "default",
   imageObjectFit = "contain",
+  selectedImageBelow = false,
 }: ListSelectProps) {
   const [open, setOpen] = useState(false);
   const [, forceUpdate] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const triggerWrapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -66,23 +71,31 @@ export default function ListSelect({
   }, [open]);
 
   const isTextVariant = variant === "text";
-  const hasImages = !isTextVariant && options.some((o) => getOptionImageUrl(o) !== null);
+  const compactDropdown = isTextVariant;
+  const hasImages =
+    !compactDropdown && options.some((o) => getOptionImageUrl(o) !== null);
+  const selectedOption = options.find((o) => o.code === value);
+  const selectedPreviewUrl =
+    selectedImageBelow && value && selectedOption
+      ? getOptionImageUrl(selectedOption)
+      : null;
   const selectedLabel =
     options.find((o) => o.code === value)?.name ?? (placeholder ?? label);
 
   function renderDropdown() {
-    const wideViewport = window.innerWidth > DROPDOWN_FULLWIDTH_BREAKPOINT;
-    const twoColumns = !isTextVariant && (wideViewport || hasImages);
-    const useFullWidth = wideViewport && dropdownAlignToRef?.current && containerRef.current;
+    const wideViewport = window.innerWidth > DROPDOWN_TWO_COLUMN_MIN_WIDTH;
+    const twoColumns = !compactDropdown && (wideViewport || hasImages);
+    const alignEl = dropdownAlignToRef?.current;
+    const triggerEl = triggerWrapRef.current;
+    const useFullWidth = Boolean(alignEl && triggerEl);
 
-    const formRect = useFullWidth ? dropdownAlignToRef.current!.getBoundingClientRect() : null;
-    const triggerRect = useFullWidth ? containerRef.current!.getBoundingClientRect() : null;
+    const formRect = useFullWidth && alignEl ? alignEl.getBoundingClientRect() : null;
+    const triggerRect = useFullWidth && triggerEl ? triggerEl.getBoundingClientRect() : null;
 
     const dropdownStyle: React.CSSProperties | undefined =
       useFullWidth && formRect && triggerRect
         ? ({
-            "--list-select-left": `${formRect.left}px`,
-            "--list-select-top": `${triggerRect.bottom + 4}px`,
+            "--list-select-left": `${formRect.left - triggerRect.left}px`,
             "--list-select-width": `${formRect.width}px`,
             "--list-select-max-height": "min(70vh, 600px)",
           } as React.CSSProperties)
@@ -91,7 +104,7 @@ export default function ListSelect({
     const dropdownClass = [
       styles.dropdown,
       useFullWidth && styles.dropdownFullWidth,
-      isTextVariant && styles.dropdownText,
+      compactDropdown && styles.dropdownText,
       twoColumns && styles.dropdownGrid,
     ]
       .filter(Boolean)
@@ -100,13 +113,13 @@ export default function ListSelect({
     return (
       <div className={dropdownClass} style={dropdownStyle}>
         {options.map((option) => {
-          const imgUrl = isTextVariant ? null : getOptionImageUrl(option);
+          const imgUrl = compactDropdown ? null : getOptionImageUrl(option);
           const optionImgClass =
             imageObjectFit === "cover"
               ? `${styles.optionImg} ${styles.optionImgCover}`
               : styles.optionImg;
           const optionClass = [
-            isTextVariant ? styles.optionText : styles.option,
+            compactDropdown ? styles.optionText : styles.option,
             twoColumns && styles.optionGrid,
           ]
             .filter(Boolean)
@@ -123,7 +136,7 @@ export default function ListSelect({
               }}
             >
               {imgUrl && <img src={imgUrl} alt={option.name} className={optionImgClass} />}
-              <span className={isTextVariant ? styles.optionTextLabel : styles.optionLabel}>
+              <span className={compactDropdown ? styles.optionTextLabel : styles.optionLabel}>
                 {option.name}
               </span>
             </button>
@@ -135,15 +148,25 @@ export default function ListSelect({
 
   return (
     <div ref={containerRef} className={styles.container} style={style}>
-      <button
-        id={id}
-        type="button"
-        className={`${styles.trigger} ${open ? styles.triggerOpen : ""}`}
-        onClick={() => setOpen((prev) => !prev)}
-      >
-        {selectedLabel}
-      </button>
-      {open && options.length > 0 && renderDropdown()}
+      <div ref={triggerWrapRef} className={styles.triggerWrap}>
+        <button
+          id={id}
+          type="button"
+          className={`${styles.trigger} ${open ? styles.triggerOpen : ""}`}
+          onClick={() => setOpen((prev) => !prev)}
+        >
+          {selectedLabel}
+        </button>
+        {open && options.length > 0 && renderDropdown()}
+      </div>
+      {selectedPreviewUrl && selectedOption && (
+        <img
+          src={selectedPreviewUrl}
+          alt={selectedOption.name}
+          className={styles.selectedPreview}
+          loading="lazy"
+        />
+      )}
     </div>
   );
 }

@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { SurfaceType } from "../api";
-import styles from "./list-select.module.css";
 
 type InputMode = "area" | "dimensions";
 
@@ -16,8 +15,10 @@ interface CalcFormProps {
   surfaces: SurfaceType[];
   values: CalcFormResult | null;
   onCalculate: (result: CalcFormResult) => void;
-  /** Стили только для текста в select выбора стена/потолок (например fontSize, color, fontFamily) */
+  /** Доп. стили обёртки переключателя поверхности (наследуются там, где уместно) */
   surfaceSelectTextStyle?: React.CSSProperties;
+  /** Текст между блоками выбора поверхности и способа ввода площади (не показывается, если пусто) */
+  betweenRadiogroupsText?: string;
 }
 
 export default function CalcForm({
@@ -25,6 +26,7 @@ export default function CalcForm({
   values,
   onCalculate,
   surfaceSelectTextStyle,
+  betweenRadiogroupsText,
 }: CalcFormProps) {
   const [surface, setSurface] = useState(
     values?.surface ?? surfaces[0]?.Code ?? "",
@@ -37,25 +39,6 @@ export default function CalcForm({
   const [height, setHeight] = useState(
     values?.height ? String(values.height) : "",
   );
-
-  const [surfaceOpen, setSurfaceOpen] = useState(false);
-  const surfaceContainerRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!surfaceOpen) return;
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        surfaceContainerRef.current &&
-        !surfaceContainerRef.current.contains(e.target as Node)
-      ) {
-        setSurfaceOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [surfaceOpen]);
 
   const isFormFilled =
     mode === "area"
@@ -87,73 +70,94 @@ export default function CalcForm({
       }}
       style={{
         display: "grid",
-        gridTemplateColumns: "1fr 0.46fr 0.5fr",
+        gridTemplateColumns: "1fr 1fr",
         gap: "8px 8px",
         alignItems: "start",
         marginTop: "16px",
       }}
     >
       <div
-        ref={surfaceContainerRef}
-        style={{ position: "relative", width: "100%" }}
+        style={{ gridColumn: "1 / -1", width: "100%", ...surfaceSelectTextStyle }}
       >
-        <button
+        <div
           id="surface"
-          type="button"
-          className={`${styles.trigger} ${surfaceOpen ? styles.triggerOpen : ""} calc-form__surface-select`}
-          onClick={() => setSurfaceOpen((prev) => !prev)}
-          style={{ width: "100%", ...surfaceSelectTextStyle }}
+          className="calc-form__mode-radiogroup"
+          role="radiogroup"
+          aria-label="Тип поверхности"
         >
-          {surfaces.find((s) => s.Code === surface)?.Name ??
-            surfaces[0]?.Name ??
-            ""}
-        </button>
-        {surfaceOpen && surfaces.length > 0 && (
-          <div className={`${styles.dropdown} ${styles.dropdownText}`}>
-            {surfaces.map((s) => (
-              <button
-                key={s.Code}
-                type="button"
-                className={styles.optionText}
-                onClick={() => {
-                  setSurface(s.Code);
-                  setSurfaceOpen(false);
-                }}
-              >
-                <span className={styles.optionTextLabel}>{s.Name}</span>
-              </button>
-            ))}
-          </div>
-        )}
+          {surfaces.map((s) => (
+            <label
+              key={s.Code}
+              className={`calc-form__mode-radio${surface === s.Code ? " calc-form__mode-radio--active" : ""}`}
+            >
+              <input
+                type="radio"
+                name="calc-surface"
+                value={s.Code}
+                className="calc-form__mode-radio-input"
+                checked={surface === s.Code}
+                onChange={() => setSurface(s.Code)}
+              />
+              {s.Name}
+            </label>
+          ))}
+        </div>
       </div>
 
-      <div>
-        <button
-          type="button"
-          onClick={() => setMode("area")}
-          style={{
-            color: mode === "area" ? "white" : "var(--color-index)",
-            background: mode === "area" ? "var(--color-index)" : "white",
-          }}
+      {betweenRadiogroupsText?.trim() ? (
+        <div
+          className="calc-form__between-radiogroups"
+          style={{ gridColumn: "1 / -1", width: "100%" }}
         >
-          Площадь
-        </button>
-      </div>
-      <div>
-        <button
-          type="button"
-          onClick={() => setMode("dimensions")}
-          style={{
-            color: mode === "area" ? "var(--color-index)" : "white",
-            background: mode === "area" ? "white" : "var(--color-index)"
-          }}
+          {betweenRadiogroupsText}
+        </div>
+      ) : null}
+
+      <div style={{ gridColumn: "1 / -1", width: "100%" }}>
+        <div
+          className="calc-form__mode-radiogroup"
+          role="radiogroup"
+          aria-label="Способ ввода площади"
         >
-          Размеры
-        </button>
+          <label
+            className={`calc-form__mode-radio${mode === "area" ? " calc-form__mode-radio--active" : ""}`}
+          >
+            <input
+              type="radio"
+              name="calc-input-mode"
+              value="area"
+              className="calc-form__mode-radio-input"
+              checked={mode === "area"}
+              onChange={() => setMode("area")}
+            />
+            Площадь
+          </label>
+          <label
+            className={`calc-form__mode-radio${mode === "dimensions" ? " calc-form__mode-radio--active" : ""}`}
+          >
+            <input
+              type="radio"
+              name="calc-input-mode"
+              value="dimensions"
+              className="calc-form__mode-radio-input"
+              checked={mode === "dimensions"}
+              onChange={() => setMode("dimensions")}
+            />
+            Размеры
+          </label>
+        </div>
       </div>
 
       {mode === "area" ? (
-        <div style={{ gridColumn: "span 2" }}>
+        <div
+          style={{
+            gridColumn: "1 / -1",
+            display: "grid",
+            gridTemplateColumns: "2fr 1fr",
+            gap: "8px",
+            alignItems: "start",
+          }}
+        >
           <input
             id="area"
             type="number"
@@ -163,10 +167,29 @@ export default function CalcForm({
             onChange={(e) => setArea(e.target.value)}
             placeholder="площадь, м2"
           />
+          <button
+            type="submit"
+            disabled={!isFormFilled}
+            style={{
+              color: isFormFilled ? "white" : "var(--color-muted, #999)",
+              background: isFormFilled ? "var(--color-index)" : "var(--color-muted-bg, #eee)",
+              cursor: isFormFilled ? "pointer" : "not-allowed",
+            }}
+          >
+            Расчёт
+          </button>
         </div>
       ) : (
         <>
-          <div>
+          <div
+            style={{
+              gridColumn: "1 / -1",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "8px",
+              alignItems: "start",
+            }}
+          >
             <input
               id="width"
               type="number"
@@ -176,8 +199,6 @@ export default function CalcForm({
               onChange={(e) => setLength(e.target.value)}
               placeholder="ширина, мм"
             />
-          </div>
-          <div style={{ gridColumn: "span 2" }}>
             <input
               id="height"
               type="number"
@@ -188,21 +209,32 @@ export default function CalcForm({
               placeholder="высота, мм"
             />
           </div>
+          <div
+            style={{
+              gridColumn: "1 / -1",
+              display: "grid",
+              gridTemplateColumns: "2fr 1fr",
+              gap: "8px",
+              alignItems: "start",
+            }}
+          >
+            <div style={{ minHeight: 0 }} aria-hidden />
+            <button
+              type="submit"
+              disabled={!isFormFilled}
+              style={{
+                color: isFormFilled ? "white" : "var(--color-muted, #999)",
+                background: isFormFilled
+                  ? "var(--color-index)"
+                  : "var(--color-muted-bg, #eee)",
+                cursor: isFormFilled ? "pointer" : "not-allowed",
+              }}
+            >
+              Расчёт
+            </button>
+          </div>
         </>
       )}
-      <div>
-        <button
-          type="submit"
-          disabled={!isFormFilled}
-          style={{
-            color: isFormFilled ? "white" : "var(--color-muted, #999)",
-            background: isFormFilled ? "var(--color-index)" : "var(--color-muted-bg, #eee)",
-            cursor: isFormFilled ? "pointer" : "not-allowed",
-          }}
-        >
-          Расчёт
-        </button>
-      </div>
     </form>
   );
 }
