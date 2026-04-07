@@ -28,13 +28,19 @@ export default function Home() {
     window.localStorage.setItem("theme", theme);
   }, [theme]);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<AcousticCategory[]>({
     queryKey: ["acousticCategories"],
     queryFn: () => getAcousticCategories().then((res) => res.data.data),
   });
 
   if (isLoading) return <p>Загрузка...</p>;
-  if (error) return <p>Ошибка: {(error as Error).message}</p>;
+  if (error)
+    return (
+      <p>
+        Ошибка:{" "}
+        {error instanceof Error ? error.message : String(error)}
+      </p>
+    );
 
   return (
     <div>
@@ -51,7 +57,7 @@ export default function Home() {
         </button>
       </div>
       <ul>
-        {data?.map((cat: AcousticCategory) => (
+        {data?.map((cat) => (
           <li key={cat.ShortName}>
             <Link to="/$brandCode" params={{ brandCode: cat.ShortName }}>
               <strong>{cat.Name}</strong> ({cat.ShortName})

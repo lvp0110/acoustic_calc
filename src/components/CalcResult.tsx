@@ -1,5 +1,12 @@
 import { submitKpForm, type CalcResultData } from "../api";
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import ReactMarkdown from "react-markdown";
 import "./CalcResult.css";
 
@@ -16,7 +23,10 @@ export default function CalcResult({
   excelUrl,
   brandCode = "",
 }: CalcResultProps) {
-  const columns = data.columns.filter((col) => col.id !== "code");
+  const columns = useMemo(
+    () => data.columns.filter((col) => col.id !== "code"),
+    [data.columns],
+  );
   const [openRowId, setOpenRowId] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const kpDialogRef = useRef<HTMLDialogElement | null>(null);
@@ -55,6 +65,8 @@ export default function CalcResult({
   }, [kpModalOpen]);
 
   useEffect(() => {
+    if (openRowId === null) return;
+
     function onPointerDown(e: PointerEvent) {
       if (!rootRef.current) return;
       if (e.target instanceof Node && rootRef.current.contains(e.target))
@@ -72,7 +84,7 @@ export default function CalcResult({
       document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, []);
+  }, [openRowId]);
 
   useEffect(() => {
     const el = kpDialogRef.current;

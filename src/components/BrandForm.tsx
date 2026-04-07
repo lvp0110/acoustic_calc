@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, type RefObject } from "react";
 import type { BrandParam } from "../api";
 import ListSelect from "./ListSelect";
 
@@ -6,7 +6,7 @@ interface BrandFormProps {
   fields: BrandParam[];
   values: Record<string, string | undefined>;
   onFieldChange: (code: string, value: string) => void;
-  dropdownAlignToRef?: React.RefObject<HTMLElement | null>;
+  dropdownAlignToRef?: RefObject<HTMLElement | null>;
 }
 
 const isModelField = (field: BrandParam) =>

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import {
@@ -173,18 +173,15 @@ export default function Brand() {
       })
     : null;
 
-  const findSelectedOption = (code: string, nameSubstr: string) => {
+  const { selectedColorOption, colorImageUrl } = useMemo(() => {
     const field = data?.find(
-      (f) => f.code === code || f.name.toLowerCase().includes(nameSubstr),
+      (f) => f.code === "color" || f.name.toLowerCase().includes("цвет"),
     );
     const selectedCode = field ? search[field.code] : undefined;
     const option = field?.list.find((o) => o.code === selectedCode);
     const imageUrl = option ? getOptionImageUrl(option) : null;
-    return { option, imageUrl };
-  };
-
-  const { option: selectedColorOption, imageUrl: colorImageUrl } =
-    findSelectedOption("color", "цвет");
+    return { selectedColorOption: option, colorImageUrl: imageUrl };
+  }, [data, search]);
 
   useLayoutEffect(() => {
     if (!colorImageUrl) {
@@ -198,15 +195,18 @@ export default function Brand() {
     }
   }, [colorImageUrl]);
 
-  const modelField = data?.find(
-    (f) => f.code === "model" || f.name.toLowerCase().includes("модел"),
-  );
-  const selectedModelCode = modelField ? search[modelField.code] : undefined;
-  const selectedModelOption = selectedModelCode
-    ? modelField?.list.find((o) => o.code === selectedModelCode)
-    : undefined;
-  const descriptionToShow =
-    selectedModelOption?.description?.trim() || brandCategory?.Description;
+  const { selectedModelOption, descriptionToShow } = useMemo(() => {
+    const modelField = data?.find(
+      (f) => f.code === "model" || f.name.toLowerCase().includes("модел"),
+    );
+    const selectedModelCode = modelField ? search[modelField.code] : undefined;
+    const selectedModelOption = selectedModelCode
+      ? modelField?.list.find((o) => o.code === selectedModelCode)
+      : undefined;
+    const descriptionToShow =
+      selectedModelOption?.description?.trim() || brandCategory?.Description;
+    return { selectedModelOption, descriptionToShow };
+  }, [data, search, brandCategory?.Description]);
 
   return (
     <div className="main-unit">
@@ -273,12 +273,16 @@ export default function Brand() {
                 brandCode={brandCode}
                 data={calcResult}
                 onSelectChange={onArticulChange}
-                excelUrl={getExcelDownloadUrl(brandCode, {
-                  ...search,
-                  articuls: calcResult.rows.flatMap((row) =>
-                    row.items.map((item) => item.code),
-                  ),
-                })}
+                excelUrl={
+                  calcQueryParams
+                    ? getExcelDownloadUrl(brandCode, {
+                        ...calcQueryParams,
+                        articuls: calcResult.rows.flatMap((row) =>
+                          row.items.map((item) => item.code),
+                        ),
+                      })
+                    : undefined
+                }
               />
             )}
           </div>

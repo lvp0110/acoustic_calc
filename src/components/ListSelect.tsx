@@ -1,4 +1,12 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type RefObject,
+} from "react";
 import { getOptionImageUrl } from "../api/get-base-url";
 import styles from "./list-select.module.css";
 
@@ -17,9 +25,9 @@ interface ListSelectProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
   /** Выпадающий список выравнивается по этому контейнеру на всю его ширину (ширина блока формы и т.п.) */
-  dropdownAlignToRef?: React.RefObject<HTMLElement | null>;
+  dropdownAlignToRef?: RefObject<HTMLElement | null>;
   /** Вариант "text" — выпадающий список только с текстом, без картинок и сетки (для размеров и т.п.) */
   variant?: "default" | "text";
   /** Как вписывать изображения в карточки опций (по умолчанию contain) */
@@ -41,6 +49,20 @@ function readSelectedPreviewMaxPx(wrap: HTMLElement): number {
   return Number.isFinite(n) && n > 0 ? n : 220;
 }
 
+/** Единая формула высоты превью (useLayoutEffect + onLoad img). */
+function measureSelectedPreviewHeight(
+  wrap: HTMLElement | null,
+  img: HTMLImageElement | null,
+  report: ((height: number) => void) | undefined
+): void {
+  if (!report || !wrap || !img?.naturalWidth) return;
+  const pw = wrap.clientWidth;
+  if (!pw) return;
+  const cap = readSelectedPreviewMaxPx(wrap);
+  const rawH = (pw / img.naturalWidth) * img.naturalHeight;
+  report(Math.min(rawH, cap));
+}
+
 export default function ListSelect({
   id,
   label,
@@ -57,7 +79,7 @@ export default function ListSelect({
   onSelectedPreviewHeight,
 }: ListSelectProps) {
   const [open, setOpen] = useState(false);
-  const [, forceUpdate] = useState(0);
+  const [, bumpLayoutOnResize] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerWrapRef = useRef<HTMLDivElement | null>(null);
   const selectedPreviewWrapRef = useRef<HTMLDivElement | null>(null);
@@ -65,10 +87,17 @@ export default function ListSelect({
   const onSelectedPreviewHeightRef = useRef(onSelectedPreviewHeight);
   onSelectedPreviewHeightRef.current = onSelectedPreviewHeight;
 
+  const isTextVariant = variant === "text";
+  const compactDropdown = isTextVariant;
+  const hasImages = useMemo(
+    () => !compactDropdown && options.some((o) => getOptionImageUrl(o) !== null),
+    [compactDropdown, options]
+  );
+
   useEffect(() => {
     if (!open) return;
 
-    const handleResize = () => forceUpdate((n) => n + 1);
+    const handleResize = () => bumpLayoutOnResize((n) => n + 1);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [open]);
@@ -85,11 +114,6 @@ export default function ListSelect({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
-
-  const isTextVariant = variant === "text";
-  const compactDropdown = isTextVariant;
-  const hasImages =
-    !compactDropdown && options.some((o) => getOptionImageUrl(o) !== null);
   const hasSelection = Boolean(value?.trim());
   const selectedOption = hasSelection
     ? options.find((o) => o.code === value)
@@ -118,17 +142,12 @@ export default function ListSelect({
     const wrap = selectedPreviewWrapRef.current;
     if (!wrap) return;
 
-    const measure = () => {
-      const w = selectedPreviewWrapRef.current;
-      const img = selectedPreviewImgRef.current;
-      const report = onSelectedPreviewHeightRef.current;
-      if (!report || !w || !img || !img.naturalWidth) return;
-      const pw = w.clientWidth;
-      if (!pw) return;
-      const cap = readSelectedPreviewMaxPx(w);
-      const rawH = (pw / img.naturalWidth) * img.naturalHeight;
-      report(Math.min(rawH, cap));
-    };
+    const measure = () =>
+      measureSelectedPreviewHeight(
+        selectedPreviewWrapRef.current,
+        selectedPreviewImgRef.current,
+        onSelectedPreviewHeightRef.current
+      );
 
     measure();
     const ro = new ResizeObserver(() => measure());
@@ -150,13 +169,13 @@ export default function ListSelect({
     const formRect = useFullWidth && alignEl ? alignEl.getBoundingClientRect() : null;
     const triggerRect = useFullWidth && triggerEl ? triggerEl.getBoundingClientRect() : null;
 
-    const dropdownStyle: React.CSSProperties | undefined =
+    const dropdownStyle: CSSProperties | undefined =
       useFullWidth && formRect && triggerRect
         ? ({
             "--list-select-left": `${formRect.left - triggerRect.left}px`,
             "--list-select-width": `${formRect.width}px`,
             "--list-select-max-height": "min(70vh, 600px)",
-          } as React.CSSProperties)
+          } as CSSProperties)
         : undefined;
 
     const dropdownClass = [
@@ -233,18 +252,13 @@ export default function ListSelect({
             alt={selectedOption.name}
             className={styles.selectedPreview}
             loading="lazy"
-            onLoad={() => {
-              const report = onSelectedPreviewHeightRef.current;
-              if (!report) return;
-              const w = selectedPreviewWrapRef.current;
-              const img = selectedPreviewImgRef.current;
-              if (!w || !img?.naturalWidth) return;
-              const pw = w.clientWidth;
-              if (!pw) return;
-              const cap = readSelectedPreviewMaxPx(w);
-              const rawH = (pw / img.naturalWidth) * img.naturalHeight;
-              report(Math.min(rawH, cap));
-            }}
+            onLoad={() =>
+              measureSelectedPreviewHeight(
+                selectedPreviewWrapRef.current,
+                selectedPreviewImgRef.current,
+                onSelectedPreviewHeightRef.current
+              )
+            }
           />
         </div>
       )}

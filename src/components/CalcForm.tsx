@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type RefObject } from "react";
 import type { SurfaceType } from "../api";
 import ListSelect from "./ListSelect";
 
@@ -87,11 +87,11 @@ interface CalcFormProps {
   /** Сброс выборов: на странице бренда очищаются все списки и параметры расчёта в URL */
   onReset?: () => void;
   /** Доп. стили обёртки переключателя поверхности (наследуются там, где уместно) */
-  surfaceSelectTextStyle?: React.CSSProperties;
+  surfaceSelectTextStyle?: CSSProperties;
   /** Текст между блоками выбора поверхности и способа ввода площади (не показывается, если пусто) */
   betweenRadiogroupsText?: string;
   /** Выравнивание выпадающего списка по ширине колонки формы (как у списков бренда) */
-  dropdownAlignToRef?: React.RefObject<HTMLElement | null>;
+  dropdownAlignToRef?: RefObject<HTMLElement | null>;
 }
 
 export default function CalcForm({
@@ -138,14 +138,26 @@ export default function CalcForm({
     [surfaces],
   );
 
-  const isFormFilled =
-    !!surface &&
-    mode === "area"
-      ? area.trim() !== "" && Number(area) > 0
-      : length.trim() !== "" &&
+  const isFormFilled = useMemo(() => {
+    if (!surface) return false;
+    if (mode === "area") {
+      return area.trim() !== "" && Number(area) > 0;
+    }
+    return (
+      length.trim() !== "" &&
       height.trim() !== "" &&
       Number(length) > 0 &&
-      Number(height) > 0;
+      Number(height) > 0
+    );
+  }, [surface, mode, area, length, height]);
+
+  const submitBtnStyle: CSSProperties = {
+    color: isFormFilled ? "white" : "var(--color-muted, #999)",
+    background: isFormFilled
+      ? "var(--color-index)"
+      : "var(--color-muted-bg, #eee)",
+    cursor: isFormFilled ? "pointer" : "not-allowed",
+  };
 
   const handleSubmit = () => {
     if (!surface || !isFormFilled) return;
@@ -283,13 +295,7 @@ export default function CalcForm({
                   type="submit"
                   className="calc-form__btn-submit"
                   disabled={!isFormFilled}
-                  style={{
-                    color: isFormFilled ? "white" : "var(--color-muted, #999)",
-                    background: isFormFilled
-                      ? "var(--color-index)"
-                      : "var(--color-muted-bg, #eee)",
-                    cursor: isFormFilled ? "pointer" : "not-allowed",
-                  }}
+                  style={submitBtnStyle}
                 >
                   Применить
                 </button>
@@ -340,13 +346,7 @@ export default function CalcForm({
                   type="submit"
                   className="calc-form__btn-submit"
                   disabled={!isFormFilled}
-                  style={{
-                    color: isFormFilled ? "white" : "var(--color-muted, #999)",
-                    background: isFormFilled
-                      ? "var(--color-index)"
-                      : "var(--color-muted-bg, #eee)",
-                    cursor: isFormFilled ? "pointer" : "not-allowed",
-                  }}
+                  style={submitBtnStyle}
                 >
                   Применить
                 </button>

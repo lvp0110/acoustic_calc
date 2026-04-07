@@ -118,23 +118,15 @@ export const getBrandParams = (
   });
 };
 
+/** Тот же формат query, что у `getCalcResult` / axios (важно для массивов вроде `articuls`). */
 export const getExcelDownloadUrl = (
   brandCode: string,
   params: Record<string, string | string[] | undefined>,
 ): string => {
-  const baseUrl = getBaseUrl();
-  const searchParams = new URLSearchParams();
-
-  Object.entries(params).forEach(([key, value]) => {
-    if (value === undefined) return;
-    if (Array.isArray(value)) {
-      value.forEach((v) => searchParams.append(key, v));
-    } else {
-      searchParams.set(key, value);
-    }
+  return baseInstance.getUri({
+    url: `/v2/constr/calc/excel/${brandCode}`,
+    params,
   });
-
-  return `${baseUrl}/v2/constr/calc/excel/${brandCode}?${searchParams.toString()}`;
 };
 
 export interface SubmitKpFormBody {
@@ -147,6 +139,18 @@ export interface SubmitKpFormBody {
 }
 
 const KP_REQUEST_EMAIL = "123vik@mail.ru";
+
+function messageFromUnknownJson(data: unknown): string | undefined {
+  if (
+    data &&
+    typeof data === "object" &&
+    "message" in data &&
+    typeof (data as { message: unknown }).message === "string"
+  ) {
+    return (data as { message: string }).message;
+  }
+  return undefined;
+}
 
 /** Заявка на КП — отправка на почту через FormSubmit (без своего бэкенда). */
 export const submitKpForm = async (body: SubmitKpFormBody) => {
@@ -171,9 +175,7 @@ export const submitKpForm = async (body: SubmitKpFormBody) => {
   const data: unknown = await res.json().catch(() => null);
   if (!res.ok) {
     throw new Error(
-      typeof data === "object" && data && "message" in data && typeof (data as { message: unknown }).message === "string"
-        ? (data as { message: string }).message
-        : `Ошибка отправки (${res.status})`,
+      messageFromUnknownJson(data) ?? `Ошибка отправки (${res.status})`,
     );
   }
   if (
@@ -183,10 +185,6 @@ export const submitKpForm = async (body: SubmitKpFormBody) => {
     (data as { success: unknown }).success !== true &&
     String((data as { success: unknown }).success) !== "true"
   ) {
-    const msg =
-      "message" in data && typeof (data as { message: unknown }).message === "string"
-        ? (data as { message: string }).message
-        : "Заявка не принята";
-    throw new Error(msg);
+    throw new Error(messageFromUnknownJson(data) ?? "Заявка не принята");
   }
 };
