@@ -90,13 +90,17 @@ export default function ListSelect({
   const compactDropdown = isTextVariant;
   const hasImages =
     !compactDropdown && options.some((o) => getOptionImageUrl(o) !== null);
-  const selectedOption = options.find((o) => o.code === value);
+  const hasSelection = Boolean(value?.trim());
+  const selectedOption = hasSelection
+    ? options.find((o) => o.code === value)
+    : undefined;
   const selectedPreviewUrl =
-    selectedImageBelow && value && selectedOption
+    selectedImageBelow && hasSelection && selectedOption
       ? getOptionImageUrl(selectedOption)
       : null;
-  const selectedLabel =
-    options.find((o) => o.code === value)?.name ?? (placeholder ?? label);
+  const selectedLabel = hasSelection
+    ? selectedOption?.name ?? (placeholder ?? label)
+    : (placeholder ?? label);
 
   useEffect(() => {
     if (!selectedImageBelow) return;

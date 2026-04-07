@@ -140,6 +140,7 @@ export const getExcelDownloadUrl = (
 export interface SubmitKpFormBody {
   brandCode: string;
   name: string;
+  city: string;
   phone: string;
   email: string;
   note: string;
@@ -160,6 +161,7 @@ export const submitKpForm = async (body: SubmitKpFormBody) => {
       _subject: `Заявка на КП${body.brandCode ? ` — ${body.brandCode}` : ""}`,
       _captcha: false,
       Имя: body.name,
+      Город: body.city || "—",
       Телефон: body.phone,
       Email: body.email,
       Примечание: body.note || "—",

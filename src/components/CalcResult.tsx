@@ -22,27 +22,34 @@ export default function CalcResult({
   const kpDialogRef = useRef<HTMLDialogElement | null>(null);
   const instanceId = useId();
   const kpFormId = useId();
+  const kpDialogTitleId = useId();
+  const kpDialogSuccessTitleId = useId();
+  const kpDialogErrorTitleId = useId();
   const [kpModalOpen, setKpModalOpen] = useState(false);
   const [kpName, setKpName] = useState("");
+  const [kpCity, setKpCity] = useState("");
   const [kpPhone, setKpPhone] = useState("");
   const [kpEmail, setKpEmail] = useState("");
-  const [kpNote, setKpNote] = useState("");
+  const [kpConsent, setKpConsent] = useState(false);
   const [kpSubmitting, setKpSubmitting] = useState(false);
   const [kpSubmitError, setKpSubmitError] = useState<string | null>(null);
   const [kpSubmitOk, setKpSubmitOk] = useState(false);
 
   const kpCanSubmit =
     kpName.trim() !== "" &&
+    kpCity.trim() !== "" &&
     kpPhone.trim() !== "" &&
     kpEmail.trim() !== "" &&
+    kpConsent &&
     !kpSubmitting;
 
   useEffect(() => {
     if (kpModalOpen) return;
     setKpName("");
+    setKpCity("");
     setKpPhone("");
     setKpEmail("");
-    setKpNote("");
+    setKpConsent(false);
     setKpSubmitError(null);
     setKpSubmitOk(false);
   }, [kpModalOpen]);
@@ -96,15 +103,17 @@ export default function CalcResult({
       await submitKpForm({
         brandCode,
         name: kpName.trim(),
+        city: kpCity.trim(),
         phone: kpPhone.trim(),
         email: kpEmail.trim(),
-        note: kpNote.trim(),
+        note: "",
       });
       setKpSubmitOk(true);
       setKpName("");
+      setKpCity("");
       setKpPhone("");
       setKpEmail("");
-      setKpNote("");
+      setKpConsent(false);
     } catch {
       setKpSubmitError("Не удалось отправить заявку. Попробуйте позже.");
     } finally {
@@ -113,45 +122,40 @@ export default function CalcResult({
   }
 
   return (
-    <div ref={rootRef}>
-      <div className="result-table-wrap">
-        {excelUrl && (
-          <div className="result-export-actions">
-            <div className="result-export-excel-kp">
-              <a
-                className="result-export-btn"
-                href={excelUrl}
-                download
-                aria-label="Скачать расчёт в Excel"
-              >
-                <img
-                  className="result-export-btn__icon"
-                  src="/Excel_icon.png"
-                  alt=""
-                  width={28}
-                  height={28}
-                />
-                <span className="result-export-btn__label">Скачать Excel</span>
-              </a>
-              <button
-                type="button"
-                className="result-export-btn"
-                aria-label="Коммерческое предложение"
-                onClick={() => setKpModalOpen(true)}
-              >
-                <img
-                  className="result-export-btn__icon"
-                  src="/logo_kp.png"
-                  alt=""
-                  width={28}
-                  height={28}
-                />
-                <span className="result-export-btn__label">Запрос КП</span>
-              </button>
-            </div>
+    <div ref={rootRef} className="calc-result">
+      {excelUrl ? (
+        <div className="result-export-actions">
+          <div className="result-export-excel-kp">
+            <button
+              type="button"
+              className="result-export-btn result-export-btn--primary"
+              aria-label="Запросить коммерческое предложение"
+              onClick={() => setKpModalOpen(true)}
+            >
+              Запросить коммерческое предложение
+            </button>
+            <a
+              className="result-export-btn result-export-btn--secondary"
+              href={excelUrl}
+              download
+              aria-label="Выгрузить таблицу в Excel"
+            >
+              <span className="result-export-btn__label">
+                Выгрузить таблицу
+              </span>
+              <img
+                className="result-export-btn__icon"
+                src="/Excel_icon.png"
+                alt=""
+                width={20}
+                height={20}
+              />
+            </a>
           </div>
-        )}
+        </div>
+      ) : null}
 
+      <div className="result-table-wrap">
         <table className="result-table">
           <thead>
             <tr>
@@ -258,100 +262,228 @@ export default function CalcResult({
       <dialog
         ref={kpDialogRef}
         className="kp-dialog"
-        aria-labelledby="kp-dialog-title"
+        aria-labelledby={
+          kpSubmitOk
+            ? kpDialogSuccessTitleId
+            : kpSubmitError
+              ? kpDialogErrorTitleId
+              : kpDialogTitleId
+        }
       >
         <div className="kp-dialog-inner">
-          <header className="kp-dialog-header">
-            <h2 id="kp-dialog-title" className="kp-dialog-title">
-              Запрос на Коммерческое предложение
-            </h2>
-            <button
-              type="button"
-              className="kp-dialog-close"
-              onClick={() => setKpModalOpen(false)}
-              aria-label="Закрыть"
+          {kpSubmitOk ? (
+            <div
+              className="kp-dialog-success"
+              role="status"
+              aria-live="polite"
             >
-              ×
-            </button>
-          </header>
-          <form className="kp-form" onSubmit={handleKpFormSubmit}>
-            <div className="kp-form__field">
-              <label className="kp-form__label" htmlFor={`${kpFormId}-name`}>
-                Имя
-              </label>
-              <input
-                id={`${kpFormId}-name`}
-                className="kp-form__input"
-                name="name"
-                type="text"
-                autoComplete="name"
-                value={kpName}
-                onChange={(e) => setKpName(e.target.value)}
-                required
-              />
+              <button
+                type="button"
+                className="kp-dialog-close kp-dialog-close--success"
+                onClick={() => setKpModalOpen(false)}
+                aria-label="Закрыть"
+              >
+                ×
+              </button>
+              <div className="kp-dialog-success__body">
+                <div className="kp-dialog-success__icon" aria-hidden>
+                  <svg
+                    className="kp-dialog-success__svg"
+                    viewBox="0 0 80 80"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle
+                      cx="40"
+                      cy="40"
+                      r="30"
+                      stroke="#3498db"
+                      strokeWidth="1.75"
+                    />
+                    <path
+                      d="M26 41.5 L35.5 51 L54 29.5"
+                      stroke="#3498db"
+                      strokeWidth="2.25"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <h2
+                  id={kpDialogSuccessTitleId}
+                  className="kp-dialog-success__title"
+                >
+                  Ваш запрос отправлен!
+                </h2>
+                <p className="kp-dialog-success__text">
+                  Наши менеджеры свяжутся с вами в ближайшее время
+                </p>
+                <button
+                  type="button"
+                  className="kp-dialog-success__btn"
+                  onClick={() => setKpModalOpen(false)}
+                >
+                  Закрыть
+                </button>
+              </div>
             </div>
-            <div className="kp-form__field">
-              <label className="kp-form__label" htmlFor={`${kpFormId}-phone`}>
-                Телефон
-              </label>
-              <input
-                id={`${kpFormId}-phone`}
-                className="kp-form__input"
-                name="phone"
-                type="tel"
-                autoComplete="tel"
-                inputMode="tel"
-                value={kpPhone}
-                onChange={(e) => setKpPhone(e.target.value)}
-                required
-              />
+          ) : kpSubmitError ? (
+            <div className="kp-dialog-error" role="alert" aria-live="assertive">
+              <div className="kp-dialog-error__dash" aria-hidden />
+              <button
+                type="button"
+                className="kp-dialog-close kp-dialog-close--success"
+                onClick={() => setKpModalOpen(false)}
+                aria-label="Закрыть"
+              >
+                ×
+              </button>
+              <div className="kp-dialog-error__body">
+                <div className="kp-dialog-error__icon" aria-hidden>
+                  <svg
+                    className="kp-dialog-error__svg"
+                    viewBox="0 0 80 80"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle
+                      cx="40"
+                      cy="40"
+                      r="30"
+                      stroke="currentColor"
+                      strokeWidth="1.75"
+                      fill="none"
+                    />
+                    <circle cx="30" cy="33" r="3.25" fill="currentColor" />
+                    <circle cx="50" cy="33" r="3.25" fill="currentColor" />
+                    <path
+                      d="M28 52 Q40 62 52 52"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                  </svg>
+                </div>
+                <h2
+                  id={kpDialogErrorTitleId}
+                  className="kp-dialog-error__title"
+                >
+                  Что-то пошло не так...
+                </h2>
+                <p className="kp-dialog-error__text">
+                  Не удалось отправить запрос. Попробуйте снова или повторите
+                  попытку позже.
+                </p>
+                <button
+                  type="button"
+                  className="kp-dialog-error__btn"
+                  onClick={() => setKpSubmitError(null)}
+                >
+                  Отправить повторно
+                </button>
+              </div>
             </div>
-            <div className="kp-form__field">
-              <label className="kp-form__label" htmlFor={`${kpFormId}-email`}>
-                Эл. почта
-              </label>
-              <input
-                id={`${kpFormId}-email`}
-                className="kp-form__input"
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={kpEmail}
-                onChange={(e) => setKpEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="kp-form__field">
-              <label className="kp-form__label" htmlFor={`${kpFormId}-note`}>
-                Примечание
-              </label>
-              <textarea
-                id={`${kpFormId}-note`}
-                className="kp-form__textarea"
-                name="note"
-                rows={4}
-                value={kpNote}
-                onChange={(e) => setKpNote(e.target.value)}
-              />
-            </div>
-            {kpSubmitError ? (
-              <p className="kp-form__message kp-form__message--error" role="alert">
-                {kpSubmitError}
-              </p>
-            ) : null}
-            {kpSubmitOk ? (
-              <p className="kp-form__message kp-form__message--success" role="status">
-                Заявка отправлена. Мы свяжемся с вами.
-              </p>
-            ) : null}
-            <button
-              type="submit"
-              className="kp-form__submit"
-              disabled={!kpCanSubmit}
-            >
-              {kpSubmitting ? "Отправка…" : "Отправить"}
-            </button>
-          </form>
+          ) : (
+            <>
+              <header className="kp-dialog-header">
+                <h2 id={kpDialogTitleId} className="kp-dialog-title">
+                  Запрос коммерческого предложения
+                </h2>
+                <button
+                  type="button"
+                  className="kp-dialog-close"
+                  onClick={() => setKpModalOpen(false)}
+                  aria-label="Закрыть"
+                >
+                  ×
+                </button>
+              </header>
+              <form className="kp-form" onSubmit={handleKpFormSubmit}>
+                <input
+                  id={`${kpFormId}-name`}
+                  className="kp-form__input"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  placeholder="Как к вам обращаться?"
+                  aria-label="Как к вам обращаться?"
+                  value={kpName}
+                  onChange={(e) => setKpName(e.target.value)}
+                  required
+                />
+                <input
+                  id={`${kpFormId}-city`}
+                  className="kp-form__input"
+                  name="city"
+                  type="text"
+                  autoComplete="address-level2"
+                  placeholder="Ваш город"
+                  aria-label="Ваш город"
+                  value={kpCity}
+                  onChange={(e) => setKpCity(e.target.value)}
+                  required
+                />
+                <input
+                  id={`${kpFormId}-phone`}
+                  className="kp-form__input"
+                  name="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  placeholder="Ваш телефон"
+                  aria-label="Ваш телефон"
+                  value={kpPhone}
+                  onChange={(e) => setKpPhone(e.target.value)}
+                  required
+                />
+                <input
+                  id={`${kpFormId}-email`}
+                  className="kp-form__input"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="Эл. почта"
+                  aria-label="Эл. почта"
+                  value={kpEmail}
+                  onChange={(e) => setKpEmail(e.target.value)}
+                  required
+                />
+                <div className="kp-form__consent">
+                  <input
+                    id={`${kpFormId}-consent`}
+                    className="kp-form__checkbox"
+                    name="consent"
+                    type="checkbox"
+                    checked={kpConsent}
+                    onChange={(e) => setKpConsent(e.target.checked)}
+                    required
+                  />
+                  <label
+                    className="kp-form__consent-label"
+                    htmlFor={`${kpFormId}-consent`}
+                  >
+                    Я соглашаюсь на обработку персональных данных на условиях
+                    изложенных в{" "}
+                    <a
+                      className="kp-form__policy-link"
+                      href="#"
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      Политике в отношении обработки персональных данных
+                    </a>
+                  </label>
+                </div>
+                <button
+                  type="submit"
+                  className="kp-form__submit"
+                  disabled={!kpCanSubmit}
+                >
+                  {kpSubmitting ? "Отправка…" : "Отправить"}
+                </button>
+              </form>
+            </>
+          )}
         </div>
       </dialog>
     </div>

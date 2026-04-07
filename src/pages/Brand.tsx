@@ -148,6 +148,15 @@ export default function Brand() {
     });
   };
 
+  /** Сброс всех выборов в списках бренда, калькулятора и артикулов в результате */
+  const onCalcFormReset = () => {
+    navigate({
+      search: {},
+      from: "/$brandCode",
+      replace: true,
+    });
+  };
+
   const onArticulChange = (_: string, itemCode: string) => {
     navigate({
       search: { ...search, articuls: itemCode },
@@ -247,7 +256,9 @@ export default function Brand() {
               surfaces={calcParams.SurfacesTypes}
               values={calcRequest}
               onCalculate={onCalculate}
-              betweenRadiogroupsText="Для более точного расчёта нажмите кнопку «Размеры»"
+              onReset={onCalcFormReset}
+              betweenRadiogroupsText="Для более точного расчёта укажите ширину и высоту в варианте «Размеры»"
+              dropdownAlignToRef={formsColumnRef}
             />
           )}
         </div>

@@ -144,37 +144,49 @@ body.dark select option {
   color: #131314;
 }
 
-/* Сегментированный переключатель: поверхность, площадь / размеры (кастомный radio) */
+/* Инфо-баннер над переключателем площадь / размеры */
+.calc-form__info-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-sizing: border-box;
+  padding: 16px 18px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  background-color: #e6f4fa;
+}
+
+.calc-form__info-banner-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calc-form__info-banner-text {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #1a1a1a;
+}
+
+body.dark .calc-form__info-banner {
+  background-color: rgba(0, 102, 204, 0.14);
+}
+
+body.dark .calc-form__info-banner-text {
+  color: var(--surface-text);
+}
+
+/* Вкладки: площадь / размеры — нижняя синяя полоса у активной, иконки слева */
 .calc-form__mode-radiogroup {
   display: flex;
-  /* gap: 6px; */
   width: 100%;
-  /* padding: 4px; */
   box-sizing: border-box;
-  /* background-color: rgba(19, 19, 20, 0.06); */
-  border-radius: 12px;
-}
-
-/* Текст между двумя calc-form__mode-radiogroup (поверхность и площадь/размеры) */
-.calc-form__between-radiogroups {
-  box-sizing: border-box;
-  padding: 8px 4px;
-  font-size: 0.95rem;
-  font-family: "Montserrat", sans-serif;
-  font-weight: 500;
-  line-height: 1.4;
-  text-align: center;
-  color: var(--surface-text);
-  opacity: 0.85;
-}
-
-body.dark .calc-form__between-radiogroups {
-  color: var(--surface-text);
-  opacity: 0.9;
-}
-
-body.dark .calc-form__mode-radiogroup {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: #fafafa;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .calc-form__mode-radio {
@@ -184,47 +196,39 @@ body.dark .calc-form__mode-radiogroup {
   margin: 0;
   cursor: pointer;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  min-height: var(--control-height);
-  padding: 0 12px;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 10px 10px;
   box-sizing: border-box;
-  border-radius: 10px;
-  font-size: large;
+  font-size: 1rem;
   font-family: "Montserrat", sans-serif;
   font-weight: 500;
   text-align: center;
   user-select: none;
-  color: var(--color-index);
-  background-color: var(--surface);
+  color: #757575;
+  background-color: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
   transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
-/*
- * Скругление только с внешней стороны группы; у стыка соседних сегментов углы прямые.
- */
-.calc-form__mode-radiogroup .calc-form__mode-radio:first-of-type:not(:last-of-type) {
-  border-radius: 0;
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
+.calc-form__mode-radio-icon {
+  flex-shrink: 0;
+  color: currentColor;
 }
 
-.calc-form__mode-radiogroup .calc-form__mode-radio:last-of-type:not(:first-of-type) {
-  border-radius: 0;
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
-}
-
-.calc-form__mode-radiogroup
-  .calc-form__mode-radio:not(:first-of-type):not(:last-of-type) {
-  border-radius: 0;
+.calc-form__mode-radio-label {
+  white-space: nowrap;
 }
 
 .calc-form__mode-radio--active {
-  color: #fff;
-  background-color: var(--color-index);
+  color: #36A9E1 ;
+  border-bottom-color: #36A9E1 ;
 }
 
 .calc-form__mode-radio-input {
@@ -236,14 +240,55 @@ body.dark .calc-form__mode-radiogroup {
   pointer-events: none;
 }
 
+body.dark .calc-form__mode-radiogroup {
+  background-color: rgba(255, 255, 255, 0.04);
+  border-bottom-color: var(--border);
+}
+
 body.dark .calc-form__mode-radio:not(.calc-form__mode-radio--active) {
-  background-color: #2a2e38;
-  color: #8ec8ff;
+  color: rgba(245, 246, 248, 0.55);
 }
 
 body.dark .calc-form__mode-radio--active {
-  color: #fff;
-  background-color: var(--color-index);
+  color: #8ec8ff;
+  border-bottom-color: #8ec8ff;
+}
+
+/* Ряд «Сбросить» + «Расчёт»: узкая серая и широкая синяя, как в макете */
+.calc-form__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 0.34fr) minmax(0, 0.66fr);
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+
+.calc-form__actions .calc-form__btn-reset,
+.calc-form__actions .calc-form__btn-submit {
+  width: 100%;
+}
+
+.calc-form__btn-reset {
+  background-color: #f3f3f3;
+  border: 1px solid #e2e2e2;
+  color: #2a2a2a;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.calc-form__btn-reset:hover {
+  background-color: #ebebeb;
+}
+
+body.dark .calc-form__btn-reset {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--border);
+  color: #f5f6f8;
+}
+
+body.dark .calc-form__btn-reset:hover {
+  background-color: rgba(255, 255, 255, 0.12);
 }
 
 button {
