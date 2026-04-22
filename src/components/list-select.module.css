@@ -14,6 +14,11 @@
   position: relative;
 }
 
+:global(.brand-form) .trigger {
+  font-size: 19px;
+  line-height: 28px;
+}
+
 .trigger::after {
   content: "";
   position: absolute;
@@ -110,7 +115,14 @@
   text-align: left;
   cursor: pointer;
   box-shadow: none;
-  font-size: 20px;
+  font-size: 17px;
+  line-height: 26px;
+  font-family: inherit;
+}
+
+:global(.brand-form) .optionText {
+  font-size: 19px;
+  line-height: 28px;
 }
 
 .optionText:hover {
@@ -152,8 +164,8 @@
 }
 
 .optionLabel {
-  font-size: 16px;
-  line-height: 1.2;
+  font-size: 15px;
+  line-height: 22px;
   flex: 0 0 auto;
   max-width: 100%;
   overflow: hidden;
@@ -164,8 +176,8 @@
 }
 
 .optionTextLabel {
-  font-size: 18px;
-  line-height: 1.5;
+  font-size: 17px;
+  line-height: 26px;
 }
 
 /*

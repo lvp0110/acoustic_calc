@@ -28,7 +28,7 @@
   display: grid;
   grid-template-columns: repeat(
     auto-fit,
-    minmax(min(100%, 280px), 1fr)
+    minmax(min(100%, 320px), 1fr)
   );
   gap: 12px;
   width: 100%;
@@ -501,8 +501,10 @@ body.dark a.result-export-btn--secondary:hover {
 /* Сетка .result-table — src/styles/data-table.css */
 
 .result-table .cell-select-trigger {
-  color: var(--color-index);
-  font-size: 14px;
+  color: #36a9e1;
+  font-size: 17px;
+  line-height: 26px;
+  font-family: inherit;
   font-weight: 500;
   border: none;
   cursor: pointer;
@@ -514,7 +516,7 @@ body.dark a.result-export-btn--secondary:hover {
   border-radius: 0;
   width: 100%;
   text-align: left;
-  line-height: 1.2;
+  line-height: 26px;
 }
 
 .result-table .cell-select-trigger:hover {
@@ -555,8 +557,10 @@ body.dark a.result-export-btn--secondary:hover {
   border-radius: 6px;
   cursor: pointer;
   color: #333;
-  font-size: 14px;
-  line-height: 1.2;
+  font-size: 17px;
+  line-height: 26px;
+  font-family: inherit;
+  font-weight: 400;
 }
 
 .result-table .cell-select-option:hover {
@@ -565,7 +569,7 @@ body.dark a.result-export-btn--secondary:hover {
 
 .result-table .cell-select-option.is-selected {
   background: rgba(0, 0, 0, 0.06);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 body.dark .result-table .cell-select-menu {

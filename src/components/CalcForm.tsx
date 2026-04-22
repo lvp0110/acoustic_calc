@@ -24,51 +24,27 @@ function InfoBannerIcon() {
 
 function IconTabArea() {
   return (
-    <svg
+    <img
       className="calc-form__mode-radio-icon"
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
+      src="/square-ic.svg"
+      width={20}
+      height={20}
+      alt=""
       aria-hidden
-    >
-      <path
-        fill="currentColor"
-        d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"
-      />
-    </svg>
+    />
   );
 }
 
 function IconTabDimensions() {
   return (
-    <svg
+    <img
       className="calc-form__mode-radio-icon"
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
+      src="/size-ic.svg"
+      width={20}
+      height={20}
+      alt=""
       aria-hidden
-    >
-      <path
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-        d="M7.5 7.5h9v9h-9z"
-      />
-      <path
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        d="M4 12h2.5M17.5 12H20M12 4v2.5M12 17.5V20"
-      />
-      <path
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        d="M5 5l2 2M19 5l-2 2M5 19l2-2M19 19l-2-2"
-      />
-    </svg>
+    />
   );
 }
 
