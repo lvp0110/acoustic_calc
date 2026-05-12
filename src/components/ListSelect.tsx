@@ -237,29 +237,34 @@ export default function ListSelect({
         {open && options.length > 0 && renderDropdown()}
       </div>
       {selectedPreviewUrl && selectedOption && (
-        <div
-          ref={selectedPreviewWrapRef}
-          className={styles.selectedPreviewWrap}
-          style={
-            selectedPreviewMinHeight != null && selectedPreviewMinHeight > 0
-              ? { minHeight: selectedPreviewMinHeight }
-              : undefined
-          }
-        >
-          <img
-            ref={selectedPreviewImgRef}
-            src={selectedPreviewUrl}
-            alt={selectedOption.name}
-            className={styles.selectedPreview}
-            loading="lazy"
-            onLoad={() =>
-              measureSelectedPreviewHeight(
-                selectedPreviewWrapRef.current,
-                selectedPreviewImgRef.current,
-                onSelectedPreviewHeightRef.current
-              )
+        <div className={styles.selectedPreviewWrap}>
+          <div
+            ref={selectedPreviewWrapRef}
+            className={styles.selectedPreviewCard}
+            style={
+              selectedPreviewMinHeight != null && selectedPreviewMinHeight > 0
+                ? { minHeight: selectedPreviewMinHeight }
+                : undefined
             }
-          />
+          >
+            <img
+              ref={selectedPreviewImgRef}
+              src={selectedPreviewUrl}
+              alt={selectedOption.name}
+              className={styles.selectedPreview}
+              loading="lazy"
+              onLoad={() =>
+                measureSelectedPreviewHeight(
+                  selectedPreviewWrapRef.current,
+                  selectedPreviewImgRef.current,
+                  onSelectedPreviewHeightRef.current
+                )
+              }
+            />
+          </div>
+          <div className={styles.selectedPreviewCaption}>
+            {label}, {selectedOption.name}
+          </div>
         </div>
       )}
     </div>

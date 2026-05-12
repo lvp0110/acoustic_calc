@@ -181,21 +181,31 @@
 }
 
 /*
- * Превью под полем: лимит задаётся одной переменной на обёртке и на img.
- * Не использовать max-height: % на img — при авто-высоте родителя в flex это часто даёт «пробитие» блока.
+ * Превью под полем: карточка с серым фоном + подпись снизу.
+ * Лимит высоты картинки задаётся одной переменной на карточке и на img.
  */
 .selectedPreviewWrap {
   --selected-preview-max: 220px;
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  margin-top: 8px;
+  box-sizing: border-box;
+}
+
+.selectedPreviewCard {
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  margin-top: 12px;
-  max-height: var(--selected-preview-max);
+  background-color: var(--surface);
+  border-radius: 8px;
   box-sizing: border-box;
+  padding: 16px;
+  max-height: var(--selected-preview-max);
   overflow: hidden;
   min-height: 0;
-  padding-inline: 0;
   line-height: 0;
 }
 
@@ -214,6 +224,26 @@
   object-position: center;
 }
 
+.selectedPreviewCaption {
+  margin-top: 10px;
+  padding-inline: 4px;
+  font-size: 15px;
+  line-height: 22px;
+  color: color-mix(in srgb, var(--surface-text) 55%, transparent);
+  font-family: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:global(body.dark) .selectedPreviewCard {
+  background-color: #dfdddd;
+}
+
+:global(body.dark) .selectedPreviewCaption {
+  color: color-mix(in srgb, #f5f6f8 65%, transparent);
+}
+
 /* Планшеты / узкие колонки формы */
 @media (max-width: 600px) {
   .selectedPreviewWrap {
@@ -225,10 +255,20 @@
   .selectedPreviewWrap {
     --selected-preview-max: 180px;
   }
+  .selectedPreviewCard {
+    padding: 12px;
+  }
+  .selectedPreviewCaption {
+    font-size: 14px;
+    line-height: 20px;
+  }
 }
 
 @media (max-width: 320px) {
   .selectedPreviewWrap {
     --selected-preview-max: 150px;
+  }
+  .selectedPreviewCard {
+    padding: 10px;
   }
 }

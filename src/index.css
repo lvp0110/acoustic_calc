@@ -418,6 +418,7 @@ body.dark .calc-form__mode-radio--active {
 .calc-form__actions .calc-form__btn-reset,
 .calc-form__actions .calc-form__btn-submit {
   width: 100%;
+  font-weight: 600;
 }
 
 .calc-form__btn-reset {
