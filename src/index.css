@@ -264,6 +264,10 @@ body.dark {
   .brand-page-header-image {
     height: 450px;
   }
+
+  .brand-page-header-image.brand-page-header-image--cover {
+    height: min(56vw, 450px);
+  }
 }
 
 body.dark .brand-page-header-image {

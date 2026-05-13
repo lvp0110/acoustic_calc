@@ -42,6 +42,7 @@ interface ListSelectProps {
 
 /** На узком экране сетка опций с картинками — одна колонка, если нет изображений в списке */
 const DROPDOWN_TWO_COLUMN_MIN_WIDTH = 768;
+const MOBILE_SHEET_BREAKPOINT = 900;
 
 function readSelectedPreviewMaxPx(wrap: HTMLElement): number {
   const raw = getComputedStyle(wrap).getPropertyValue("--selected-preview-max").trim();
@@ -121,6 +122,7 @@ export default function ListSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
   const hasSelection = Boolean(value?.trim());
+  const isMobileSheet = window.innerWidth < MOBILE_SHEET_BREAKPOINT;
   const selectedOption = hasSelection
     ? options.find((o) => o.code === value)
     : undefined;
@@ -166,6 +168,7 @@ export default function ListSelect({
   }, [selectedPreviewUrl, selectedImageBelow, syncSelectedPreviewHeight]);
 
   function renderDropdown() {
+    const mobileSheet = window.innerWidth < MOBILE_SHEET_BREAKPOINT;
     const wideViewport = window.innerWidth > DROPDOWN_TWO_COLUMN_MIN_WIDTH;
     const twoColumns = !compactDropdown && (wideViewport || hasImages);
     const alignEl = dropdownAlignToRef?.current;
@@ -186,6 +189,7 @@ export default function ListSelect({
 
     const dropdownClass = [
       styles.dropdown,
+      mobileSheet && styles.dropdownMobile,
       useFullWidth && styles.dropdownFullWidth,
       compactDropdown && styles.dropdownText,
       twoColumns && styles.dropdownGrid,
@@ -195,6 +199,16 @@ export default function ListSelect({
 
     return (
       <div className={dropdownClass} style={dropdownStyle}>
+        {mobileSheet && (
+          <button
+            type="button"
+            className={styles.mobileTitle}
+            onClick={() => setOpen(false)}
+            aria-label={`Закрыть выбор: ${label}`}
+          >
+            {label}
+          </button>
+        )}
         {options.map((option) => {
           const imgUrl = compactDropdown ? null : getOptionImageUrl(option);
           const optionImgClass =
@@ -242,7 +256,7 @@ export default function ListSelect({
         </button>
         {open && options.length > 0 && renderDropdown()}
       </div>
-      {selectedPreviewUrl && selectedOption && (
+      {!isMobileSheet && selectedPreviewUrl && selectedOption && (
         <div className={styles.selectedPreviewWrap}>
           <div
             ref={selectedPreviewWrapRef}

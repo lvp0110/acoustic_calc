@@ -80,6 +80,10 @@
   gap: 0;
 }
 
+.mobileTitle {
+  display: none;
+}
+
 /* ───── Option buttons ───── */
 
 .option {
@@ -261,6 +265,88 @@
   .optionTextLabel {
     font-size: 15px;
     line-height: 22px;
+  }
+}
+
+@media (max-width: 900px) {
+  .dropdownMobile {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: auto;
+    width: 100vw;
+    height: 100dvh;
+    margin-top: 0;
+    padding: 0 20px 40px;
+    border-radius: 0;
+    box-shadow: none;
+    max-height: none;
+    overflow-y: auto;
+    z-index: 80;
+    animation: list-select-slide-in 0.3s ease;
+  }
+
+  .dropdownMobile.dropdownFullWidth {
+    left: auto;
+    width: 100vw;
+    max-height: none;
+  }
+
+  .dropdownMobile.dropdownText {
+    padding-top: 0;
+  }
+
+  .mobileTitle {
+    display: block;
+    width: 100%;
+    min-height: 80px;
+    margin: 0 0 8px;
+    padding: 26px 20px 20px 36px;
+    border: none;
+    background: transparent;
+    color: #131314;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1.2;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .mobileTitle::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    border-left: 2px solid #131314;
+    border-bottom: 2px solid #131314;
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  .dropdownMobile .optionText {
+    margin-bottom: 4px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    background: #f5f5f7;
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 24px;
+  }
+
+  :global(body.dark) .mobileTitle {
+    color: #131314;
+  }
+}
+
+@keyframes list-select-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
   }
 }
 
