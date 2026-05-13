@@ -95,6 +95,12 @@ export default function ListSelect({
   );
 
   useEffect(() => {
+    // При сбросе/изменении значения извне (через URL/форму) закрываем дропдаун,
+    // чтобы визуально "сбрасывался" триггер.
+    setOpen(false);
+  }, [value]);
+
+  useEffect(() => {
     if (!open) return;
 
     const handleResize = () => bumpLayoutOnResize((n) => n + 1);

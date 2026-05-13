@@ -27,6 +27,7 @@ export default function Brand() {
   const colorHeaderImgRef = useRef<HTMLImageElement | null>(null);
   const scrollToResultPendingRef = useRef(false);
   const [colorHeaderImageShown, setColorHeaderImageShown] = useState(false);
+  const [resetNonce, setResetNonce] = useState(0);
   const { brandCode } = useParams({ from: "/$brandCode" });
   const search = useSearch({ from: "/$brandCode" });
   const navigate = useNavigate({ from: "/$brandCode" });
@@ -56,7 +57,8 @@ export default function Brand() {
     queryFn: () =>
       getCalcParams(brandCode, search).then((res) => res.data.data),
     enabled: allFieldsFilled,
-    placeholderData: (prev) => prev,
+    // Иначе после сброса (search: {}) остаётся прошлое значение, и калькулятор продолжает отображаться.
+    placeholderData: (prev) => (allFieldsFilled ? prev : undefined),
   });
 
   const calcRequest: CalcFormResult | null =
@@ -91,7 +93,8 @@ export default function Brand() {
     queryFn: () =>
       getCalcResult(brandCode, calcQueryParams!).then((res) => res.data.data),
     enabled: !!calcQueryParams,
-    placeholderData: (prev) => prev,
+    /** Без этого после сброса калькулятора остаётся предыдущая таблица (placeholder от прошлого ключа). */
+    placeholderData: (prev) => (calcQueryParams ? prev : undefined),
   });
 
   useEffect(() => {
@@ -155,6 +158,8 @@ export default function Brand() {
       from: "/$brandCode",
       replace: true,
     });
+    // Гарантированно "сбрасываем" локальные состояния выпадающих списков (open/measure и т.п.)
+    setResetNonce((n) => n + 1);
   };
 
   const onArticulChange = (_: string, itemCode: string) => {
@@ -245,6 +250,7 @@ export default function Brand() {
           </div>
           {data && (
             <BrandForm
+              key={`brand-form-${resetNonce}`}
               fields={data}
               values={search}
               onFieldChange={onFieldChange}
@@ -253,6 +259,7 @@ export default function Brand() {
           )}
           {calcParams && (
             <CalcForm
+              key={`calc-form-${resetNonce}`}
               surfaces={calcParams.SurfacesTypes}
               values={calcRequest}
               onCalculate={onCalculate}
