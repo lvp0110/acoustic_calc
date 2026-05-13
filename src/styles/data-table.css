@@ -86,3 +86,43 @@
   border-bottom-color: var(--color-index);
   transform: translateY(-50%) rotate(225deg);
 }
+
+@media (min-width: 768px) and (max-width: 1100px) {
+  .calc-table,
+  .result-table {
+    table-layout: fixed;
+    min-width: 0;
+  }
+
+  .calc-table th,
+  .calc-table td,
+  .result-table th,
+  .result-table td {
+    padding: 14px 8px;
+    font-size: 15px;
+    line-height: 22px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .calc-table th:first-child,
+  .calc-table td:first-child,
+  .result-table th:first-child,
+  .result-table td:first-child {
+    width: 34%;
+  }
+
+  .calc-table .cell-select-wrap,
+  .result-table .cell-select-wrap {
+    max-width: 100%;
+  }
+
+  .result-table .cell-select-trigger,
+  .result-table .result-cell-value {
+    font-size: 15px;
+    line-height: 22px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
