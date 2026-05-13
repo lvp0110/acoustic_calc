@@ -168,12 +168,12 @@ body.dark {
     flex: 0 0 50%;
   }
 }
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .brand-page-layout {
     flex-direction: column;
   }
 }
-@media (min-width: 768px) and (max-width: 1100px) {
+@media (min-width: 900px) and (max-width: 1100px) {
   .main-unit {
     padding: 20px 14px 36px;
   }
@@ -260,6 +260,12 @@ body.dark {
   background-color: #ffffff; /* блоки с картинками — белые даже в тёмной теме */
 }
 
+@media (max-width: 899px) {
+  .brand-page-header-image {
+    height: 450px;
+  }
+}
+
 body.dark .brand-page-header-image {
   background-color: #dfdddd;
 }
@@ -280,20 +286,29 @@ body.dark .brand-page-header-image {
   align-items: start;
 }
 
-@media (max-width: 1440px) {
+/* Сохраняем 2-колоночную раскладку (UFR на всю ширину, размеры/цвета и кромки/перфорации в две колонки)
+   во всём диапазоне 700–1440px. Переход на одну колонку — только ниже 700px. */
+@media (max-width: 699px) {
   .brand-form {
     grid-template-columns: 1fr;
     gap: 8px 8px;
   }
 }
 
-/* Кромка + перфорация — всегда в одну строку на любой ширине экрана */
+/* Кромка + перфорация — в одну строку при ширине ≥700px,
+   а на узких экранах (<700px) стэкаются в одну колонку, как и остальные селекты. */
 .brand-form__edge-perf-row {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   align-items: start;
+}
+
+@media (max-width: 699px) {
+  .brand-form__edge-perf-row {
+    grid-template-columns: 1fr;
+  }
 }
 a {
   color: #006bcf;
