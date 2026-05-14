@@ -1,6 +1,6 @@
 /* Общая сетка и оформление для .calc-table и .result-table.
- * Плотная вёрстка: .calc-table 700–1100px; .result-table — десктоп ≥901px (раньше только до 1100px,
- * из‑за чего при ширине >1100 table-layout: auto схлопывала колонку с выбором артикула). */
+ * Плотная вёрстка: .calc-table 700–1100px; .result-table--desktop — сетка ≥901px (раньше только до 1100px,
+ * из‑за чего при ширине >1100 table-layout: auto схлопывала колонку с выбором артикула). Карточки — .result-table--cards в CalcResult.css. */
 
 .calc-table,
 .result-table {
@@ -130,13 +130,13 @@
 }
 
 @media (min-width: 901px) {
-  .result-table {
+  .result-table--desktop {
     table-layout: fixed;
     min-width: 0;
   }
 
-  .result-table th,
-  .result-table td {
+  .result-table--desktop th,
+  .result-table--desktop td {
     vertical-align: top;
     padding: 14px 8px;
     font-size: 15px;
@@ -145,8 +145,8 @@
     word-break: break-word;
   }
 
-  .result-table th:first-child,
-  .result-table td:first-child {
+  .result-table--desktop th:first-child,
+  .result-table--desktop td:first-child {
     width: 34%;
     /* иначе min-width:auto у ячейки не даёт колонке сжиматься — контент (кнопка) вылезает и обрезается */
     min-width: 0;
@@ -157,7 +157,7 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  .result-table .cell-select-trigger {
+  .result-table--desktop .cell-select-trigger {
     display: block;
     max-width: 100%;
     min-width: 0;
@@ -171,7 +171,7 @@
   }
 
   /* Явный сброс: без этого значения наследуют компактный td и визуально не меняются. */
-  .result-table .result-cell-value {
+  .result-table--desktop .result-cell-value {
     font-size: 17px;
     line-height: 26px;
     overflow-wrap: normal;

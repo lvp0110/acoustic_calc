@@ -1,12 +1,13 @@
-import { submitKpForm, type CalcResultData } from "../api";
+import {
+  submitKpForm,
+  type CalcResultData,
+} from "../api";
 import {
   useEffect,
   useId,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
   type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
@@ -66,45 +67,6 @@ export default function CalcResult({
     setKpSubmitError(null);
     setKpSubmitOk(false);
   }, [kpModalOpen]);
-
-  const exportActionsRef = useRef<HTMLDivElement | null>(null);
-  const [exportActionsHeightPx, setExportActionsHeightPx] = useState(0);
-
-  useLayoutEffect(() => {
-    if (!excelUrl) {
-      setExportActionsHeightPx(0);
-      return;
-    }
-    const el = exportActionsRef.current;
-    if (!el) return;
-
-    const mq = window.matchMedia('(min-width: 901px)');
-
-    function measure() {
-      if (!mq.matches) {
-        setExportActionsHeightPx(0);
-        return;
-      }
-      const node = exportActionsRef.current;
-      if (!node) {
-        setExportActionsHeightPx(0);
-        return;
-      }
-      setExportActionsHeightPx(Math.ceil(node.getBoundingClientRect().height));
-    }
-
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    mq.addEventListener("change", measure);
-    window.addEventListener("resize", measure);
-    measure();
-
-    return () => {
-      ro.disconnect();
-      mq.removeEventListener("change", measure);
-      window.removeEventListener("resize", measure);
-    };
-  }, [excelUrl]);
 
   useEffect(() => {
     if (openRowId === null) return;
@@ -175,17 +137,125 @@ export default function CalcResult({
     }
   }
 
-  const calcResultStyle =
-    excelUrl && exportActionsHeightPx > 0
-      ? ({
-          ["--result-export-actions-h" as string]: `${exportActionsHeightPx}px`,
-        } as CSSProperties)
-      : undefined;
+  function renderResultRows(layout: "desktop" | "cards") {
+    const withCardLabels = layout === "cards";
+
+    return data.rows.map((row) => {
+      if (row.items.length === 1) {
+        const item = row.items[0];
+        return (
+          <tr key={item.code}>
+            {columns.map((col) => (
+              <td
+                key={col.id}
+                data-col={col.id}
+                {...(withCardLabels ? { "data-label": col.name } : {})}
+              >
+                <span className="result-cell-value">
+                  {item[col.id as keyof typeof item]}
+                </span>
+              </td>
+            ))}
+          </tr>
+        );
+      }
+
+      const firstItem = row.items[0];
+      const listboxId = `cell-select-${layout}-${instanceId}-${row.id}`;
+      const selectedItem =
+        row.items.find((it) => it.code === firstItem.code) ?? firstItem;
+
+      return (
+        <tr key={row.id}>
+          {columns.map((col) => (
+            <td
+              key={col.id}
+              data-col={col.id}
+              {...(withCardLabels ? { "data-label": col.name } : {})}
+            >
+              {col.id === "name" ? (
+                <span
+                  className="cell-select-wrap"
+                  data-open={openRowId === row.id ? "true" : "false"}
+                >
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    className="cell-select-trigger"
+                    aria-haspopup="listbox"
+                    aria-expanded={openRowId === row.id}
+                    aria-controls={listboxId}
+                    onClick={() =>
+                      setOpenRowId((prev) =>
+                        prev === row.id ? null : row.id,
+                      )
+                    }
+                    onKeyDown={(e: ReactKeyboardEvent<HTMLSpanElement>) => {
+                      if (e.key !== "Enter" && e.key !== " ") return;
+                      e.preventDefault();
+                      setOpenRowId((prev) =>
+                        prev === row.id ? null : row.id,
+                      );
+                    }}
+                  >
+                    {selectedItem.name}
+                  </span>
+                  {openRowId === row.id ? (
+                    <ul
+                      id={listboxId}
+                      className="cell-select-menu"
+                      role="listbox"
+                      aria-label="Выбор варианта"
+                    >
+                      {row.items.map((item) => (
+                        <li key={item.code} role="option">
+                          <button
+                            type="button"
+                            className={
+                              item.code === firstItem.code
+                                ? "cell-select-option is-selected"
+                                : "cell-select-option"
+                            }
+                            onClick={() => {
+                              onSelectChange?.(row.id, item.code);
+                              setOpenRowId(null);
+                            }}
+                          >
+                            {item.name}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </span>
+              ) : (
+                <span className="result-cell-value">
+                  {firstItem[col.id as keyof typeof firstItem]}
+                </span>
+              )}
+            </td>
+          ))}
+        </tr>
+      );
+    });
+  }
+
+  function renderResultDesktopHeaderRow() {
+    return (
+      <tr>
+        {columns.map((col) => (
+          <th key={col.id} scope="col" data-col={col.id}>
+            {col.name}
+          </th>
+        ))}
+      </tr>
+    );
+  }
 
   return (
-    <div ref={rootRef} className="calc-result" style={calcResultStyle}>
+    <div ref={rootRef} className="calc-result">
       {excelUrl ? (
-        <div ref={exportActionsRef} className="result-export-actions">
+        <div className="result-export-actions">
           <div className="result-export-excel-kp">
             <button
               type="button"
@@ -217,109 +287,34 @@ export default function CalcResult({
       ) : null}
 
       <div className="result-table-wrap">
-        <table className="result-table">
-          <thead>
-            <tr>
+        <div className="result-layout result-layout--desktop">
+          <table className="result-table result-table--desktop">
+            <thead role="rowgroup">
+              {renderResultDesktopHeaderRow()}
+            </thead>
+            <tbody role="rowgroup">{renderResultRows("desktop")}</tbody>
+          </table>
+        </div>
+        <div className="result-layout result-layout--cards">
+          <div className="result-cards-sheet">
+            <div className="result-cards-column-headers">
               {columns.map((col) => (
-                <th key={col.id} data-col={col.id}>
+                <div
+                  key={col.id}
+                  className="result-cards-column-head"
+                  role="columnheader"
+                  data-col={col.id}
+                  data-label={col.name}
+                >
                   {col.name}
-                </th>
+                </div>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.rows.map((row) => {
-              if (row.items.length === 1) {
-                const item = row.items[0];
-                return (
-                  <tr key={item.code}>
-                    {columns.map((col) => (
-                      <td key={col.id} data-col={col.id} data-label={col.name}>
-                        <span className="result-cell-value">
-                          {item[col.id as keyof typeof item]}
-                        </span>
-                      </td>
-                    ))}
-                  </tr>
-                );
-              }
-
-              const firstItem = row.items[0];
-              const listboxId = `cell-select-${instanceId}-${row.id}`;
-              const selectedItem =
-                row.items.find((it) => it.code === firstItem.code) ?? firstItem;
-
-              return (
-                <tr key={row.id}>
-                  {columns.map((col) => (
-                    <td key={col.id} data-col={col.id} data-label={col.name}>
-                      {col.id === "name" ? (
-                        <span
-                          className="cell-select-wrap"
-                          data-open={openRowId === row.id ? "true" : "false"}
-                        >
-                          <span
-                            role="button"
-                            tabIndex={0}
-                            className="cell-select-trigger"
-                            aria-haspopup="listbox"
-                            aria-expanded={openRowId === row.id}
-                            aria-controls={listboxId}
-                            onClick={() =>
-                              setOpenRowId((prev) =>
-                                prev === row.id ? null : row.id,
-                              )
-                            }
-                            onKeyDown={(e: ReactKeyboardEvent<HTMLSpanElement>) => {
-                              if (e.key !== "Enter" && e.key !== " ") return;
-                              e.preventDefault();
-                              setOpenRowId((prev) =>
-                                prev === row.id ? null : row.id,
-                              );
-                            }}
-                          >
-                            {selectedItem.name}
-                          </span>
-                          {openRowId === row.id ? (
-                            <ul
-                              id={listboxId}
-                              className="cell-select-menu"
-                              role="listbox"
-                              aria-label="Выбор варианта"
-                            >
-                              {row.items.map((item) => (
-                                <li key={item.code} role="option">
-                                  <button
-                                    type="button"
-                                    className={
-                                      item.code === firstItem.code
-                                        ? "cell-select-option is-selected"
-                                        : "cell-select-option"
-                                    }
-                                    onClick={() => {
-                                      onSelectChange?.(row.id, item.code);
-                                      setOpenRowId(null);
-                                    }}
-                                  >
-                                    {item.name}
-                                  </button>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : null}
-                        </span>
-                      ) : (
-                        <span className="result-cell-value">
-                          {firstItem[col.id as keyof typeof firstItem]}
-                        </span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+            </div>
+            <table className="result-table result-table--cards">
+              <tbody role="rowgroup">{renderResultRows("cards")}</tbody>
+            </table>
+          </div>
+        </div>
         {data.title ? (
           <div
             className="result-table-title-footer"

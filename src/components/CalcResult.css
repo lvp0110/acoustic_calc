@@ -23,6 +23,25 @@
   }
 }
 
+/* Две разметки: десктоп — только .result-table--desktop; карточки — .result-table--cards (стили карточек внизу файла). */
+.result-layout--desktop {
+  display: none;
+}
+
+.result-layout--cards {
+  display: block;
+}
+
+@media (min-width: 901px) {
+  .result-layout--desktop {
+    display: block;
+  }
+
+  .result-layout--cards {
+    display: none;
+  }
+}
+
 .result-export-actions {
   display: flex;
   align-items: stretch;
@@ -471,7 +490,8 @@ a.result-export-btn--secondary:hover {
 
 /* Сетка .result-table — src/styles/data-table.css */
 
-/* Десктоп (≥901px): липкая шапка таблицы; при наличии панели экспорта — top = её высоте (--result-export-actions-h). */
+/* Десктоп (≥901px): липкая только панель экспорта. Шапку таблицы не делаем sticky:
+ * иначе th с z-index наезжает на первую строку tbody (в инспекторе кажется, что заголовок «внутри» td). */
 @media (min-width: 901px) {
   .calc-result:has(.result-export-actions) .result-export-actions {
     position: sticky;
@@ -479,12 +499,12 @@ a.result-export-btn--secondary:hover {
     z-index: 6;
     background-color: var(--bg);
   }
+}
 
-  .calc-result:has(.result-export-actions) .result-table thead th {
-    position: sticky;
-    top: var(--result-export-actions-h, 0px);
-    z-index: 5;
-    background-color: var(--surface);
+/* Заголовки колонок (thead) визуально отделены от первой строки данных */
+@media (min-width: 901px) {
+  .result-table--desktop thead th {
+    border-bottom: 2px solid #d8d8d8;
   }
 }
 
@@ -611,7 +631,7 @@ a.result-export-btn--secondary:hover {
   }
 }
 
-/* Таблица результатов — карточки при ширине окна <900px; компактная сетка data-table для .result-table не включается до 901px, чтобы стили карточек совпадали с узкой шириной (~700). Шапка — одна строка над карточками. */
+/* Карточная версия — только .result-table--cards; видимость блока — .result-layout--cards (<901px). */
 @media (max-width: 900px) {
   .result-table-wrap {
     padding: 12px;
@@ -619,182 +639,183 @@ a.result-export-btn--secondary:hover {
     background: #f5f5f7;
     border-radius: 0;
   }
+}
 
-  .result-table {
-    border-collapse: separate;
-    border-spacing: 0 14px;
-  }
+.result-table--cards {
+  border-collapse: separate;
+  border-spacing: 0 14px;
+}
 
-  .result-table,
-  .result-table tbody,
-  .result-table tr,
-  .result-table td {
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-  }
+/* Шапка колонок в карточном режиме — вне <table>, только строки данных в таблице */
+.result-cards-sheet {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
 
-  /* Шапка: одна полоска как «карточка» над строками данных (tbody по-прежнему карточки) */
-  .result-table thead {
-    display: block;
-    width: 100%;
-    margin-bottom: 14px;
-  }
+.result-cards-column-headers {
+  display: flex;
+  width: 100%;
+  margin-bottom: 18px;
+  align-items: stretch;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+  overflow: visible;
+}
 
-  .result-table thead tr {
-    display: flex;
-    width: 100%;
-    align-items: stretch;
-    background: #ffffff;
-    border: 1px solid #eaeaea;
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    box-sizing: border-box;
-    overflow: visible;
-  }
+.result-cards-column-head {
+  display: block;
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 14px;
+  border-bottom: none;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 22px;
+  color: #191919;
+  text-align: left;
+  background: transparent;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 
-  .result-table thead th {
-    display: block;
-    flex: 1 1 0;
-    min-width: 0;
-    margin: 0;
-    padding: 12px 14px;
-    border-bottom: none;
-    font-weight: 500;
-    font-size: 15px;
-    line-height: 22px;
-    color: #191919;
-    text-align: left;
-    background: transparent;
-    overflow: visible;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
+.result-cards-column-head:first-child {
+  flex: 1.35 1 0;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
 
-  .result-table thead th:first-child {
-    flex: 1.35 1 0;
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-  }
+.result-cards-column-head:last-child {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
 
-  .result-table thead th:last-child {
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-  }
+.result-cards-column-head:nth-child(n + 2) {
+  text-align: right;
+}
 
-  .result-table thead th:nth-child(n + 2) {
-    text-align: right;
-  }
+.result-table--cards,
+.result-table--cards tbody,
+.result-table--cards tr,
+.result-table--cards td {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
 
-  .result-table tbody tr {
-    background: #ffffff;
-    border: 1px solid #eaeaea;
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    /* важно: иначе выпадающее меню в ячейке обрезается границами карточки */
-    overflow: visible;
-    margin-bottom: 0;
-  }
+.result-table--cards tbody tr {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  /* важно: иначе выпадающее меню в ячейке обрезается границами карточки */
+  overflow: visible;
+  margin-bottom: 0;
+}
 
-  .result-table tbody tr:last-child {
-    margin-bottom: 0;
-  }
+.result-table--cards tbody tr:last-child {
+  margin-bottom: 0;
+}
 
-  .result-table td {
-    border-bottom: none;
-    padding: 10px 16px;
-    text-align: left;
-    overflow: visible;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-    color: #191919;
-  }
+.result-table--cards td {
+  border-bottom: none;
+  padding: 10px 16px;
+  text-align: left;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: #191919;
+}
 
-  /* Перебиваем десктопное выравнивание вправо для 2+ колонки */
-  .result-table td:nth-child(n + 2) {
-    text-align: left;
-  }
+/* Перебиваем десктопное выравнивание вправо для 2+ колонки */
+.result-table--cards td:nth-child(n + 2) {
+  text-align: left;
+}
 
-  .result-table td:last-child {
-    padding-bottom: 14px;
-  }
+.result-table--cards td:last-child {
+  padding-bottom: 14px;
+}
 
-  /* Первая ячейка — заголовок карточки */
-  .result-table td:first-child {
-    font-weight: 700;
-    font-size: 16px;
-    line-height: 1.35;
-    white-space: normal;
-    padding: 14px 16px 12px;
-    border-bottom: 1px solid #eaeaea;
-    color: #000000;
-  }
+/* Первая ячейка — заголовок карточки */
+.result-table--cards td:first-child {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.35;
+  white-space: normal;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid #eaeaea;
+  color: #000000;
+}
 
-  .result-table td:first-child::before {
-    content: none;
-  }
+.result-table--cards td:first-child::before {
+  content: none;
+}
 
-  /* Остальные ячейки — подпись слева (#888), значение справа */
-  .result-table td:not(:first-child) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: center;
-    column-gap: 16px;
-    padding: 10px 16px;
-  }
+/* Остальные ячейки — подпись слева (#888), значение справа */
+.result-table--cards td:not(:first-child) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  column-gap: 16px;
+  padding: 10px 16px;
+}
 
-  .result-table td:not(:first-child)::before {
-    content: attr(data-label);
-    color: #888888;
-    font-weight: 400;
-    font-size: 15px;
-    line-height: 22px;
-    min-width: 0;
-    text-align: left;
-    justify-self: start;
-  }
+.result-table--cards td:not(:first-child)::before {
+  content: attr(data-label);
+  color: #888888;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 22px;
+  min-width: 0;
+  text-align: left;
+  justify-self: start;
+}
 
-  .result-table td:not(:first-child) > * {
-    text-align: right;
-    justify-self: end;
-    min-width: 0;
-    max-width: 100%;
-    overflow: visible;
-    overflow-wrap: anywhere;
-    color: #000000;
-    font-weight: 400;
-    font-size: 16px;
-    line-height: 24px;
-  }
+.result-table--cards td:not(:first-child) > * {
+  text-align: right;
+  justify-self: end;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  color: #000000;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+}
 
-  .result-table .result-cell-value {
-    width: 100%;
-  }
+.result-table--cards .result-cell-value {
+  width: 100%;
+}
 
-  /* Триггер выбора оставляем аккуратным в карточке */
-  .result-table .cell-select-trigger {
-    text-align: right;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    width: auto;
-    max-width: 100%;
-    justify-self: end;
-    color: #000000;
-    font-weight: 400;
-    font-size: 16px;
-    line-height: 24px;
-  }
+/* Триггер выбора оставляем аккуратным в карточке */
+.result-table--cards .cell-select-trigger {
+  text-align: right;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  width: auto;
+  max-width: 100%;
+  justify-self: end;
+  color: #000000;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+}
 
-  /* Выпадающее меню в карточке: открываем вниз и не вылезаем за экран */
-  .result-table .cell-select-menu {
-    top: auto;
-    bottom: auto;
-    left: 0;
-    right: 0;
-    min-width: 0;
-    width: max(220px, 100%);
-    max-width: calc(100vw - 24px);
-  }
+/* Выпадающее меню в карточке: открываем вниз и не вылезаем за экран */
+.result-table--cards .cell-select-menu {
+  top: auto;
+  bottom: auto;
+  left: 0;
+  right: 0;
+  min-width: 0;
+  width: max(220px, 100%);
+  max-width: calc(100vw - 24px);
 }
 
 @media (max-width: 560px) {
