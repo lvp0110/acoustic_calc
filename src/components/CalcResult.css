@@ -490,17 +490,6 @@ a.result-export-btn--secondary:hover {
 
 /* Сетка .result-table — src/styles/data-table.css */
 
-/* Десктоп (≥901px): липкая только панель экспорта. Шапку таблицы не делаем sticky:
- * иначе th с z-index наезжает на первую строку tbody (в инспекторе кажется, что заголовок «внутри» td). */
-@media (min-width: 901px) {
-  .calc-result:has(.result-export-actions) .result-export-actions {
-    position: sticky;
-    top: 0;
-    z-index: 6;
-    background-color: var(--bg);
-  }
-}
-
 /* Заголовки колонок (thead) визуально отделены от первой строки данных */
 @media (min-width: 901px) {
   .result-table--desktop thead th {
@@ -612,8 +601,8 @@ a.result-export-btn--secondary:hover {
   font-weight: 500;
 }
 
-/* Панель экспорта на средних ширинах (см. data-table.css для сетки таблицы). */
-@media (min-width: 700px) and (max-width: 1100px) {
+/* Панель экспорта: компактный вид до 1099px (включая <700 — как на планшете). */
+@media (max-width: 1099px) {
   .result-export-actions {
     height: auto;
   }
@@ -628,6 +617,35 @@ a.result-export-btn--secondary:hover {
     height: 44px;
     padding: 0 14px;
     font-size: 14px;
+  }
+}
+
+/* Узкий экран: кнопки столбцом, сверху «Выгрузить таблицу» (в DOM ниже — задаём order). */
+@media (max-width: 699px) {
+  .result-export-actions {
+    justify-content: stretch;
+    align-items: stretch;
+  }
+
+  .result-export-excel-kp {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .result-export-excel-kp .result-export-btn--secondary {
+    order: -1;
+  }
+
+  .result-export-excel-kp .result-export-btn {
+    width: 100%;
+    height: auto;
+    min-height: 44px;
+    padding: 10px 14px;
+    white-space: normal;
+    text-align: center;
   }
 }
 
@@ -807,6 +825,25 @@ a.result-export-btn--secondary:hover {
   line-height: 24px;
 }
 
+/* Таблица: при ширине < 1100px весь текст 15px (CalcResult ниже data-table и перебивает 17px у триггера/опций). */
+@media (max-width: 1099px) {
+  .result-table .cell-select-trigger,
+  .result-table--cards .cell-select-trigger,
+  .result-table .cell-select-option {
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .result-table--cards td:first-child {
+    font-size: 15px;
+  }
+
+  .result-table--cards td:not(:first-child) > * {
+    font-size: 15px;
+    line-height: 22px;
+  }
+}
+
 /* Выпадающее меню в карточке: открываем вниз и не вылезаем за экран */
 .result-table--cards .cell-select-menu {
   top: auto;
@@ -816,19 +853,6 @@ a.result-export-btn--secondary:hover {
   min-width: 0;
   width: max(220px, 100%);
   max-width: calc(100vw - 24px);
-}
-
-@media (max-width: 560px) {
-  .result-export-btn {
-    padding: 0 12px;
-    font-size: 13px;
-    height: 38px;
-  }
-
-  .result-export-btn__icon {
-    width: 18px;
-    height: 18px;
-  }
 }
 
 .tooltip-wrapper {

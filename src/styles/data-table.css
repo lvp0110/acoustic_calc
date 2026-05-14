@@ -1,5 +1,5 @@
 /* Общая сетка и оформление для .calc-table и .result-table.
- * Плотная вёрстка: .calc-table 700–1100px; .result-table--desktop — сетка ≥901px (раньше только до 1100px,
+ * Плотная вёрстка: .calc-table 700–1099px; .result-table--desktop — сетка ≥901px (раньше только до ~1100px,
  * из‑за чего при ширине >1100 table-layout: auto схлопывала колонку с выбором артикула). Карточки — .result-table--cards в CalcResult.css. */
 
 .calc-table,
@@ -104,7 +104,22 @@
   overflow: visible;
 }
 
-@media (min-width: 700px) and (max-width: 1100px) {
+/* Текст таблиц < 1100px — 15px (строго max-width: 1099px). */
+@media (max-width: 1099px) {
+  .calc-table,
+  .result-table {
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .calc-table th,
+  .calc-table td {
+    font-size: 15px;
+    line-height: 22px;
+  }
+}
+
+@media (min-width: 700px) and (max-width: 1099px) {
   .calc-table {
     table-layout: fixed;
     min-width: 0;
@@ -113,8 +128,6 @@
   .calc-table th,
   .calc-table td {
     padding: 14px 8px;
-    font-size: 15px;
-    line-height: 22px;
     overflow-wrap: anywhere;
     word-break: break-word;
   }
@@ -169,8 +182,10 @@
     overflow-wrap: anywhere;
     word-break: break-word;
   }
+}
 
-  /* Явный сброс: без этого значения наследуют компактный td и визуально не меняются. */
+/* Крупнее только на широком экране: иначе перебивает компактный td при 901–1099px. */
+@media (min-width: 1100px) {
   .result-table--desktop .result-cell-value {
     font-size: 17px;
     line-height: 26px;
