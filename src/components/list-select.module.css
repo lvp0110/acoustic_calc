@@ -222,12 +222,60 @@
   line-height: 22px;
   color: color-mix(in srgb, var(--surface-text) 55%, transparent);
   font-family: inherit;
+  flex-shrink: 0;
+  text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 /* --- responsive (ширина ↓: более узкие правила ниже в каскаде) --- */
+
+@media (min-width: 900px) and (max-width: 1099px) {
+  .selectedPreviewWrap {
+    height: 174px;
+    gap: 10px;
+  }
+
+  .selectedPreviewWrap .selectedPreviewCaption {
+    margin-top: 0;
+  }
+
+  .selectedPreviewCard {
+    flex: 1 1 0;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .selectedPreview {
+    max-height: 100%;
+  }
+}
+
+@media (min-width: 1100px) {
+  /*
+   * Как в макете: вся колонка 236px = карточка с картинкой + отступ + одна строка подписи.
+   * Отступ между карточкой и текстом — gap; карточка растягивается на оставшуюся высоту.
+   */
+  .selectedPreviewWrap {
+    height: 236px;
+    gap: 10px;
+  }
+
+  .selectedPreviewWrap .selectedPreviewCaption {
+    margin-top: 0;
+  }
+
+  .selectedPreviewCard {
+    flex: 1 1 0;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .selectedPreview {
+    max-height: 100%;
+  }
+}
 
 @media (min-width: 700px) and (max-width: 1100px) {
   :global(.brand-form) .trigger,
@@ -308,6 +356,24 @@
     font-size: 17px;
     font-weight: 500;
     line-height: 24px;
+  }
+}
+
+@media (max-width: 699px) {
+  :global(.brand-page-forms) .trigger,
+  :global(.brand-page-forms) .optionText {
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  :global(.brand-page-forms) .optionTextLabel {
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  :global(.brand-page-forms) .dropdownMobile .optionText {
+    font-size: 15px;
+    line-height: 22px;
   }
 }
 

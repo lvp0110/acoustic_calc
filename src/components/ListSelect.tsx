@@ -50,6 +50,11 @@ function readSelectedPreviewMaxPx(wrap: HTMLElement): number {
   return Number.isFinite(n) && n > 0 ? n : 220;
 }
 
+function readBoxVerticalPaddingPx(el: HTMLElement): number {
+  const s = getComputedStyle(el);
+  return (parseFloat(s.paddingTop) || 0) + (parseFloat(s.paddingBottom) || 0);
+}
+
 /** Единая формула высоты превью (useLayoutEffect + onLoad img). */
 function measureSelectedPreviewHeight(
   wrap: HTMLElement | null,
@@ -62,7 +67,10 @@ function measureSelectedPreviewHeight(
     report(0);
     return;
   }
-  const cap = readSelectedPreviewMaxPx(wrap);
+  const varCap = readSelectedPreviewMaxPx(wrap);
+  const innerSlot = wrap.clientHeight - readBoxVerticalPaddingPx(wrap);
+  const slotCap = innerSlot > 0 ? innerSlot : 0;
+  const cap = slotCap > 0 ? Math.min(varCap, slotCap) : varCap;
   const rawH = (pw / img.naturalWidth) * img.naturalHeight;
   report(Math.min(rawH, cap));
 }

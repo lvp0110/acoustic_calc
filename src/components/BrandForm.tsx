@@ -32,11 +32,11 @@ const isEdgeOrPerforationImageField = (field: BrandParam) => {
   );
 };
 
-/** На узком экране (≤375px) кромка и перфорация — в одной строке */
 function groupFieldsForBrandForm(fields: BrandParam[]) {
   type Group =
     | { kind: "single"; field: BrandParam }
-    | { kind: "edgePerfRow"; fields: BrandParam[] };
+    | { kind: "edgePerfRow"; fields: BrandParam[] }
+    | { kind: "sizeColorRow"; fields: BrandParam[] };
   const groups: Group[] = [];
   let i = 0;
   while (i < fields.length) {
@@ -48,6 +48,20 @@ function groupFieldsForBrandForm(fields: BrandParam[]) {
         i++;
       }
       groups.push({ kind: "edgePerfRow", fields: row });
+    } else if (isSizeField(field) || isColorSelectImageField(field)) {
+      const row: BrandParam[] = [];
+      while (
+        i < fields.length &&
+        (isSizeField(fields[i]) || isColorSelectImageField(fields[i]))
+      ) {
+        row.push(fields[i]);
+        i++;
+      }
+      if (row.length === 1) {
+        groups.push({ kind: "single", field: row[0]! });
+      } else {
+        groups.push({ kind: "sizeColorRow", fields: row });
+      }
     } else {
       groups.push({ kind: "single", field });
       i++;
@@ -100,18 +114,29 @@ export default function BrandForm({
   const groups = groupFieldsForBrandForm(fields);
   return (
     <div className="brand-form">
-      {groups.map((group) =>
-        group.kind === "single" ? (
-          renderListSelect(group.field)
-        ) : (
+      {groups.map((group) => {
+        if (group.kind === "single") {
+          return renderListSelect(group.field);
+        }
+        if (group.kind === "edgePerfRow") {
+          return (
+            <div
+              key={group.fields.map((f) => f.code).join("-")}
+              className="brand-form__edge-perf-row"
+            >
+              {group.fields.map((field) => renderListSelect(field, group.fields))}
+            </div>
+          );
+        }
+        return (
           <div
             key={group.fields.map((f) => f.code).join("-")}
-            className="brand-form__edge-perf-row"
+            className="brand-form__size-color-row"
           >
-            {group.fields.map((field) => renderListSelect(field, group.fields))}
+            {group.fields.map((field) => renderListSelect(field))}
           </div>
-        ),
-      )}
+        );
+      })}
     </div>
   );
 }

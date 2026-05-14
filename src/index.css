@@ -291,6 +291,20 @@ body {
   align-items: start;
 }
 
+/* Размер + цвет: триггеры друг под другом на всю ширину блока формы. */
+.brand-form__size-color-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+}
+
+.brand-form__size-color-row > * {
+  min-width: 0;
+  width: 100%;
+}
+
 @media (max-width: 699px) {
   .brand-form {
     grid-template-columns: 1fr;
@@ -299,6 +313,23 @@ body {
 
   .brand-form__edge-perf-row {
     grid-template-columns: 1fr;
+  }
+
+  .brand-page-forms {
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .brand-page-forms input,
+  .brand-page-forms select,
+  .brand-page-forms button {
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .brand-page-forms .calc-form__info-banner-text {
+    font-size: 15px;
+    line-height: 22px;
   }
 }
 a {
