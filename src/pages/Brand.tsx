@@ -146,6 +146,22 @@ export default function Brand() {
     setResetNonce((n) => n + 1);
   };
 
+  /** Как ссылка «Вернуться к выбору характеристик» в calc: убрать расчёт, поля бренда сохранить. */
+  const onBackFromCalcResults = () => {
+    navigate({
+      search: {
+        ...search,
+        type: undefined,
+        square: undefined,
+        length: undefined,
+        height: undefined,
+        articuls: undefined,
+      },
+      from: "/$brandCode",
+      replace: true,
+    });
+  };
+
   const onArticulChange = (_: string, itemCode: string) => {
     navigate({
       search: { ...search, articuls: itemCode },
@@ -199,7 +215,12 @@ export default function Brand() {
 
   return (
     <div className="main-unit">
-      <div className="brand-page-layout">
+      <div
+        className={
+          "brand-page-layout" +
+          (calcResult ? " brand-page-layout--has-calc-result" : "")
+        }
+      >
         <div ref={formsColumnRef} className="brand-page-forms">
           <div className="brand-page-header-images">
             {colorImageUrl ? (
@@ -254,7 +275,12 @@ export default function Brand() {
           )}
         </div>
         {(descriptionToShow || calcResult) && (
-          <div className="brand-page-result">
+          <div
+            className={
+              "brand-page-result" +
+              (calcResult ? " brand-page-result--with-calc" : "")
+            }
+          >
             {descriptionToShow && (
               <BrandDescription content={descriptionToShow} />
             )}
@@ -263,6 +289,7 @@ export default function Brand() {
                 brandCode={brandCode}
                 data={calcResult}
                 onSelectChange={onArticulChange}
+                onBackToCharacteristics={onBackFromCalcResults}
                 excelUrl={
                   calcQueryParams
                     ? getExcelDownloadUrl(brandCode, {

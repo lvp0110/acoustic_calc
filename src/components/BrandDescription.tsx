@@ -7,7 +7,9 @@ interface BrandDescriptionProps {
 
 export default function BrandDescription({ content }: BrandDescriptionProps) {
   return (
-    <div className={styles.description}>
+    <div
+      className={`${styles.description} brand-page-model-description`}
+    >
       <ReactMarkdown>{content}</ReactMarkdown>
     </div>
   );

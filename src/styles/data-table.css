@@ -171,7 +171,9 @@
   }
 
   .result-table--desktop .cell-select-trigger {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;

@@ -158,8 +158,18 @@ export default function CalcForm({
     onReset?.();
   };
 
+  /** Enter в числовых полях дублирует «Применить» (в т.ч. где не срабатывает неявный submit формы). */
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key !== "Enter") return;
+    const t = e.target;
+    if (!(t instanceof HTMLInputElement) || t.type !== "number") return;
+    e.preventDefault();
+    handleSubmit();
+  };
+
   return (
     <form
+      onKeyDown={handleFormKeyDown}
       onSubmit={(e) => {
         e.preventDefault();
         handleSubmit();

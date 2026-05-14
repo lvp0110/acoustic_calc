@@ -17,6 +17,8 @@ import "./CalcResult.css";
 interface CalcResultProps {
   data: CalcResultData;
   onSelectChange?: (rowId: string, itemCode: string) => void;
+  /** На узком экране — возврат к форме (отдельный «экран», как в calc). */
+  onBackToCharacteristics?: () => void;
   excelUrl?: string;
   brandCode?: string;
 }
@@ -24,6 +26,7 @@ interface CalcResultProps {
 export default function CalcResult({
   data,
   onSelectChange,
+  onBackToCharacteristics,
   excelUrl,
   brandCode = "",
 }: CalcResultProps) {
@@ -284,6 +287,16 @@ export default function CalcResult({
             </a>
           </div>
         </div>
+      ) : null}
+
+      {onBackToCharacteristics ? (
+        <button
+          type="button"
+          className="calc-result-back-link"
+          onClick={onBackToCharacteristics}
+        >
+          Вернуться к выбору характеристик
+        </button>
       ) : null}
 
       <div className="result-table-wrap">
