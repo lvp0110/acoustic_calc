@@ -685,10 +685,13 @@ body.dark .result-table .cell-select-option.is-selected {
     font-size: 15px;
     line-height: 22px;
     min-width: 0;
+    text-align: left;
+    justify-self: start;
   }
 
   .result-table td:not(:first-child) > * {
     text-align: right;
+    justify-self: end;
     min-width: 0;
     max-width: 100%;
     overflow-wrap: anywhere;

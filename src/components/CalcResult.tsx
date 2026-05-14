@@ -172,7 +172,9 @@ export default function CalcResult({
           <thead>
             <tr>
               {columns.map((col) => (
-                <th key={col.id}>{col.name}</th>
+                <th key={col.id} data-col={col.id}>
+                  {col.name}
+                </th>
               ))}
             </tr>
           </thead>
@@ -183,7 +185,7 @@ export default function CalcResult({
                 return (
                   <tr key={item.code}>
                     {columns.map((col) => (
-                      <td key={col.id} data-label={col.name}>
+                      <td key={col.id} data-col={col.id} data-label={col.name}>
                         <span className="result-cell-value">
                           {item[col.id as keyof typeof item]}
                         </span>
@@ -201,7 +203,7 @@ export default function CalcResult({
               return (
                 <tr key={row.id}>
                   {columns.map((col) => (
-                    <td key={col.id} data-label={col.name}>
+                    <td key={col.id} data-col={col.id} data-label={col.name}>
                       {col.id === "name" ? (
                         <span
                           className="cell-select-wrap"
