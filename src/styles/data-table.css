@@ -1,5 +1,6 @@
 /* Общая сетка и оформление для .calc-table и .result-table.
- * Плотная вёрстка: .calc-table 700–1100px; .result-table 901–1100px (карточки результатов — max-width: 900px в CalcResult.css). */
+ * Плотная вёрстка: .calc-table 700–1100px; .result-table — десктоп ≥901px (раньше только до 1100px,
+ * из‑за чего при ширине >1100 table-layout: auto схлопывала колонку с выбором артикула). */
 
 .calc-table,
 .result-table {
@@ -45,6 +46,11 @@
   font-weight: 400;
 }
 
+.result-table td,
+.result-table th {
+  overflow: visible;
+}
+
 .calc-table td:nth-child(n + 2),
 .result-table td:nth-child(n + 2) {
   text-align: right;
@@ -88,6 +94,16 @@
   transform: translateY(-50%) rotate(225deg);
 }
 
+/* Таблица результатов: не inline-flex — иначе на любой ширине обрезается многострочное название в ячейке с выбором */
+.result-table .cell-select-wrap {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
 @media (min-width: 700px) and (max-width: 1100px) {
   .calc-table {
     table-layout: fixed;
@@ -113,7 +129,7 @@
   }
 }
 
-@media (min-width: 901px) and (max-width: 1100px) {
+@media (min-width: 901px) {
   .result-table {
     table-layout: fixed;
     min-width: 0;
@@ -121,6 +137,7 @@
 
   .result-table th,
   .result-table td {
+    vertical-align: top;
     padding: 14px 8px;
     font-size: 15px;
     line-height: 22px;
@@ -131,10 +148,8 @@
   .result-table th:first-child,
   .result-table td:first-child {
     width: 34%;
-  }
-
-  .result-table .cell-select-wrap {
-    max-width: 100%;
+    /* иначе min-width:auto у ячейки не даёт колонке сжиматься — контент (кнопка) вылезает и обрезается */
+    min-width: 0;
   }
 
   .result-table-wrap {
@@ -143,6 +158,11 @@
   }
 
   .result-table .cell-select-trigger {
+    display: block;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: visible;
     font-size: 15px;
     line-height: 22px;
     white-space: normal;

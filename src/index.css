@@ -109,7 +109,6 @@
   --control-height: 50px;
   --color-index: #006bcf;
 
-  /* Theme tokens (default: light) */
   --bg: #f5f5f7;
   --text: #191919;
   --surface: #ffffff;
@@ -133,15 +132,6 @@ body {
   height: auto !important;
   min-height: 100%;
   font-family: "DIN Pro", "Helvetica", sans-serif;
-}
-
-body.dark {
-  --bg: #0f1115;
-  --text: #f5f6f8;
-  --surface: #171a21;
-  --surface-text: #f5f6f8;
-  --border: rgba(255, 255, 255, 0.22);
-  --muted: rgba(245, 246, 248, 0.72);
 }
 
 .main-unit {
@@ -186,7 +176,9 @@ body.dark {
   }
 }
 
-@media (min-width: 900px) and (max-width: 1100px) {
+/* 901px: иначе при ровно 900px одновременно срабатывает max-width:900 (колонка) и этот блок,
+   и .brand-page-result получает width:0 от вёрстки «форма слева» — таблица схлопывается. */
+@media (min-width: 901px) and (max-width: 1100px) {
   .main-unit {
     padding: 20px 14px 36px;
   }
@@ -271,11 +263,7 @@ body.dark {
   border: solid 1px darkgray;
   /* padding: 4px; */
   box-sizing: border-box;
-  background-color: #ffffff; /* блоки с картинками — белые даже в тёмной теме */
-}
-
-body.dark .brand-page-header-image {
-  background-color: #dfdddd;
+  background-color: #ffffff;
 }
 
 .brand-page-header-image--cover {
@@ -366,16 +354,6 @@ select {
   color: var(--surface-text);
 }
 
-body.dark select {
-  background-color: #dfdddd; /* фон выпадающих списков */
-  color: #131314;
-}
-
-body.dark select option {
-  background-color: #dfdddd;
-  color: #131314;
-}
-
 /* Инфо-баннер над переключателем площадь / размеры */
 .calc-form__info-banner {
   display: flex;
@@ -402,14 +380,6 @@ body.dark select option {
   font-weight: 400;
   line-height: 22px;
   color: #1a1a1a;
-}
-
-body.dark .calc-form__info-banner {
-  background-color: rgba(0, 102, 204, 0.14);
-}
-
-body.dark .calc-form__info-banner-text {
-  color: var(--surface-text);
 }
 
 /* Вкладки: площадь / размеры — нижняя синяя полоса у активной, иконки слева */
@@ -483,20 +453,6 @@ body.dark .calc-form__info-banner-text {
   pointer-events: none;
 }
 
-body.dark .calc-form__mode-radiogroup {
-  background-color: rgba(255, 255, 255, 0.04);
-  border-bottom-color: var(--border);
-}
-
-body.dark .calc-form__mode-radio:not(.calc-form__mode-radio--active) {
-  color: rgba(245, 246, 248, 0.55);
-}
-
-body.dark .calc-form__mode-radio--active {
-  color: #8ec8ff;
-  border-bottom-color: #8ec8ff;
-}
-
 /* Ряд «Сбросить» + «Расчёт»: узкая серая и широкая синяя, как в макете */
 .calc-form__actions {
   display: grid;
@@ -525,16 +481,6 @@ body.dark .calc-form__mode-radio--active {
   background-color: #ebebeb;
 }
 
-body.dark .calc-form__btn-reset {
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: var(--border);
-  color: #f5f6f8;
-}
-
-body.dark .calc-form__btn-reset:hover {
-  background-color: rgba(255, 255, 255, 0.12);
-}
-
 button {
   width: 100%;
   height: var(--control-height);
@@ -549,26 +495,11 @@ button {
   box-sizing: border-box;
 }
 
-body.dark button {
-  color: #ffffff; /* текст внутри кнопок белый */
-  border-color: #ffffff; /* border у кнопок белый */
-  background-color: transparent;
-  border-style: solid;
-  border-width: 1px;
-  box-shadow: none;
-}
-
 .brands-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-}
-
-.theme-toggle {
-  width: auto;
-  padding: 0 14px;
-  white-space: nowrap;
 }
 
 input {
@@ -617,9 +548,4 @@ input {
 .calc-table select.cell-select option {
   color: #131314;
   background: #fff;
-}
-
-body.dark .calc-table select.cell-select option {
-  color: #131314;
-  background: #dfdddd;
 }

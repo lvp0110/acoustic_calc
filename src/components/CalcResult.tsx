@@ -2,10 +2,13 @@ import { submitKpForm, type CalcResultData } from "../api";
 import {
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import ReactMarkdown from "react-markdown";
 import "./CalcResult.css";
@@ -63,6 +66,45 @@ export default function CalcResult({
     setKpSubmitError(null);
     setKpSubmitOk(false);
   }, [kpModalOpen]);
+
+  const exportActionsRef = useRef<HTMLDivElement | null>(null);
+  const [exportActionsHeightPx, setExportActionsHeightPx] = useState(0);
+
+  useLayoutEffect(() => {
+    if (!excelUrl) {
+      setExportActionsHeightPx(0);
+      return;
+    }
+    const el = exportActionsRef.current;
+    if (!el) return;
+
+    const mq = window.matchMedia('(min-width: 901px)');
+
+    function measure() {
+      if (!mq.matches) {
+        setExportActionsHeightPx(0);
+        return;
+      }
+      const node = exportActionsRef.current;
+      if (!node) {
+        setExportActionsHeightPx(0);
+        return;
+      }
+      setExportActionsHeightPx(Math.ceil(node.getBoundingClientRect().height));
+    }
+
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    mq.addEventListener("change", measure);
+    window.addEventListener("resize", measure);
+    measure();
+
+    return () => {
+      ro.disconnect();
+      mq.removeEventListener("change", measure);
+      window.removeEventListener("resize", measure);
+    };
+  }, [excelUrl]);
 
   useEffect(() => {
     if (openRowId === null) return;
@@ -133,10 +175,17 @@ export default function CalcResult({
     }
   }
 
+  const calcResultStyle =
+    excelUrl && exportActionsHeightPx > 0
+      ? ({
+          ["--result-export-actions-h" as string]: `${exportActionsHeightPx}px`,
+        } as CSSProperties)
+      : undefined;
+
   return (
-    <div ref={rootRef} className="calc-result">
+    <div ref={rootRef} className="calc-result" style={calcResultStyle}>
       {excelUrl ? (
-        <div className="result-export-actions">
+        <div ref={exportActionsRef} className="result-export-actions">
           <div className="result-export-excel-kp">
             <button
               type="button"
@@ -209,8 +258,9 @@ export default function CalcResult({
                           className="cell-select-wrap"
                           data-open={openRowId === row.id ? "true" : "false"}
                         >
-                          <button
-                            type="button"
+                          <span
+                            role="button"
+                            tabIndex={0}
                             className="cell-select-trigger"
                             aria-haspopup="listbox"
                             aria-expanded={openRowId === row.id}
@@ -220,9 +270,16 @@ export default function CalcResult({
                                 prev === row.id ? null : row.id,
                               )
                             }
+                            onKeyDown={(e: ReactKeyboardEvent<HTMLSpanElement>) => {
+                              if (e.key !== "Enter" && e.key !== " ") return;
+                              e.preventDefault();
+                              setOpenRowId((prev) =>
+                                prev === row.id ? null : row.id,
+                              );
+                            }}
                           >
                             {selectedItem.name}
-                          </button>
+                          </span>
                           {openRowId === row.id ? (
                             <ul
                               id={listboxId}

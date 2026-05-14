@@ -10,7 +10,17 @@
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   padding: 16px;
-  overflow: hidden;
+  /* hidden обрезал текст у краёв (border-radius + внутренний скролл); горизонтальный скролл задаём только ≥901px */
+  overflow-x: visible;
+  overflow-y: visible;
+}
+
+/* Иначе позже подключаемый каскад перебивает overflow-x из data-table; на десктопе нужна прокрутка по X. */
+@media (min-width: 901px) {
+  .result-table-wrap {
+    overflow-x: auto;
+    overflow-y: visible;
+  }
 }
 
 .result-export-actions {
@@ -111,24 +121,6 @@ a.result-export-btn--secondary:hover {
 
 .result-export-btn__label {
   white-space: nowrap;
-}
-
-body.dark .result-export-btn--secondary {
-  background: var(--surface);
-  color: var(--surface-text);
-  border-color: var(--border);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-}
-
-body.dark .result-export-btn--secondary:hover {
-  background: color-mix(in srgb, var(--surface-text) 6%, var(--surface));
-  color: var(--surface-text);
-}
-
-body.dark a.result-export-btn--secondary,
-body.dark a.result-export-btn--secondary:visited,
-body.dark a.result-export-btn--secondary:hover {
-  color: var(--surface-text);
 }
 
 .kp-dialog {
@@ -479,6 +471,23 @@ body.dark a.result-export-btn--secondary:hover {
 
 /* Сетка .result-table — src/styles/data-table.css */
 
+/* Десктоп (≥901px): липкая шапка таблицы; при наличии панели экспорта — top = её высоте (--result-export-actions-h). */
+@media (min-width: 901px) {
+  .calc-result:has(.result-export-actions) .result-export-actions {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    background-color: var(--bg);
+  }
+
+  .calc-result:has(.result-export-actions) .result-table thead th {
+    position: sticky;
+    top: var(--result-export-actions-h, 0px);
+    z-index: 5;
+    background-color: var(--surface);
+  }
+}
+
 .result-table .cell-select-trigger {
   color: #36a9e1;
   font-size: 17px;
@@ -491,15 +500,34 @@ body.dark a.result-export-btn--secondary:hover {
   margin: 0;
   background: none;
   box-shadow: none;
-  outline: none;
   border-radius: 0;
+  display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   text-align: left;
-  line-height: 26px;
+  overflow: visible;
+  /* Не <button>: у нативной кнопки часто внутренний overflow и обрезается многострочный текст */
+  min-height: var(--control-height, 50px);
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .result-table .cell-select-trigger:hover {
   text-decoration: none;
+}
+
+.result-table .cell-select-trigger:focus {
+  outline: none;
+}
+
+.result-table .cell-select-trigger:focus-visible {
+  outline: 2px solid var(--color-index);
+  outline-offset: 2px;
 }
 
 .result-table .result-cell-value {
@@ -507,6 +535,7 @@ body.dark a.result-export-btn--secondary:hover {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  overflow: visible;
 }
 
 .result-table .cell-select-menu {
@@ -547,6 +576,11 @@ body.dark a.result-export-btn--secondary:hover {
   line-height: 26px;
   font-family: inherit;
   font-weight: 400;
+  min-height: var(--control-height, 50px);
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .result-table .cell-select-option:hover {
@@ -556,24 +590,6 @@ body.dark a.result-export-btn--secondary:hover {
 .result-table .cell-select-option.is-selected {
   background: rgba(0, 0, 0, 0.06);
   font-weight: 500;
-}
-
-body.dark .result-table .cell-select-menu {
-  background: #dfdddd;
-  border-color: rgba(255, 255, 255, 0.22);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-}
-
-body.dark .result-table .cell-select-option {
-  color: #131314;
-}
-
-body.dark .result-table .cell-select-option:hover {
-  background: rgba(0, 0, 0, 0.06);
-}
-
-body.dark .result-table .cell-select-option.is-selected {
-  background: rgba(0, 0, 0, 0.10);
 }
 
 /* Панель экспорта на средних ширинах (см. data-table.css для сетки таблицы). */
@@ -595,7 +611,7 @@ body.dark .result-table .cell-select-option.is-selected {
   }
 }
 
-/* Таблица результатов — карточки при ширине окна <900px; компактная сетка data-table для .result-table не включается до 901px, чтобы стили карточек совпадали с узкой шириной (~700). */
+/* Таблица результатов — карточки при ширине окна <900px; компактная сетка data-table для .result-table не включается до 901px, чтобы стили карточек совпадали с узкой шириной (~700). Шапка — одна строка над карточками. */
 @media (max-width: 900px) {
   .result-table-wrap {
     padding: 12px;
@@ -609,10 +625,6 @@ body.dark .result-table .cell-select-option.is-selected {
     border-spacing: 0 14px;
   }
 
-  .result-table thead {
-    display: none;
-  }
-
   .result-table,
   .result-table tbody,
   .result-table tr,
@@ -620,6 +632,58 @@ body.dark .result-table .cell-select-option.is-selected {
     display: block;
     width: 100%;
     box-sizing: border-box;
+  }
+
+  /* Шапка: одна полоска как «карточка» над строками данных (tbody по-прежнему карточки) */
+  .result-table thead {
+    display: block;
+    width: 100%;
+    margin-bottom: 14px;
+  }
+
+  .result-table thead tr {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    background: #ffffff;
+    border: 1px solid #eaeaea;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    box-sizing: border-box;
+    overflow: visible;
+  }
+
+  .result-table thead th {
+    display: block;
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0;
+    padding: 12px 14px;
+    border-bottom: none;
+    font-weight: 500;
+    font-size: 15px;
+    line-height: 22px;
+    color: #191919;
+    text-align: left;
+    background: transparent;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .result-table thead th:first-child {
+    flex: 1.35 1 0;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+  }
+
+  .result-table thead th:last-child {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+  }
+
+  .result-table thead th:nth-child(n + 2) {
+    text-align: right;
   }
 
   .result-table tbody tr {
@@ -640,6 +704,7 @@ body.dark .result-table .cell-select-option.is-selected {
     border-bottom: none;
     padding: 10px 16px;
     text-align: left;
+    overflow: visible;
     overflow-wrap: anywhere;
     word-break: break-word;
     color: #191919;
@@ -694,6 +759,7 @@ body.dark .result-table .cell-select-option.is-selected {
     justify-self: end;
     min-width: 0;
     max-width: 100%;
+    overflow: visible;
     overflow-wrap: anywhere;
     color: #000000;
     font-weight: 400;
@@ -728,34 +794,6 @@ body.dark .result-table .cell-select-option.is-selected {
     min-width: 0;
     width: max(220px, 100%);
     max-width: calc(100vw - 24px);
-  }
-
-  body.dark .result-table-wrap {
-    background: color-mix(in srgb, var(--surface) 92%, #000);
-  }
-
-  body.dark .result-table tbody tr {
-    background: var(--surface);
-    border-color: var(--border);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
-  }
-
-  body.dark .result-table td {
-    color: var(--surface-text);
-  }
-
-  body.dark .result-table td:first-child {
-    color: var(--surface-text);
-    border-bottom-color: var(--border);
-  }
-
-  body.dark .result-table td:not(:first-child)::before {
-    color: color-mix(in srgb, var(--surface-text) 58%, transparent);
-  }
-
-  body.dark .result-table td:not(:first-child) > *,
-  body.dark .result-table .cell-select-trigger {
-    color: var(--surface-text);
   }
 }
 

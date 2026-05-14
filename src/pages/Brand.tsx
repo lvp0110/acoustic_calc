@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import {
@@ -23,9 +23,7 @@ function normalizeCategoryImageUrl(url: string): string {
 
 export default function Brand() {
   const formsColumnRef = useRef<HTMLDivElement | null>(null);
-  const calcResultTopRef = useRef<HTMLDivElement | null>(null);
   const colorHeaderImgRef = useRef<HTMLImageElement | null>(null);
-  const scrollToResultPendingRef = useRef(false);
   const [colorHeaderImageShown, setColorHeaderImageShown] = useState(false);
   const [resetNonce, setResetNonce] = useState(0);
   const { brandCode } = useParams({ from: "/$brandCode" });
@@ -97,19 +95,6 @@ export default function Brand() {
     placeholderData: (prev) => (calcQueryParams ? prev : undefined),
   });
 
-  useEffect(() => {
-    if (!scrollToResultPendingRef.current) return;
-    if (!calcResult) return;
-
-    scrollToResultPendingRef.current = false;
-    requestAnimationFrame(() => {
-      calcResultTopRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    });
-  }, [calcResult]);
-
   const onFieldChange = (code: string, value: string) => {
     navigate({
       search:
@@ -129,7 +114,6 @@ export default function Brand() {
   };
 
   const onCalculate = (result: CalcFormResult) => {
-    scrollToResultPendingRef.current = true;
     navigate({
       search: {
         ...search,
@@ -271,7 +255,6 @@ export default function Brand() {
         </div>
         {(descriptionToShow || calcResult) && (
           <div className="brand-page-result">
-            <div ref={calcResultTopRef} />
             {descriptionToShow && (
               <BrandDescription content={descriptionToShow} />
             )}

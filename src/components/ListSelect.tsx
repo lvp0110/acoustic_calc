@@ -58,7 +58,10 @@ function measureSelectedPreviewHeight(
 ): void {
   if (!report || !wrap || !img?.naturalWidth) return;
   const pw = wrap.clientWidth;
-  if (!pw) return;
+  if (!pw) {
+    report(0);
+    return;
+  }
   const cap = readSelectedPreviewMaxPx(wrap);
   const rawH = (pw / img.naturalWidth) * img.naturalHeight;
   report(Math.min(rawH, cap));
@@ -81,6 +84,9 @@ export default function ListSelect({
 }: ListSelectProps) {
   const [open, setOpen] = useState(false);
   const [, bumpLayoutOnResize] = useState(0);
+  const [narrowViewport, setNarrowViewport] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth < MOBILE_SHEET_BREAKPOINT : false,
+  );
   const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerWrapRef = useRef<HTMLDivElement | null>(null);
   const selectedPreviewWrapRef = useRef<HTMLDivElement | null>(null);
@@ -94,6 +100,15 @@ export default function ListSelect({
     () => !compactDropdown && options.some((o) => getOptionImageUrl(o) !== null),
     [compactDropdown, options]
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia(`(max-width: ${MOBILE_SHEET_BREAKPOINT - 1}px)`);
+    const sync = () => setNarrowViewport(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     // При сбросе/изменении значения извне (через URL/форму) закрываем дропдаун,
@@ -122,7 +137,6 @@ export default function ListSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
   const hasSelection = Boolean(value?.trim());
-  const isMobileSheet = window.innerWidth < MOBILE_SHEET_BREAKPOINT;
   const selectedOption = hasSelection
     ? options.find((o) => o.code === value)
     : undefined;
@@ -168,7 +182,7 @@ export default function ListSelect({
   }, [selectedPreviewUrl, selectedImageBelow, syncSelectedPreviewHeight]);
 
   function renderDropdown() {
-    const mobileSheet = window.innerWidth < MOBILE_SHEET_BREAKPOINT;
+    const mobileSheet = narrowViewport;
     const wideViewport = window.innerWidth >= DROPDOWN_TWO_COLUMN_MIN_WIDTH;
     const twoColumns = !compactDropdown && (wideViewport || hasImages);
     const alignEl = dropdownAlignToRef?.current;
@@ -256,7 +270,7 @@ export default function ListSelect({
         </button>
         {open && options.length > 0 && renderDropdown()}
       </div>
-      {!isMobileSheet && selectedPreviewUrl && selectedOption && (
+      {!narrowViewport && selectedPreviewUrl && selectedOption && (
         <div className={styles.selectedPreviewWrap}>
           <div
             ref={selectedPreviewWrapRef}

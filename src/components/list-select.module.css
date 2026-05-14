@@ -12,6 +12,12 @@
   padding: 0 32px 0 12px;
   cursor: pointer;
   position: relative;
+  /* index.css: button { height: 50px } — для длинной подписи нужна высота по содержимому */
+  min-height: var(--control-height, 50px);
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 :global(.brand-form) .trigger {
@@ -133,25 +139,6 @@
   background-color: #f0f0f0;
 }
 
-/* Dark theme dropdown */
-:global(body.dark) .dropdown {
-  background-color: #dfdddd;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-}
-
-:global(body.dark) .optionText {
-  color: #131314;
-}
-
-:global(body.dark) .optionText:hover {
-  background-color: rgba(0, 0, 0, 0.06);
-}
-
-:global(body.dark) .optionLabel,
-:global(body.dark) .optionTextLabel {
-  color: #131314; /* как в светлой теме */
-}
-
 /* ───── Image & label ───── */
 
 .optionImg {
@@ -240,14 +227,6 @@
   white-space: nowrap;
 }
 
-:global(body.dark) .selectedPreviewCard {
-  background-color: #dfdddd;
-}
-
-:global(body.dark) .selectedPreviewCaption {
-  color: color-mix(in srgb, #f5f6f8 65%, transparent);
-}
-
 /* --- responsive (ширина ↓: более узкие правила ниже в каскаде) --- */
 
 @media (min-width: 700px) and (max-width: 1100px) {
@@ -329,10 +308,6 @@
     font-size: 17px;
     font-weight: 500;
     line-height: 24px;
-  }
-
-  :global(body.dark) .mobileTitle {
-    color: #131314;
   }
 }
 
