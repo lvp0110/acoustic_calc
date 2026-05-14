@@ -1,4 +1,5 @@
-/* Общая сетка и оформление для .calc-table и .result-table */
+/* Общая сетка и оформление для .calc-table и .result-table.
+ * Плотная вёрстка: .calc-table 700–1100px; .result-table 901–1100px (карточки результатов — max-width: 900px в CalcResult.css). */
 
 .calc-table,
 .result-table {
@@ -87,15 +88,37 @@
   transform: translateY(-50%) rotate(225deg);
 }
 
-@media (min-width: 768px) and (max-width: 1100px) {
-  .calc-table,
-  .result-table {
+@media (min-width: 700px) and (max-width: 1100px) {
+  .calc-table {
     table-layout: fixed;
     min-width: 0;
   }
 
   .calc-table th,
-  .calc-table td,
+  .calc-table td {
+    padding: 14px 8px;
+    font-size: 15px;
+    line-height: 22px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .calc-table th:first-child,
+  .calc-table td:first-child {
+    width: 34%;
+  }
+
+  .calc-table .cell-select-wrap {
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1100px) {
+  .result-table {
+    table-layout: fixed;
+    min-width: 0;
+  }
+
   .result-table th,
   .result-table td {
     padding: 14px 8px;
@@ -105,24 +128,33 @@
     word-break: break-word;
   }
 
-  .calc-table th:first-child,
-  .calc-table td:first-child,
   .result-table th:first-child,
   .result-table td:first-child {
     width: 34%;
   }
 
-  .calc-table .cell-select-wrap,
   .result-table .cell-select-wrap {
     max-width: 100%;
   }
 
-  .result-table .cell-select-trigger,
-  .result-table .result-cell-value {
+  .result-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .result-table .cell-select-trigger {
     font-size: 15px;
     line-height: 22px;
     white-space: normal;
     overflow-wrap: anywhere;
     word-break: break-word;
+  }
+
+  /* Явный сброс: без этого значения наследуют компактный td и визуально не меняются. */
+  .result-table .result-cell-value {
+    font-size: 17px;
+    line-height: 26px;
+    overflow-wrap: normal;
+    word-break: normal;
   }
 }

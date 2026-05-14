@@ -131,19 +131,6 @@ body.dark a.result-export-btn--secondary:hover {
   color: var(--surface-text);
 }
 
-@media (max-width: 560px) {
-  .result-export-btn {
-    padding: 0 12px;
-    font-size: 13px;
-    height: 38px;
-  }
-
-  .result-export-btn__icon {
-    width: 18px;
-    height: 18px;
-  }
-}
-
 .kp-dialog {
   width: min(calc(100vw - 32px), 550px);
   max-width: 100%;
@@ -515,6 +502,13 @@ body.dark a.result-export-btn--secondary:hover {
   text-decoration: none;
 }
 
+.result-table .result-cell-value {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 .result-table .cell-select-menu {
   position: absolute;
   left: 0;
@@ -582,7 +576,8 @@ body.dark .result-table .cell-select-option.is-selected {
   background: rgba(0, 0, 0, 0.10);
 }
 
-@media (min-width: 768px) and (max-width: 1100px) {
+/* Панель экспорта на средних ширинах (см. data-table.css для сетки таблицы). */
+@media (min-width: 700px) and (max-width: 1100px) {
   .result-export-actions {
     height: auto;
   }
@@ -598,50 +593,20 @@ body.dark .result-table .cell-select-option.is-selected {
     padding: 0 14px;
     font-size: 14px;
   }
-
-  .result-table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .result-table {
-    table-layout: fixed;
-    min-width: 0;
-  }
-
-  .result-table th,
-  .result-table td {
-    padding: 14px 8px;
-    font-size: 15px;
-    line-height: 22px;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-
-  .result-table th:first-child,
-  .result-table td:first-child {
-    width: 34%;
-  }
-
-  .result-table .cell-select-trigger,
-  .result-table .result-cell-value {
-    font-size: 15px;
-    line-height: 22px;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
 }
 
-@media (max-width: 375px) {
+/* Таблица результатов — карточки при ширине окна <900px; компактная сетка data-table для .result-table не включается до 901px, чтобы стили карточек совпадали с узкой шириной (~700). */
+@media (max-width: 900px) {
   .result-table-wrap {
     padding: 12px;
     overflow: visible;
+    background: #f5f5f7;
+    border-radius: 0;
   }
 
   .result-table {
     border-collapse: separate;
-    border-spacing: 0 12px; /* расстояние между карточками */
+    border-spacing: 0 14px;
   }
 
   .result-table thead {
@@ -658,13 +623,13 @@ body.dark .result-table .cell-select-option.is-selected {
   }
 
   .result-table tbody tr {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    background: #ffffff;
+    border: 1px solid #eaeaea;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
     /* важно: иначе выпадающее меню в ячейке обрезается границами карточки */
     overflow: visible;
-    margin-bottom: 12px;
+    margin-bottom: 0;
   }
 
   .result-table tbody tr:last-child {
@@ -672,11 +637,12 @@ body.dark .result-table .cell-select-option.is-selected {
   }
 
   .result-table td {
-    border-bottom: 1px solid var(--border);
-    padding: 14px 16px;
+    border-bottom: none;
+    padding: 10px 16px;
     text-align: left;
     overflow-wrap: anywhere;
     word-break: break-word;
+    color: #191919;
   }
 
   /* Перебиваем десктопное выравнивание вправо для 2+ колонки */
@@ -685,33 +651,39 @@ body.dark .result-table .cell-select-option.is-selected {
   }
 
   .result-table td:last-child {
-    border-bottom: none;
+    padding-bottom: 14px;
   }
 
   /* Первая ячейка — заголовок карточки */
   .result-table td:first-child {
     font-weight: 700;
     font-size: 16px;
-    line-height: 1.25;
+    line-height: 1.35;
     white-space: normal;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid #eaeaea;
+    color: #000000;
   }
 
   .result-table td:first-child::before {
     content: none;
   }
 
-  /* Остальные ячейки — как "параметр слева / значение справа" */
+  /* Остальные ячейки — подпись слева (#888), значение справа */
   .result-table td:not(:first-child) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: baseline;
-    column-gap: 12px;
+    align-items: center;
+    column-gap: 16px;
+    padding: 10px 16px;
   }
 
   .result-table td:not(:first-child)::before {
     content: attr(data-label);
-    color: color-mix(in srgb, var(--surface-text) 55%, transparent);
-    font-weight: 500;
+    color: #888888;
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 22px;
     min-width: 0;
   }
 
@@ -720,16 +692,14 @@ body.dark .result-table .cell-select-option.is-selected {
     min-width: 0;
     max-width: 100%;
     overflow-wrap: anywhere;
+    color: #000000;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
   }
 
   .result-table .result-cell-value {
-    display: inline-block;
-    min-width: 0;
-    max-width: 100%;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-    justify-self: end;
-    /* text-align: right; */
+    width: 100%;
   }
 
   /* Триггер выбора оставляем аккуратным в карточке */
@@ -740,6 +710,10 @@ body.dark .result-table .cell-select-option.is-selected {
     width: auto;
     max-width: 100%;
     justify-self: end;
+    color: #000000;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
   }
 
   /* Выпадающее меню в карточке: открываем вниз и не вылезаем за экран */
@@ -752,7 +726,49 @@ body.dark .result-table .cell-select-option.is-selected {
     width: max(220px, 100%);
     max-width: calc(100vw - 24px);
   }
+
+  body.dark .result-table-wrap {
+    background: color-mix(in srgb, var(--surface) 92%, #000);
+  }
+
+  body.dark .result-table tbody tr {
+    background: var(--surface);
+    border-color: var(--border);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  }
+
+  body.dark .result-table td {
+    color: var(--surface-text);
+  }
+
+  body.dark .result-table td:first-child {
+    color: var(--surface-text);
+    border-bottom-color: var(--border);
+  }
+
+  body.dark .result-table td:not(:first-child)::before {
+    color: color-mix(in srgb, var(--surface-text) 58%, transparent);
+  }
+
+  body.dark .result-table td:not(:first-child) > *,
+  body.dark .result-table .cell-select-trigger {
+    color: var(--surface-text);
+  }
 }
+
+@media (max-width: 560px) {
+  .result-export-btn {
+    padding: 0 12px;
+    font-size: 13px;
+    height: 38px;
+  }
+
+  .result-export-btn__icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
 .tooltip-wrapper {
   position: relative;
   display: inline-block;

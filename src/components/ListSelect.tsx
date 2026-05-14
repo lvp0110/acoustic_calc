@@ -41,7 +41,7 @@ interface ListSelectProps {
 }
 
 /** На узком экране сетка опций с картинками — одна колонка, если нет изображений в списке */
-const DROPDOWN_TWO_COLUMN_MIN_WIDTH = 768;
+const DROPDOWN_TWO_COLUMN_MIN_WIDTH = 700;
 const MOBILE_SHEET_BREAKPOINT = 900;
 
 function readSelectedPreviewMaxPx(wrap: HTMLElement): number {
@@ -169,7 +169,7 @@ export default function ListSelect({
 
   function renderDropdown() {
     const mobileSheet = window.innerWidth < MOBILE_SHEET_BREAKPOINT;
-    const wideViewport = window.innerWidth > DROPDOWN_TWO_COLUMN_MIN_WIDTH;
+    const wideViewport = window.innerWidth >= DROPDOWN_TWO_COLUMN_MIN_WIDTH;
     const twoColumns = !compactDropdown && (wideViewport || hasImages);
     const alignEl = dropdownAlignToRef?.current;
     const triggerEl = triggerWrapRef.current;

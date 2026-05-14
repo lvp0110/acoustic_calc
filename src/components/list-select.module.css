@@ -248,14 +248,9 @@
   color: color-mix(in srgb, #f5f6f8 65%, transparent);
 }
 
-/* Планшеты / узкие колонки формы */
-@media (max-width: 600px) {
-  .selectedPreviewWrap {
-    --selected-preview-max: 200px;
-  }
-}
+/* --- responsive (ширина ↓: более узкие правила ниже в каскаде) --- */
 
-@media (min-width: 768px) and (max-width: 1100px) {
+@media (min-width: 700px) and (max-width: 1100px) {
   :global(.brand-form) .trigger,
   :global(.brand-form) .optionText {
     font-size: 15px;
@@ -341,12 +336,9 @@
   }
 }
 
-@keyframes list-select-slide-in {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
+@media (max-width: 600px) {
+  .selectedPreviewWrap {
+    --selected-preview-max: 200px;
   }
 }
 
@@ -369,5 +361,14 @@
   }
   .selectedPreviewCard {
     padding: 10px;
+  }
+}
+
+@keyframes list-select-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
   }
 }
