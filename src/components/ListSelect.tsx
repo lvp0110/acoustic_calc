@@ -7,6 +7,7 @@ import {
   type CSSProperties,
   type RefObject,
 } from "react";
+import { createPortal } from "react-dom";
 import { getOptionImageUrl } from "../api/get-base-url";
 import styles from "./list-select.module.css";
 
@@ -97,6 +98,7 @@ export default function ListSelect({
   );
   const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerWrapRef = useRef<HTMLDivElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const selectedPreviewWrapRef = useRef<HTMLDivElement | null>(null);
   const selectedPreviewImgRef = useRef<HTMLImageElement | null>(null);
   const onSelectedPreviewHeightRef = useRef(onSelectedPreviewHeight);
@@ -127,18 +129,23 @@ export default function ListSelect({
   useEffect(() => {
     if (!open) return;
 
-    const handleResize = () => bumpLayoutOnResize((n) => n + 1);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const handleLayoutChange = () => bumpLayoutOnResize((n) => n + 1);
+    window.addEventListener("resize", handleLayoutChange);
+    window.addEventListener("scroll", handleLayoutChange, true);
+    return () => {
+      window.removeEventListener("resize", handleLayoutChange);
+      window.removeEventListener("scroll", handleLayoutChange, true);
+    };
   }, [open]);
 
   useEffect(() => {
     if (!open) return;
 
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      if (containerRef.current?.contains(target)) return;
+      if (dropdownRef.current?.contains(target)) return;
+      setOpen(false);
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -195,24 +202,28 @@ export default function ListSelect({
     const twoColumns = !compactDropdown && (wideViewport || hasImages);
     const alignEl = dropdownAlignToRef?.current;
     const triggerEl = triggerWrapRef.current;
-    const useFullWidth = Boolean(alignEl && triggerEl);
+    const usePortal =
+      !mobileSheet && Boolean(dropdownAlignToRef && alignEl && triggerEl);
 
-    const formRect = useFullWidth && alignEl ? alignEl.getBoundingClientRect() : null;
-    const triggerRect = useFullWidth && triggerEl ? triggerEl.getBoundingClientRect() : null;
+    const formRect = usePortal && alignEl ? alignEl.getBoundingClientRect() : null;
+    const triggerRect = usePortal && triggerEl ? triggerEl.getBoundingClientRect() : null;
 
-    const dropdownStyle: CSSProperties | undefined =
-      useFullWidth && formRect && triggerRect
-        ? ({
-            "--list-select-left": `${formRect.left - triggerRect.left}px`,
-            "--list-select-width": `${formRect.width}px`,
-            "--list-select-max-height": "min(70vh, 600px)",
-          } as CSSProperties)
-        : undefined;
+    const dropdownStyle: CSSProperties | undefined = usePortal
+      ? formRect && triggerRect
+        ? {
+            position: "fixed",
+            top: triggerRect.bottom + 4,
+            left: formRect.left,
+            width: formRect.width,
+            maxHeight: "min(70vh, 600px)",
+          }
+        : undefined
+      : undefined;
 
     const dropdownClass = [
       styles.dropdown,
       mobileSheet && styles.dropdownMobile,
-      useFullWidth && styles.dropdownFullWidth,
+      usePortal && styles.dropdownPortal,
       compactDropdown && styles.dropdownText,
       twoColumns && styles.dropdownGrid,
     ]
@@ -220,7 +231,7 @@ export default function ListSelect({
       .join(" ");
 
     return (
-      <div className={dropdownClass} style={dropdownStyle}>
+      <div ref={dropdownRef} className={dropdownClass} style={dropdownStyle}>
         {mobileSheet && (
           <button
             type="button"
@@ -237,7 +248,7 @@ export default function ListSelect({
             imageObjectFit === "cover"
               ? `${styles.optionImg} ${styles.optionImgCover}`
               : styles.optionImg;
-          const useGridImageSlot = mobileSheet && twoColumns;
+          const useGridImageSlot = twoColumns;
           const optionClass = [
             compactDropdown ? styles.optionText : styles.option,
             twoColumns && styles.optionGrid,
@@ -287,8 +298,17 @@ export default function ListSelect({
         >
           {selectedLabel}
         </button>
-        {open && options.length > 0 && renderDropdown()}
+        {open &&
+          options.length > 0 &&
+          (narrowViewport || !dropdownAlignToRef) &&
+          renderDropdown()}
       </div>
+      {open &&
+        options.length > 0 &&
+        dropdownAlignToRef &&
+        !narrowViewport &&
+        typeof document !== "undefined" &&
+        createPortal(renderDropdown(), document.body)}
       {!narrowViewport && selectedPreviewUrl && selectedOption && (
         <div className={styles.selectedPreviewWrap}>
           <div

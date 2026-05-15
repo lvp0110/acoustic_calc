@@ -70,6 +70,44 @@ function groupFieldsForBrandForm(fields: BrandParam[]) {
   return groups;
 }
 
+function BrandFormEdgePerfRow({
+  fields,
+  values,
+  onFieldChange,
+  edgePreviewHeights,
+  onEdgePreviewHeight,
+  dropdownAlignToRef,
+}: {
+  fields: BrandParam[];
+  values: Record<string, string | undefined>;
+  onFieldChange: (code: string, value: string) => void;
+  edgePreviewHeights: Record<string, number>;
+  onEdgePreviewHeight: (fieldCode: string, height: number) => void;
+  dropdownAlignToRef?: RefObject<HTMLElement | null>;
+}) {
+  const maxPreviewH = Math.max(0, ...fields.map((f) => edgePreviewHeights[f.code] ?? 0));
+
+  return (
+    <div className="brand-form__edge-perf-row">
+      {fields.map((field) => (
+        <ListSelect
+          key={field.code}
+          id={field.code}
+          label={field.name}
+          options={field.list}
+          value={values[field.code] ?? ""}
+          onChange={(value) => onFieldChange(field.code, value)}
+          placeholder={field.name}
+          dropdownAlignToRef={dropdownAlignToRef}
+          selectedImageBelow
+          selectedPreviewMinHeight={maxPreviewH > 0 ? maxPreviewH : undefined}
+          onSelectedPreviewHeight={(h) => onEdgePreviewHeight(field.code, h)}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function BrandForm({
   fields,
   values,
@@ -120,12 +158,15 @@ export default function BrandForm({
         }
         if (group.kind === "edgePerfRow") {
           return (
-            <div
+            <BrandFormEdgePerfRow
               key={group.fields.map((f) => f.code).join("-")}
-              className="brand-form__edge-perf-row"
-            >
-              {group.fields.map((field) => renderListSelect(field, group.fields))}
-            </div>
+              fields={group.fields}
+              values={values}
+              onFieldChange={onFieldChange}
+              edgePreviewHeights={edgePreviewHeights}
+              onEdgePreviewHeight={setEdgeFieldPreviewHeight}
+              dropdownAlignToRef={dropdownAlignToRef}
+            />
           );
         }
         return (

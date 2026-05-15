@@ -148,6 +148,7 @@ body {
 .brand-page-forms {
   flex: 0 0 447px;
   min-width: 0;
+  overflow: visible;
 }
 .brand-page-result {
   min-width: 0;
@@ -306,6 +307,7 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 8px 8px;
   align-items: start;
+  overflow: visible;
 }
 
 /* Форма: 2 колонки от 700px; кромка + перфорация — одна строка ≥700px, на <700px — колонка. */
@@ -315,6 +317,12 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   align-items: start;
+  overflow: visible;
+}
+
+.brand-form__edge-perf-row > * {
+  min-width: 0;
+  overflow: visible;
 }
 
 /* Размер + цвет: триггеры друг под другом на всю ширину блока формы. */
