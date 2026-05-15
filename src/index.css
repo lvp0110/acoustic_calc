@@ -538,6 +538,23 @@ select {
   background-color: #ebebeb;
 }
 
+.calc-form__btn-submit:not(:disabled) {
+  color: #fff;
+  background-color: var(--color-index);
+  cursor: pointer;
+}
+
+.calc-form__btn-submit:not(:disabled):hover {
+  background-color: #36a9e1;
+  color: #fff;
+}
+
+.calc-form__btn-submit:disabled {
+  color: var(--color-muted, #999);
+  background-color: var(--color-muted-bg, #eee);
+  cursor: not-allowed;
+}
+
 button {
   width: 100%;
   height: var(--control-height);

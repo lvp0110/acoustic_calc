@@ -328,15 +328,13 @@ export default function CalcResult({
             </table>
           </div>
         </div>
-        {data.title ? (
-          <div
-            className="result-table-title-footer"
-            style={{ color: "#ff6400" }}
-          >
-            <ReactMarkdown>{data.title}</ReactMarkdown>
-          </div>
-        ) : null}
       </div>
+
+      {data.title ? (
+        <div className="result-table-title-footer">
+          <ReactMarkdown>{data.title}</ReactMarkdown>
+        </div>
+      ) : null}
 
       <dialog
         ref={kpDialogRef}

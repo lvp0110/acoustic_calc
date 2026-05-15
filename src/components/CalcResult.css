@@ -128,7 +128,7 @@
 }
 
 .result-export-btn--primary:hover {
-  background: #005aa3;
+  background: #36a9e1;
   color: #fff;
 }
 
@@ -274,7 +274,7 @@ a.result-export-btn--secondary:hover {
 }
 
 .kp-dialog-success__btn:hover {
-  background: #0062b8;
+  background: #36a9e1;
 }
 
 .kp-dialog-error {
@@ -338,7 +338,7 @@ a.result-export-btn--secondary:hover {
 }
 
 .kp-dialog-error__btn:hover {
-  background: #005a9e;
+  background: #36a9e1;
 }
 
 .kp-dialog-header {
@@ -490,7 +490,7 @@ a.result-export-btn--secondary:hover {
 }
 
 .kp-form__submit:hover:not(:disabled) {
-  background: #0062b8;
+  background: #36a9e1;
 }
 
 .kp-form__submit:disabled {
@@ -500,12 +500,10 @@ a.result-export-btn--secondary:hover {
 }
 
 .result-table-title-footer {
-  margin-top: 12px;
   padding-top: 14px;
-  border-top: 1px solid var(--border);
   font-size: 15px;
   font-weight: 400;
-  color: var(--surface-text);
+  color: #7b7e80;
   line-height: 1.4;
 }
 
@@ -659,6 +657,16 @@ a.result-export-btn--secondary:hover {
     height: 44px;
     padding: 0 14px;
     font-size: 14px;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1100px) {
+  .result-export-excel-kp {
+    display: flex;
+  }
+
+  .result-export-btn.result-export-btn--primary {
+    flex: 0;
   }
 }
 

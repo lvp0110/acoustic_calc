@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties, type RefObject } from "react";
+import { useEffect, useMemo, useState, type RefObject } from "react";
 import type { SurfaceType } from "../api";
 import ListSelect from "./ListSelect";
 
@@ -126,14 +126,6 @@ export default function CalcForm({
       Number(height) > 0
     );
   }, [surface, mode, area, length, height]);
-
-  const submitBtnStyle: CSSProperties = {
-    color: isFormFilled ? "white" : "var(--color-muted, #999)",
-    background: isFormFilled
-      ? "var(--color-index)"
-      : "var(--color-muted-bg, #eee)",
-    cursor: isFormFilled ? "pointer" : "not-allowed",
-  };
 
   const handleSubmit = () => {
     if (!surface || !isFormFilled) return;
@@ -281,7 +273,6 @@ export default function CalcForm({
                   type="submit"
                   className="calc-form__btn-submit"
                   disabled={!isFormFilled}
-                  style={submitBtnStyle}
                 >
                   Применить
                 </button>
@@ -332,7 +323,6 @@ export default function CalcForm({
                   type="submit"
                   className="calc-form__btn-submit"
                   disabled={!isFormFilled}
-                  style={submitBtnStyle}
                 >
                   Применить
                 </button>
