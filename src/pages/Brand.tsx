@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import {
@@ -21,11 +21,36 @@ function normalizeCategoryImageUrl(url: string): string {
   return url.replace(/:\/\/0\.0\.0\.0(?=:\d+|\/)/, "://localhost");
 }
 
+/** Синхронно с @media (max-width: 900px) в index.css */
+const NARROW_LAYOUT_MAX_PX = 900;
+const CALC_VIEW_RESULT = "result";
+
+function useIsNarrowLayout() {
+  const [narrow, setNarrow] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.innerWidth < NARROW_LAYOUT_MAX_PX,
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia(
+      `(max-width: ${NARROW_LAYOUT_MAX_PX - 1}px)`,
+    );
+    const update = () => setNarrow(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  return narrow;
+}
+
 export default function Brand() {
   const formsColumnRef = useRef<HTMLDivElement | null>(null);
   const colorHeaderImgRef = useRef<HTMLImageElement | null>(null);
   const [colorHeaderImageShown, setColorHeaderImageShown] = useState(false);
   const [resetNonce, setResetNonce] = useState(0);
+  const isNarrowLayout = useIsNarrowLayout();
   const { brandCode } = useParams({ from: "/$brandCode" });
   const search = useSearch({ from: "/$brandCode" });
   const navigate = useNavigate({ from: "/$brandCode" });
@@ -95,6 +120,11 @@ export default function Brand() {
     placeholderData: (prev) => (calcQueryParams ? prev : undefined),
   });
 
+  /** На узком экране таблица — отдельный «экран»; calcView=result переключает форму и результат. */
+  const showCalcResult =
+    !!calcResult &&
+    (!isNarrowLayout || search.calcView === CALC_VIEW_RESULT);
+
   const onFieldChange = (code: string, value: string) => {
     navigate({
       search:
@@ -107,6 +137,7 @@ export default function Brand() {
               square: undefined,
               length: undefined,
               height: undefined,
+              calcView: undefined,
             },
       from: "/$brandCode",
       replace: true,
@@ -117,6 +148,7 @@ export default function Brand() {
     navigate({
       search: {
         ...search,
+        calcView: CALC_VIEW_RESULT,
         type: result.surface,
         ...(result.mode === "area"
           ? {
@@ -146,15 +178,12 @@ export default function Brand() {
     setResetNonce((n) => n + 1);
   };
 
-  /** Как ссылка «Вернуться к выбору характеристик» в calc: убрать расчёт, поля бренда сохранить. */
+  /** На узком экране — вернуться к форме расчёта, сохранив введённые значения и выбор бренда. */
   const onBackFromCalcResults = () => {
     navigate({
       search: {
         ...search,
-        type: undefined,
-        square: undefined,
-        length: undefined,
-        height: undefined,
+        calcView: undefined,
         articuls: undefined,
       },
       from: "/$brandCode",
@@ -218,7 +247,7 @@ export default function Brand() {
       <div
         className={
           "brand-page-layout" +
-          (calcResult ? " brand-page-layout--has-calc-result" : "")
+          (showCalcResult ? " brand-page-layout--has-calc-result" : "")
         }
       >
         <div ref={formsColumnRef} className="brand-page-forms">
@@ -274,17 +303,17 @@ export default function Brand() {
             />
           )}
         </div>
-        {(descriptionToShow || calcResult) && (
+        {(descriptionToShow || showCalcResult) && (
           <div
             className={
               "brand-page-result" +
-              (calcResult ? " brand-page-result--with-calc" : "")
+              (showCalcResult ? " brand-page-result--with-calc" : "")
             }
           >
             {descriptionToShow && (
               <BrandDescription content={descriptionToShow} />
             )}
-            {calcResult && (
+            {showCalcResult && calcResult && (
               <CalcResult
                 brandCode={brandCode}
                 data={calcResult}
