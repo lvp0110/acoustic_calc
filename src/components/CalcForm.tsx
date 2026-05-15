@@ -62,8 +62,6 @@ interface CalcFormProps {
   onCalculate: (result: CalcFormResult) => void;
   /** Сброс выборов: на странице бренда очищаются все списки и параметры расчёта в URL */
   onReset?: () => void;
-  /** Доп. стили обёртки переключателя поверхности (наследуются там, где уместно) */
-  surfaceSelectTextStyle?: CSSProperties;
   /** Текст между блоками выбора поверхности и способа ввода площади (не показывается, если пусто) */
   betweenRadiogroupsText?: string;
   /** Выравнивание выпадающего списка по ширине колонки формы (как у списков бренда) */
@@ -75,7 +73,6 @@ export default function CalcForm({
   values,
   onCalculate,
   onReset,
-  surfaceSelectTextStyle,
   betweenRadiogroupsText,
   dropdownAlignToRef,
 }: CalcFormProps) {
@@ -174,9 +171,7 @@ export default function CalcForm({
         marginTop: "16px",
       }}
     >
-      <div
-        style={{ gridColumn: "1 / -1", width: "100%", ...surfaceSelectTextStyle }}
-      >
+      <div style={{ gridColumn: "1 / -1", width: "100%" }}>
         <ListSelect
           id="surface"
           label="Тип поверхности"

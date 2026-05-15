@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import {
@@ -13,44 +13,23 @@ import type { CalcFormResult } from "../components/CalcForm";
 import BrandForm from "../components/BrandForm";
 import CalcForm from "../components/CalcForm";
 import CalcResult from "../components/CalcResult";
-import { getOptionImageUrl } from "../api/get-base-url";
+import {
+  getOptionImageUrl,
+  normalizeImageHost,
+} from "../api/get-base-url";
 import BrandDescription from "../components/BrandDescription";
-
-function normalizeCategoryImageUrl(url: string): string {
-  // Backend sometimes returns 0.0.0.0 which is not always reachable from the browser.
-  return url.replace(/:\/\/0\.0\.0\.0(?=:\d+|\/)/, "://localhost");
-}
+import { useMatchMedia } from "../utils/useMatchMedia";
 
 /** Синхронно с @media (max-width: 900px) в index.css */
-const NARROW_LAYOUT_MAX_PX = 900;
+const NARROW_LAYOUT_MQ = "(max-width: 899px)";
 const CALC_VIEW_RESULT = "result";
-
-function useIsNarrowLayout() {
-  const [narrow, setNarrow] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.innerWidth < NARROW_LAYOUT_MAX_PX,
-  );
-
-  useEffect(() => {
-    const mq = window.matchMedia(
-      `(max-width: ${NARROW_LAYOUT_MAX_PX - 1}px)`,
-    );
-    const update = () => setNarrow(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
-
-  return narrow;
-}
 
 export default function Brand() {
   const formsColumnRef = useRef<HTMLDivElement | null>(null);
   const colorHeaderImgRef = useRef<HTMLImageElement | null>(null);
   const [colorHeaderImageShown, setColorHeaderImageShown] = useState(false);
   const [resetNonce, setResetNonce] = useState(0);
-  const isNarrowLayout = useIsNarrowLayout();
+  const isNarrowLayout = useMatchMedia(NARROW_LAYOUT_MQ);
   const { brandCode } = useParams({ from: "/$brandCode" });
   const search = useSearch({ from: "/$brandCode" });
   const navigate = useNavigate({ from: "/$brandCode" });
@@ -203,7 +182,7 @@ export default function Brand() {
   const categoryHeaderImageUrlRaw = brandCategory?.Img?.trim();
   const categoryHeaderImageUrl = categoryHeaderImageUrlRaw
     ? getOptionImageUrl({
-        img: normalizeCategoryImageUrl(categoryHeaderImageUrlRaw),
+        img: normalizeImageHost(categoryHeaderImageUrlRaw),
       })
     : null;
 
@@ -229,17 +208,15 @@ export default function Brand() {
     }
   }, [colorImageUrl]);
 
-  const { selectedModelOption, descriptionToShow } = useMemo(() => {
+  const descriptionToShow = useMemo(() => {
     const modelField = data?.find(
       (f) => f.code === "model" || f.name.toLowerCase().includes("модел"),
     );
     const selectedModelCode = modelField ? search[modelField.code] : undefined;
-    const selectedModelOption = selectedModelCode
-      ? modelField?.list.find((o) => o.code === selectedModelCode)
+    const modelDescription = selectedModelCode
+      ? modelField?.list.find((o) => o.code === selectedModelCode)?.description?.trim()
       : undefined;
-    const descriptionToShow =
-      selectedModelOption?.description?.trim() || brandCategory?.Description;
-    return { selectedModelOption, descriptionToShow };
+    return modelDescription || brandCategory?.Description;
   }, [data, search, brandCategory?.Description]);
 
   return (

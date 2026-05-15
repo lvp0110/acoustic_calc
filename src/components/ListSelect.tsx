@@ -9,6 +9,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { getOptionImageUrl } from "../api/get-base-url";
+import { useMatchMedia } from "../utils/useMatchMedia";
 import styles from "./list-select.module.css";
 
 export interface ListSelectOption {
@@ -43,7 +44,7 @@ interface ListSelectProps {
 
 /** На узком экране сетка опций с картинками — одна колонка, если нет изображений в списке */
 const DROPDOWN_TWO_COLUMN_MIN_WIDTH = 700;
-const MOBILE_SHEET_BREAKPOINT = 900;
+const MOBILE_SHEET_MQ = "(max-width: 899px)";
 
 function readSelectedPreviewMaxPx(wrap: HTMLElement): number {
   const raw = getComputedStyle(wrap).getPropertyValue("--selected-preview-max").trim();
@@ -93,9 +94,7 @@ export default function ListSelect({
 }: ListSelectProps) {
   const [open, setOpen] = useState(false);
   const [, bumpLayoutOnResize] = useState(0);
-  const [narrowViewport, setNarrowViewport] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth < MOBILE_SHEET_BREAKPOINT : false,
-  );
+  const narrowViewport = useMatchMedia(MOBILE_SHEET_MQ);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerWrapRef = useRef<HTMLDivElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
@@ -110,15 +109,6 @@ export default function ListSelect({
     () => !compactDropdown && options.some((o) => getOptionImageUrl(o) !== null),
     [compactDropdown, options]
   );
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia(`(max-width: ${MOBILE_SHEET_BREAKPOINT - 1}px)`);
-    const sync = () => setNarrowViewport(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
 
   useEffect(() => {
     // При сбросе/изменении значения извне (через URL/форму) закрываем дропдаун,

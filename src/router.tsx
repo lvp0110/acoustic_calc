@@ -8,7 +8,14 @@ import {
 import Index from "./pages/Index";
 import Brand from "./pages/Brand";
 
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const rootRoute = createRootRoute({
   component: () => (

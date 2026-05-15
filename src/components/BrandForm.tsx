@@ -1,4 +1,4 @@
-import { useCallback, useState, type RefObject } from "react";
+import { useCallback, useMemo, useState, type RefObject } from "react";
 import type { BrandParam } from "../api";
 import ListSelect from "./ListSelect";
 
@@ -149,7 +149,7 @@ export default function BrandForm({
     );
   };
 
-  const groups = groupFieldsForBrandForm(fields);
+  const groups = useMemo(() => groupFieldsForBrandForm(fields), [fields]);
   return (
     <div className="brand-form">
       {groups.map((group) => {

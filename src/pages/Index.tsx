@@ -1,10 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { getAcousticCategories } from "../api";
-import type { AcousticCategory } from "../api";
-
 export default function Home() {
-  const { data, isLoading, error } = useQuery<AcousticCategory[]>({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["acousticCategories"],
     queryFn: () => getAcousticCategories().then((res) => res.data.data),
   });

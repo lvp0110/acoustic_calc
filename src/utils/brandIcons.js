@@ -1,6 +1,5 @@
 // Template mapping between brand codes and icon files in public/brand_icon.
 export const brandIcons = [
-  { brandCode: 'aku_fon', file: 'icon_acufon_ng.png' },
   { brandCode: 'aku_fon', file: 'icon_acufon.png' },
   { brandCode: 'bon', file: 'icon_Bonacoustic.png' },
   { brandCode: 'dc', file: 'icon_Decoustic.png' },
