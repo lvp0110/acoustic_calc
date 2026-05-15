@@ -237,12 +237,23 @@ export default function ListSelect({
             imageObjectFit === "cover"
               ? `${styles.optionImg} ${styles.optionImgCover}`
               : styles.optionImg;
+          const useGridImageSlot = mobileSheet && twoColumns;
           const optionClass = [
             compactDropdown ? styles.optionText : styles.option,
             twoColumns && styles.optionGrid,
           ]
             .filter(Boolean)
             .join(" ");
+
+          const imgNode =
+            imgUrl &&
+            (useGridImageSlot ? (
+              <span className={styles.optionImgSlot}>
+                <img src={imgUrl} alt={option.name} className={optionImgClass} />
+              </span>
+            ) : (
+              <img src={imgUrl} alt={option.name} className={optionImgClass} />
+            ));
 
           return (
             <button
@@ -254,7 +265,7 @@ export default function ListSelect({
                 setOpen(false);
               }}
             >
-              {imgUrl && <img src={imgUrl} alt={option.name} className={optionImgClass} />}
+              {imgNode}
               <span className={compactDropdown ? styles.optionTextLabel : styles.optionLabel}>
                 {option.name}
               </span>
