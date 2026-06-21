@@ -1,78 +1,75 @@
-import express from 'express';
-import { createProxyMiddleware } from 'http-proxy-middleware';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
-import https from 'https';
+import express from "express";
+import { createProxyMiddleware } from "http-proxy-middleware";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const HTTP_PORT = 3000;
-const HTTPS_PORT = 3443;
-const BASE_URL = process.env.BASE_URL;
+const PORT = Number(process.env.HTTP_PORT) || 3000;
+// Бэкенд, куда проксируем /api. Префикс /api НЕ срезаем — backend ждёт его.
+const BACKEND_URL = process.env.BASE_URL || "https://dev3.constrtodo.ru:3005";
+const DIST_DIR = path.join(__dirname, "dist");
+const INDEX_HTML = path.join(DIST_DIR, "index.html");
 
-if (!BASE_URL) {
-  console.error('ERROR: BASE_URL environment variable is required.');
-  console.error('Example: BASE_URL=http://localhost:3005 node server.js');
-  process.exit(1);
+if (!fs.existsSync(INDEX_HTML)) {
+  console.error(`[frontend] WARN: ${INDEX_HTML} не найден — фронт не собран?`);
 }
 
 const app = express();
+app.set("trust proxy", "loopback"); // за host nginx
 
+// Прокси на бэкенд: сохраняем путь как есть (/api/... -> BACKEND_URL/api/...).
+const backendProxy = createProxyMiddleware({
+  target: BACKEND_URL,
+  changeOrigin: true,
+  xfwd: true,
+  pathFilter: (pathname) =>
+    pathname === "/api" || pathname.startsWith("/api/"),
+  on: {
+    error: (err, _req, res) => {
+      console.error(`[proxy] error: ${err.message}`);
+      if (res && !res.headersSent && res.status) {
+        res.status(502).json({ error: "Proxy error", message: err.message });
+      }
+    },
+  },
+});
+app.use(backendProxy);
+
+// Health-check для авто-отката в CI.
+app.get("/__health", (_req, res) => res.json({ ok: true }));
+
+// Статика: ассеты кэшируем надолго, index.html — никогда.
 app.use(
-  '/api',
-  createProxyMiddleware({
-    target: BASE_URL,
-    changeOrigin: true,
-    on: {
-      proxyReq: (_proxyReq, req) => {
-        console.log(`[proxy] --> ${req.method} ${req.originalUrl} -> ${BASE_URL}${req.url}`);
-      },
-      proxyRes: (proxyRes, req) => {
-        console.log(`[proxy] <-- ${proxyRes.statusCode} ${req.method} ${req.originalUrl}`);
-      },
-      error: (err, req, res) => {
-        console.error(`[proxy] error ${req.method} ${req.originalUrl}: ${err.message}`);
-        res.status(502).json({ error: 'Proxy error', message: err.message });
-      },
+  express.static(DIST_DIR, {
+    index: false,
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith("index.html")) {
+        res.setHeader("Cache-Control", "no-cache");
+      } else {
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      }
     },
   })
 );
 
-const distPath = path.join(__dirname, 'dist');
-app.use(express.static(distPath));
-
-app.get('{*path}', (req, res) => {
-  res.sendFile(path.join(distPath, 'index.html'));
+// SPA-fallback (Express 5 синтаксис wildcard).
+app.get("/{*splat}", (_req, res, next) => {
+  if (!fs.existsSync(INDEX_HTML)) return next(new Error("index.html missing"));
+  res.setHeader("Cache-Control", "no-cache");
+  res.sendFile(INDEX_HTML);
 });
 
-// Запуск HTTP сервера
-app.listen(HTTP_PORT, () => {
-  console.log(`HTTP Server running on port ${HTTP_PORT}`);
-  console.log(`Access via: http://localhost:${HTTP_PORT}`);
-  console.log(`Proxying /api/* -> ${BASE_URL}/api/*`);
+const server = app.listen(PORT, () => {
+  console.log(`[frontend] HTTP server: http://localhost:${PORT}`);
+  console.log(`[frontend] API proxy:   /api -> ${BACKEND_URL}`);
 });
 
-// Запуск HTTPS сервера
-try {
-  // В Docker контейнере сертификаты находятся в /app/certs/
-  // В локальной разработке - в ./certs/
-  const certPath = fs.existsSync(path.join(__dirname, 'certs'))
-    ? path.join(__dirname, 'certs')
-    : path.join(__dirname, '../certs');
-
-  const httpsOptions = {
-    key: fs.readFileSync(path.join(certPath, 'privkey.pem')),
-    cert: fs.readFileSync(path.join(certPath, 'fullchain.pem'))
-  };
-
-  https.createServer(httpsOptions, app).listen(HTTPS_PORT, () => {
-    console.log(`HTTPS Server running on port ${HTTPS_PORT}`);
-    console.log(`Access via: https://localhost:${HTTPS_PORT}`);
-    console.log('Note: You may see a security warning for self-signed certificate');
-  });
-} catch (error) {
-  console.error('Failed to start HTTPS server:', error.message);
-  console.log('Make sure certificates exist in ./certs/ or ../certs/ directory');
-  console.log('Run: ./generate-certs.sh to create them');
-}
+const shutdown = (signal) => {
+  console.log(`[frontend] ${signal} received, closing...`);
+  server.close(() => process.exit(0));
+  setTimeout(() => process.exit(1), 10_000).unref();
+};
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

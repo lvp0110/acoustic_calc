@@ -1,69 +1,161 @@
-name: Deploy to GitHub Pages
+name: Deploy
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: "pages"
+  group: deploy
   cancel-in-progress: false
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Check VITE_API_URL secret
-        run: |
-          if [ -z "${{ secrets.VITE_API_URL }}" ]; then
-            echo "⚠️  WARNING: VITE_API_URL secret is not set!"
-            echo "Using fallback: http://localhost:3005"
-          else
-            echo "✅ VITE_API_URL is set (length: ${#VITE_API_URL})"
-            echo "Value starts with: ${VITE_API_URL:0:20}..."
-          fi
-        env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
-      
-      - name: Build
-        env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
-        run: npm run build
-      
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-      
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './dist'
-
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Notify Telegram (start)
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          MSG=$'🚀 <b>Деплой acoustic-calc начат</b>\n'
+          MSG+="<b>Repo:</b> ${GITHUB_REPOSITORY}"$'\n'
+          MSG+="<b>Branch:</b> ${GITHUB_REF_NAME}"$'\n'
+          MSG+="<b>Commit:</b> <code>${GITHUB_SHA:0:7}</code>"$'\n'
+          MSG+="<b>Author:</b> ${GITHUB_ACTOR}"$'\n'
+          MSG+="<a href=\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\">Run #${GITHUB_RUN_NUMBER}</a>"
+          curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            -d chat_id="${TG_CHAT}" \
+            -d parse_mode=HTML \
+            -d disable_web_page_preview=true \
+            --data-urlencode text="$MSG" > /dev/null
 
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command_timeout: 30m
+          envs: TG_TOKEN,TG_CHAT,COMMIT_SHA,DEPLOY_PATH,BASE_URL,HOST_PORT,GITHUB_REPOSITORY
+          script: |
+            set -e
+
+            tg() {
+              curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+                -d chat_id="${TG_CHAT}" \
+                -d parse_mode=HTML \
+                --data-urlencode text="$1" > /dev/null || true
+            }
+
+            REPO_DIR="${DEPLOY_PATH}"
+            REPO_URL="https://github.com/${GITHUB_REPOSITORY}.git"
+            CONTAINER_NAME="acoustic-calc"
+            IMAGE_NAME="acoustic-calc:latest"
+            IMAGE_PREV="acoustic-calc:prev"
+            HOST_PORT="${HOST_PORT:-3003}"
+            CONTAINER_PORT="3000"
+
+            # Bootstrap: clone if missing.
+            if [ ! -d "$REPO_DIR/.git" ]; then
+              tg "📦 Первый запуск: клонирую в <code>${REPO_DIR}</code>..."
+              mkdir -p "$(dirname "$REPO_DIR")"
+              git clone "$REPO_URL" "$REPO_DIR"
+            fi
+
+            tg "📥 Получаю новый код (commit <code>${COMMIT_SHA:0:7}</code>)..."
+            cd "$REPO_DIR"
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Tag current :latest as :prev for rollback.
+            sudo docker tag "$IMAGE_NAME" "$IMAGE_PREV" 2>/dev/null || true
+
+            tg "🧹 Очищаю старые образы..."
+            sudo docker image prune -f || true
+            sudo docker builder prune -af || true
+
+            tg "🔨 Собираю Docker-образ..."
+            sudo docker build -t "$IMAGE_NAME" --no-cache .
+
+            tg "♻️ Перезапускаю контейнер..."
+            sudo docker stop "$CONTAINER_NAME" 2>/dev/null || true
+            sudo docker rm "$CONTAINER_NAME" 2>/dev/null || true
+
+            sudo docker run -d \
+              --name "$CONTAINER_NAME" \
+              --restart unless-stopped \
+              -p 127.0.0.1:${HOST_PORT}:${CONTAINER_PORT} \
+              -e HTTP_PORT=${CONTAINER_PORT} \
+              -e BASE_URL="${BASE_URL}" \
+              "$IMAGE_NAME"
+
+            tg "🩺 Проверяю health check..."
+            HEALTHY=0
+            for i in 1 2 3 4 5; do
+              if curl -sf "http://127.0.0.1:${HOST_PORT}/__health" > /dev/null 2>&1; then
+                HEALTHY=1
+                break
+              fi
+              sleep 3
+            done
+
+            if [ "$HEALTHY" -eq 1 ]; then
+              exit 0
+            fi
+
+            tg "⚠️ Health check не прошёл, откатываюсь на :prev..."
+            sudo docker stop "$CONTAINER_NAME" 2>/dev/null || true
+            sudo docker rm "$CONTAINER_NAME" 2>/dev/null || true
+
+            if sudo docker image inspect "$IMAGE_PREV" > /dev/null 2>&1; then
+              sudo docker run -d \
+                --name "$CONTAINER_NAME" \
+                --restart unless-stopped \
+                -p 127.0.0.1:${HOST_PORT}:${CONTAINER_PORT} \
+                -e HTTP_PORT=${CONTAINER_PORT} \
+                -e BASE_URL="${BASE_URL}" \
+                "$IMAGE_PREV"
+            fi
+            exit 1
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+          COMMIT_SHA: ${{ github.sha }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          BASE_URL: ${{ secrets.BASE_URL }}
+          HOST_PORT: ${{ secrets.HOST_PORT }}
+
+      - name: Notify Telegram (success)
+        if: success()
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DEPLOY_DOMAIN: ${{ secrets.DEPLOY_DOMAIN }}
+        run: |
+          MSG=$'✅ <b>Деплой acoustic-calc успешно завершён</b>\n'
+          MSG+="<b>Commit:</b> <code>${GITHUB_SHA:0:7}</code>"$'\n'
+          MSG+="<b>Author:</b> ${GITHUB_ACTOR}"$'\n'
+          if [ -n "$DEPLOY_DOMAIN" ]; then
+            MSG+="<a href=\"https://${DEPLOY_DOMAIN}\">https://${DEPLOY_DOMAIN}</a>"
+          fi
+          curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            -d chat_id="${TG_CHAT}" -d parse_mode=HTML -d disable_web_page_preview=true \
+            --data-urlencode text="$MSG" > /dev/null
+
+      - name: Notify Telegram (failure)
+        if: failure()
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          MSG=$'❌ <b>Деплой acoustic-calc провален</b>\n'
+          MSG+="<b>Commit:</b> <code>${GITHUB_SHA:0:7}</code>"$'\n'
+          MSG+="<b>Author:</b> ${GITHUB_ACTOR}"$'\n'
+          MSG+="<a href=\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\">Логи Run #${GITHUB_RUN_NUMBER}</a>"
+          curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            -d chat_id="${TG_CHAT}" -d parse_mode=HTML -d disable_web_page_preview=true \
+            --data-urlencode text="$MSG" > /dev/null

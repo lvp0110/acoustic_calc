@@ -1,20 +1,38 @@
-IMAGE_NAME = acoustic-calc
+IMAGE     ?= acoustic-calc
+CNAME     ?= acoustic-calc
+HOST_PORT ?= 3003
+BASE_URL  ?= https://dev3.constrtodo.ru:3005
 
-build:
-	cp .dockerignore ../.dockerignore && docker build -t $(IMAGE_NAME) -f Dockerfile .. && rm ../.dockerignore
+.PHONY: build run stop rm restart logs shell clean help
 
-run:
-	docker run --name $(IMAGE_NAME) -p 3003:3000 -p 3446:3443 \
+help:                ## Показать список команд
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+build:               ## Собрать Docker-образ
+	docker build -t $(IMAGE) .
+
+run:                 ## Запустить контейнер (loopback-only, TLS на host nginx)
+	docker run -d --name $(CNAME) \
+		--restart unless-stopped \
+		-p 127.0.0.1:$(HOST_PORT):3000 \
+		-e HTTP_PORT=3000 \
 		-e BASE_URL=$(BASE_URL) \
-		-d $(IMAGE_NAME)
+		$(IMAGE)
 
-stop:
-	docker stop $(IMAGE_NAME)
+stop:                ## Остановить контейнер
+	docker stop $(CNAME)
 
-rm:
-	docker rm $(IMAGE_NAME)
+rm:                  ## Удалить контейнер
+	docker rm $(CNAME)
 
-restart: stop rm run
+restart: stop rm run ## Перезапустить контейнер
 
-clean: stop rm
-	docker rmi $(IMAGE_NAME)
+logs:                ## Следить за логами контейнера
+	docker logs -f $(CNAME)
+
+shell:               ## Открыть shell внутри контейнера
+	docker exec -it $(CNAME) sh
+
+clean: stop rm       ## Остановить, удалить контейнер и образ
+	docker rmi $(IMAGE)
