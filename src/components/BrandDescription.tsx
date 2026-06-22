@@ -18,13 +18,11 @@ export default function BrandDescription({
     >
       <h2 className={styles.title}>{brandName}</h2>
       {modelName && <p className={styles.modelName}>{modelName}</p>}
-      <div className={styles.content}>
-        {content ? (
+      {content?.trim() && (
+        <div className={styles.content}>
           <ReactMarkdown>{content}</ReactMarkdown>
-        ) : (
-          <p className={styles.placeholder}>Место для текста...</p>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
