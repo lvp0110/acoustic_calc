@@ -77,8 +77,8 @@
   position: absolute;
   right: 0;
   top: 50%;
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
   border-right: 2px solid var(--color-index);
   border-bottom: 2px solid var(--color-index);
   transform: translateY(-50%) rotate(45deg);

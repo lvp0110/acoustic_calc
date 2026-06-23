@@ -93,10 +93,12 @@ jobs:
               -e BASE_URL="${BASE_URL}" \
               "$IMAGE_NAME"
 
-            tg "🩺 Проверяю health check..."
+            tg "🩺 Проверяю health check и API proxy..."
             HEALTHY=0
             for i in 1 2 3 4 5; do
-              if curl -sf "http://127.0.0.1:${HOST_PORT}/__health" > /dev/null 2>&1; then
+              if curl -sf "http://127.0.0.1:${HOST_PORT}/__health" > /dev/null 2>&1 \
+                && curl -sf "http://127.0.0.1:${HOST_PORT}/api/v1/AcousticCategories" \
+                  | grep -q '"code"[[:space:]]*:[[:space:]]*200'; then
                 HEALTHY=1
                 break
               fi

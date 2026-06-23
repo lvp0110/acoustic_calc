@@ -208,16 +208,24 @@ export default function Brand() {
     }
   }, [colorImageUrl]);
 
-  const descriptionToShow = useMemo(() => {
+  const selectedModel = useMemo(() => {
     const modelField = data?.find(
       (f) => f.code === "model" || f.name.toLowerCase().includes("модел"),
     );
     const selectedModelCode = modelField ? search[modelField.code] : undefined;
-    const modelDescription = selectedModelCode
-      ? modelField?.list.find((o) => o.code === selectedModelCode)?.description?.trim()
+    const option = selectedModelCode
+      ? modelField?.list.find((o) => o.code === selectedModelCode)
       : undefined;
-    return modelDescription || brandCategory?.Description;
-  }, [data, search, brandCategory?.Description]);
+    if (!option) return undefined;
+    return {
+      name: option.name,
+      description: option.description?.trim() || undefined,
+    };
+  }, [data, search]);
+
+  const brandName = brandCategory?.Name ?? brandCode ?? "";
+  const descriptionContent =
+    selectedModel?.description || brandCategory?.Description?.trim() || undefined;
 
   return (
     <div className="main-unit">
@@ -280,15 +288,19 @@ export default function Brand() {
             />
           )}
         </div>
-        {(descriptionToShow || showCalcResult) && (
+        {(brandName || showCalcResult) && (
           <div
             className={
               "brand-page-result" +
               (showCalcResult ? " brand-page-result--with-calc" : "")
             }
           >
-            {descriptionToShow && (
-              <BrandDescription content={descriptionToShow} />
+            {brandName && (
+              <BrandDescription
+                brandName={brandName}
+                modelName={selectedModel?.name}
+                content={descriptionContent}
+              />
             )}
             {showCalcResult && calcResult && (
               <CalcResult
