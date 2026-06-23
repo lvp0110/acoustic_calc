@@ -16,6 +16,8 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Явно без VITE_BASE_URL — фронт в проде ходит в относительный /api.
+ENV VITE_BASE_URL=
 RUN npm run build
 
 # ── Stage 3: runtime (только prod-зависимости + dist + server.js) ─

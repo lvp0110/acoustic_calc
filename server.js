@@ -7,8 +7,14 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const PORT = Number(process.env.HTTP_PORT) || 3000;
-// Бэкенд, куда проксируем /api. Префикс /api НЕ срезаем — backend ждёт его.
-const BACKEND_URL = process.env.BASE_URL || "https://dev3.constrtodo.ru:3005";
+// Бэкенд без суффикса /api — префикс добавляем при проксировании (backend ждёт /api/...).
+function normalizeBackendUrl(url) {
+  return String(url || "https://dev3.constrtodo.ru:3005")
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\/api$/i, "");
+}
+const BACKEND_URL = normalizeBackendUrl(process.env.BASE_URL);
 const DIST_DIR = path.join(__dirname, "dist");
 const INDEX_HTML = path.join(DIST_DIR, "index.html");
 
@@ -19,23 +25,24 @@ if (!fs.existsSync(INDEX_HTML)) {
 const app = express();
 app.set("trust proxy", "loopback"); // за host nginx
 
-// Прокси на бэкенд: сохраняем путь как есть (/api/... -> BACKEND_URL/api/...).
-const backendProxy = createProxyMiddleware({
-  target: BACKEND_URL,
-  changeOrigin: true,
-  xfwd: true,
-  pathFilter: (pathname) =>
-    pathname === "/api" || pathname.startsWith("/api/"),
-  on: {
-    error: (err, _req, res) => {
-      console.error(`[proxy] error: ${err.message}`);
-      if (res && !res.headersSent && res.status) {
-        res.status(502).json({ error: "Proxy error", message: err.message });
-      }
+// Mount на /api срезает префикс — pathRewrite возвращает /api/... на бэкенд.
+app.use(
+  "/api",
+  createProxyMiddleware({
+    target: BACKEND_URL,
+    changeOrigin: true,
+    xfwd: true,
+    pathRewrite: (path) => `/api${path}`,
+    on: {
+      error: (err, _req, res) => {
+        console.error(`[proxy] error: ${err.message}`);
+        if (res && !res.headersSent && res.status) {
+          res.status(502).json({ error: "Proxy error", message: err.message });
+        }
+      },
     },
-  },
-});
-app.use(backendProxy);
+  }),
+);
 
 // Health-check для авто-отката в CI.
 app.get("/__health", (_req, res) => res.json({ ok: true }));
