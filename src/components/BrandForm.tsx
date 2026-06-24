@@ -119,35 +119,21 @@ export default function BrandForm({
     setEdgePreviewHeights((prev) => (prev[fieldCode] === height ? prev : { ...prev, [fieldCode]: height }));
   }, []);
 
-  const renderListSelect = (field: BrandParam, edgeRowFields?: BrandParam[]) => {
-    const isEdge = isEdgeOrPerforationImageField(field);
-    const maxPreviewH =
-      edgeRowFields && isEdge
-        ? Math.max(0, ...edgeRowFields.map((f) => edgePreviewHeights[f.code] ?? 0))
-        : 0;
-    return (
-      <ListSelect
-        key={field.code}
-        id={field.code}
-        label={field.name}
-        options={field.list}
-        value={values[field.code] ?? ""}
-        onChange={(value) => onFieldChange(field.code, value)}
-        placeholder={field.name}
-        style={isModelField(field) ? { gridColumn: "1 / -1" } : undefined}
-        dropdownAlignToRef={dropdownAlignToRef}
-        variant={isSizeField(field) || isModelField(field) ? "text" : "default"}
-        imageObjectFit={isColorSelectImageField(field) ? "cover" : "contain"}
-        selectedImageBelow={isEdge}
-        selectedPreviewMinHeight={
-          edgeRowFields && isEdge && maxPreviewH > 0 ? maxPreviewH : undefined
-        }
-        onSelectedPreviewHeight={
-          edgeRowFields && isEdge ? (h) => setEdgeFieldPreviewHeight(field.code, h) : undefined
-        }
-      />
-    );
-  };
+  const renderListSelect = (field: BrandParam) => (
+    <ListSelect
+      key={field.code}
+      id={field.code}
+      label={field.name}
+      options={field.list}
+      value={values[field.code] ?? ""}
+      onChange={(value) => onFieldChange(field.code, value)}
+      placeholder={field.name}
+      style={isModelField(field) ? { gridColumn: "1 / -1" } : undefined}
+      dropdownAlignToRef={dropdownAlignToRef}
+      variant={isSizeField(field) || isModelField(field) ? "text" : "default"}
+      imageObjectFit={isColorSelectImageField(field) ? "cover" : "contain"}
+    />
+  );
 
   const groups = useMemo(() => groupFieldsForBrandForm(fields), [fields]);
   return (
