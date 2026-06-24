@@ -43,7 +43,7 @@ export default function Brand() {
     (cat) => cat.ShortName === brandCode,
   );
 
-  const { data } = useQuery({
+  const { data, isFetching: isBrandParamsFetching } = useQuery({
     queryKey: ["brandParams", brandCode, search],
     queryFn: () =>
       getBrandParams(brandCode, search).then((res) => res.data.data),
@@ -51,14 +51,26 @@ export default function Brand() {
     placeholderData: (prev) => prev,
   });
 
+  const brandSearchParams = useMemo(() => {
+    if (!data) return {};
+    const params: Record<string, string> = {};
+    for (const field of data) {
+      const value = search[field.code];
+      if (value) params[field.code] = value;
+    }
+    return params;
+  }, [data, search]);
+
   const allFieldsFilled =
-    !!data && data.length > 0 && data.every((field) => !!search[field.code]);
+    !!data &&
+    data.length > 0 &&
+    data.every((field) => !!brandSearchParams[field.code]);
 
   const { data: calcParams } = useQuery({
-    queryKey: ["calcParams", brandCode, search],
+    queryKey: ["calcParams", brandCode, brandSearchParams],
     queryFn: () =>
-      getCalcParams(brandCode, search).then((res) => res.data.data),
-    enabled: allFieldsFilled,
+      getCalcParams(brandCode, brandSearchParams).then((res) => res.data.data),
+    enabled: allFieldsFilled && !isBrandParamsFetching,
     // Иначе после сброса (search: {}) остаётся прошлое значение, и калькулятор продолжает отображаться.
     placeholderData: (prev) => (allFieldsFilled ? prev : undefined),
   });
@@ -306,6 +318,7 @@ export default function Brand() {
               <CalcResult
                 brandCode={brandCode}
                 data={calcResult}
+                selectedArticul={search.articuls}
                 onSelectChange={onArticulChange}
                 onBackToCharacteristics={onBackFromCalcResults}
                 excelUrl={

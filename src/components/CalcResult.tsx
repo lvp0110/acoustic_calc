@@ -16,6 +16,8 @@ import "./CalcResult.css";
 
 interface CalcResultProps {
   data: CalcResultData;
+  /** Выбранный артикул из URL (search.articuls). */
+  selectedArticul?: string;
   onSelectChange?: (rowId: string, itemCode: string) => void;
   /** На узком экране — возврат к форме (отдельный «экран», как в calc). */
   onBackToCharacteristics?: () => void;
@@ -25,6 +27,7 @@ interface CalcResultProps {
 
 export default function CalcResult({
   data,
+  selectedArticul,
   onSelectChange,
   onBackToCharacteristics,
   excelUrl,
@@ -163,10 +166,9 @@ export default function CalcResult({
         );
       }
 
-      const firstItem = row.items[0];
       const listboxId = `cell-select-${layout}-${instanceId}-${row.id}`;
       const selectedItem =
-        row.items.find((it) => it.code === firstItem.code) ?? firstItem;
+        row.items.find((it) => it.code === selectedArticul) ?? row.items[0];
 
       return (
         <tr key={row.id}>
@@ -215,7 +217,7 @@ export default function CalcResult({
                           <button
                             type="button"
                             className={
-                              item.code === firstItem.code
+                              item.code === selectedItem.code
                                 ? "cell-select-option is-selected"
                                 : "cell-select-option"
                             }
@@ -233,7 +235,7 @@ export default function CalcResult({
                 </span>
               ) : (
                 <span className="result-cell-value">
-                  {firstItem[col.id as keyof typeof firstItem]}
+                  {selectedItem[col.id as keyof typeof selectedItem]}
                 </span>
               )}
             </td>
