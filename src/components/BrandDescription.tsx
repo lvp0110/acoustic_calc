@@ -1,4 +1,4 @@
-import ReactMarkdown from "react-markdown";
+// import ReactMarkdown from "react-markdown";
 import styles from "./brand-description.module.css";
 
 interface BrandDescriptionProps {
@@ -10,7 +10,7 @@ interface BrandDescriptionProps {
 export default function BrandDescription({
   brandName,
   modelName,
-  content,
+  content: _content,
 }: BrandDescriptionProps) {
   return (
     <div
@@ -18,11 +18,11 @@ export default function BrandDescription({
     >
       <h2 className={styles.title}>{brandName}</h2>
       {modelName && <p className={styles.modelName}>{modelName}</p>}
-      {content?.trim() && (
+      {/* {content?.trim() && (
         <div className={styles.content}>
           <ReactMarkdown>{content}</ReactMarkdown>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

@@ -334,23 +334,23 @@
   }
 
   .selectedPreviewCard {
-    flex: 0 0 142px;
+    flex: 0 0 80px;
     flex-shrink: 0;
     min-height: 142px;
   }
 
   .selectedPreview {
-    max-height: 100%;
+    max-height: 130%;
   }
 }
 
 @media (min-width: 1100px) {
   /*
-   * Как в макете: вся колонка 236px = карточка с картинкой + отступ + одна строка подписи.
+   * Вся колонка 150px = карточка с картинкой + отступ + одна строка подписи.
    * Отступ между карточкой и текстом — gap; карточка растягивается на оставшуюся высоту.
    */
   .selectedPreviewWrap {
-    height: 236px;
+    height: 150px;
     gap: 10px;
   }
 
