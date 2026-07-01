@@ -136,6 +136,7 @@ export interface SubmitKpFormBody {
   phone: string;
   email: string;
   note: string;
+  pageUrl: string;
 }
 
 const KP_REQUEST_EMAIL = "123vik@mail.ru";
@@ -170,6 +171,7 @@ export const submitKpForm = async (body: SubmitKpFormBody) => {
       Email: body.email,
       Примечание: body.note || "—",
       "Код бренда": body.brandCode || "—",
+      Ссылка: body.pageUrl || "—",
     }),
   });
   const data: unknown = await res.json().catch(() => null);

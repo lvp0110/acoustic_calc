@@ -129,6 +129,7 @@ export default function CalcResult({
         phone: kpPhone.trim(),
         email: kpEmail.trim(),
         note: "",
+        pageUrl: window.location.href,
       });
       setKpSubmitOk(true);
       setKpName("");
