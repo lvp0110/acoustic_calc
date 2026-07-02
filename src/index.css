@@ -518,6 +518,18 @@ select {
   pointer-events: none;
 }
 
+/* Поля площади/размеров: скрываем стрелки number input */
+.calc-form__number-input::-webkit-outer-spin-button,
+.calc-form__number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.calc-form__number-input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 /* Ряд «Сбросить» + «Расчёт»: узкая серая и широкая синяя, как в макете */
 .calc-form__actions {
   display: grid;

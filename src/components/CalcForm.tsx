@@ -48,6 +48,12 @@ function IconTabDimensions() {
   );
 }
 
+function getUnitOffsetFromCenter(value: string): string {
+  const chars = Math.max(value.trim().length, 1);
+  // Число остаётся по центру; единицы сдвигаем чуть правее конца введённого значения.
+  return `calc(50% + ${10 + chars * 4}px)`;
+}
+
 export interface CalcFormResult {
   surface: string;
   mode: InputMode;
@@ -246,16 +252,34 @@ export default function CalcForm({
                 width: "100%",
               }}
             >
-              <input
-                id="area"
-                type="number"
-                min="0"
-                step="0.01"
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
-                placeholder="Площадь, м²"
-                style={{ width: "100%", boxSizing: "border-box" }}
-              />
+              <div style={{ position: "relative", width: "100%" }}>
+                <input
+                  id="area"
+                  type="number"
+                  className="calc-form__number-input"
+                  min="0"
+                  step="0.01"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  placeholder="Площадь, м²"
+                  style={{ width: "100%", boxSizing: "border-box" }}
+                />
+                {area.trim() !== "" ? (
+                  <span
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      left: getUnitOffsetFromCenter(area),
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      color: "#666",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    м²
+                  </span>
+                ) : null}
+              </div>
               <div className="calc-form__actions">
                 <button
                   type="button"
@@ -284,24 +308,62 @@ export default function CalcForm({
                   alignItems: "start",
                 }}
               >
-                <input
-                  id="width"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={length}
-                  onChange={(e) => setLength(e.target.value)}
-                  placeholder="ширина, мм"
-                />
-                <input
-                  id="height"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={height}
-                  onChange={(e) => setHeight(e.target.value)}
-                  placeholder="высота, мм"
-                />
+                <div style={{ position: "relative", width: "100%" }}>
+                  <input
+                    id="width"
+                    type="number"
+                    className="calc-form__number-input"
+                    min="0"
+                    step="0.01"
+                    value={length}
+                    onChange={(e) => setLength(e.target.value)}
+                    placeholder="ширина, мм"
+                    style={{ width: "100%", boxSizing: "border-box" }}
+                  />
+                  {length.trim() !== "" ? (
+                    <span
+                      aria-hidden
+                      style={{
+                        position: "absolute",
+                        left: getUnitOffsetFromCenter(length),
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "#666",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      мм
+                    </span>
+                  ) : null}
+                </div>
+                <div style={{ position: "relative", width: "100%" }}>
+                  <input
+                    id="height"
+                    type="number"
+                    className="calc-form__number-input"
+                    min="0"
+                    step="0.01"
+                    value={height}
+                    onChange={(e) => setHeight(e.target.value)}
+                    placeholder="высота, мм"
+                    style={{ width: "100%", boxSizing: "border-box" }}
+                  />
+                  {height.trim() !== "" ? (
+                    <span
+                      aria-hidden
+                      style={{
+                        position: "absolute",
+                        left: getUnitOffsetFromCenter(height),
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "#666",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      мм
+                    </span>
+                  ) : null}
+                </div>
               </div>
               <div
                 className="calc-form__actions"
