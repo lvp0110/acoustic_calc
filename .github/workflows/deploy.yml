@@ -51,7 +51,10 @@ jobs:
                 --data-urlencode text="$1" > /dev/null || true
             }
 
-            REPO_DIR="${DEPLOY_PATH}"
+            # DEPLOY_PATH может содержать "~" — раскрываем сами: тильда
+            # внутри переменной bash'ем не разворачивается, а после cd
+            # относительный путь начинает указывать не туда.
+            REPO_DIR="${DEPLOY_PATH/#\~/$HOME}"
             REPO_URL="https://github.com/${GITHUB_REPOSITORY}.git"
             CONTAINER_NAME="acoustic-calc"
             IMAGE_NAME="acoustic-calc:latest"
