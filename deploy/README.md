@@ -2,7 +2,8 @@
 
 Пайплайн: push в `main` → GitHub Actions по SSH заходит на сервер → `git pull` →
 `docker build` → перезапуск контейнера → health-check `/__health` (5×3 c) →
-при провале авто-откат на `:prev`. Уведомления — в Telegram (старт/успех/провал).
+при успехе — `cp` nginx-конфига и `reload nginx` → при провале health-check
+авто-откат на `:prev`. Уведомления — в Telegram (старт/успех/провал).
 
 TLS терминирует **host nginx** на 443 (wildcard `*.constrtodo.ru`), контейнер
 слушает HTTP только на `127.0.0.1:3003`. Поэтому адрес —
@@ -30,8 +31,12 @@ GitHub → **Settings → Secrets and variables → Actions → New repository s
 # 1. SSH-юзер с docker-правами (если ещё нет)
 sudo adduser --disabled-password --gecos "" deploy
 sudo usermod -aG docker deploy
-echo 'deploy ALL=(ALL) NOPASSWD: /usr/bin/docker' | sudo tee /etc/sudoers.d/deploy-docker
+cat <<'EOF' | sudo tee /etc/sudoers.d/deploy-docker
+deploy ALL=(ALL) NOPASSWD: /usr/bin/docker
+deploy ALL=(ALL) NOPASSWD: /home/deploy/acoustic-calc/deploy/scripts/reload-nginx.sh
+EOF
 sudo chmod 440 /etc/sudoers.d/deploy-docker
+sudo chmod +x /home/deploy/acoustic-calc/deploy/scripts/reload-nginx.sh
 
 # 2. Положить публичный ключ деплой-юзера
 sudo mkdir -p /home/deploy/.ssh
@@ -77,6 +82,24 @@ ssh -i ~/.ssh/<key> deploy@<DEPLOY_HOST> "sudo nginx -T 2>/dev/null | grep -A2 '
 
 После `git push` в `main` — следи за прогрессом в Telegram и во вкладке Actions.
 Когда деплой пройдёт, открой `https://acousticcalc.constrtodo.ru/` — уже без `:3446`.
+
+## 4. Обновление sudoers (если сервер уже настроен)
+
+Если bootstrap делался раньше, добавь право на reload nginx (один раз):
+
+```bash
+sudo visudo -f /etc/sudoers.d/deploy-docker
+# добавь строку (путь = ваш DEPLOY_PATH):
+# deploy ALL=(ALL) NOPASSWD: /home/deploy/acoustic-calc/deploy/scripts/reload-nginx.sh
+
+sudo chmod +x /home/deploy/acoustic-calc/deploy/scripts/reload-nginx.sh
+```
+
+Проверка от юзера `deploy`:
+
+```bash
+sudo -n /home/deploy/acoustic-calc/deploy/scripts/reload-nginx.sh /home/deploy/acoustic-calc
+```
 
 ## Частые грабли
 

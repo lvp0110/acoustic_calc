@@ -106,6 +106,13 @@ jobs:
             done
 
             if [ "$HEALTHY" -eq 1 ]; then
+              NGINX_CONF="${REPO_DIR}/deploy/nginx/acoustic-calc.conf"
+              if [ -f "$NGINX_CONF" ]; then
+                tg "🌐 Обновляю nginx..."
+                sudo "${REPO_DIR}/deploy/scripts/reload-nginx.sh" "$REPO_DIR"
+              else
+                tg "⚠️ nginx-конфиг не найден: <code>${NGINX_CONF}</code>"
+              fi
               exit 0
             fi
 
