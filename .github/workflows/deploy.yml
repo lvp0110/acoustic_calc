@@ -109,12 +109,15 @@ jobs:
             done
 
             if [ "$HEALTHY" -eq 1 ]; then
+              # Контейнер уже обновлён и здоров — проблемы с nginx дальше
+              # не роняют деплой, а только предупреждают в Telegram.
               NGINX_CONF="${REPO_DIR}/deploy/nginx/acoustic-calc.conf"
-              if [ -f "$NGINX_CONF" ]; then
-                tg "🌐 Обновляю nginx..."
-                sudo "${REPO_DIR}/deploy/scripts/reload-nginx.sh" "$REPO_DIR"
-              else
+              if [ ! -f "$NGINX_CONF" ]; then
                 tg "⚠️ nginx-конфиг не найден: <code>${NGINX_CONF}</code>"
+              elif sudo -n "${REPO_DIR}/deploy/scripts/reload-nginx.sh" "$REPO_DIR"; then
+                tg "🌐 nginx обновлён"
+              else
+                tg "⚠️ nginx НЕ обновлён: нет NOPASSWD-sudo на reload-nginx.sh — см. deploy/README.md, раздел 4"
               fi
               exit 0
             fi
