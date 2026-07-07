@@ -19,7 +19,7 @@
   border-radius: 8px;
   background: transparent;
   font: inherit;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 500;
   line-height: 1.3;
   color: #36a9e1;
@@ -137,7 +137,7 @@
 }
 
 .result-export-btn--secondary {
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  /* border: 1px solid rgba(0, 0, 0, 0.1); */
   background: #fff;
   color: #131314;
 }
@@ -541,16 +541,16 @@ a.result-export-btn--secondary:hover {
   font-weight: 500;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 0 14px 0 0;
   margin: 0;
   background: none;
   box-shadow: none;
   border-radius: 0;
-  /* flex: при min-height текст по вертикали совпадает с ::after на .cell-select-wrap (top: 50%) */
-  display: flex;
+  position: relative;
+  display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  width: 100%;
+  width: auto;
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
@@ -782,14 +782,14 @@ a.result-export-btn--secondary:hover {
   box-sizing: border-box;
 }
 
-.result-table--cards tbody tr {
+.result-table.result-table--cards tbody tr {
   background: #ffffff;
   border: 1px solid #eaeaea;
   border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); */
   /* важно: иначе выпадающее меню в ячейке обрезается границами карточки */
   overflow: visible;
-  margin-bottom: 0;
+  margin-bottom: 4px;
 }
 
 .result-table--cards tbody tr:last-child {
@@ -873,7 +873,7 @@ a.result-export-btn--secondary:hover {
   justify-content: flex-start;
   white-space: normal;
   overflow-wrap: anywhere;
-  width: 100%;
+  width: auto;
   max-width: 100%;
   justify-self: start;
   color: #36a9e1;

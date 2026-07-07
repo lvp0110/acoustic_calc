@@ -33,7 +33,7 @@
 }
 
 .calc-table tbody tr,
-.result-table tbody tr {
+.result-table:not(.result-table--cards) tbody tr {
   background-color: transparent;
 }
 
@@ -71,8 +71,7 @@
   padding-right: 14px;
 }
 
-.calc-table .cell-select-wrap::after,
-.result-table .cell-select-wrap::after {
+.calc-table .cell-select-wrap::after {
   content: "";
   position: absolute;
   right: 0;
@@ -86,9 +85,7 @@
   pointer-events: none;
 }
 
-.calc-table .cell-select-wrap:focus-within::after,
-.result-table .cell-select-wrap:focus-within::after,
-.result-table .cell-select-wrap[data-open="true"]::after {
+.calc-table .cell-select-wrap:focus-within::after {
   border-right-color: var(--color-index);
   border-bottom-color: var(--color-index);
   transform: translateY(-50%) rotate(225deg);
@@ -102,6 +99,29 @@
   max-width: 100%;
   box-sizing: border-box;
   overflow: visible;
+  padding-right: 0;
+}
+
+/* Шеврон на триггере: в зоне клика и сразу после текста (не в padding обёртки) */
+.result-table .cell-select-trigger::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid var(--color-index);
+  border-bottom: 2px solid var(--color-index);
+  transform: translateY(-50%) rotate(45deg);
+  transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  pointer-events: none;
+}
+
+.result-table .cell-select-wrap:focus-within .cell-select-trigger::after,
+.result-table .cell-select-wrap[data-open="true"] .cell-select-trigger::after {
+  border-right-color: var(--color-index);
+  border-bottom-color: var(--color-index);
+  transform: translateY(-50%) rotate(225deg);
 }
 
 /* Текст таблиц < 1100px — 15px (строго max-width: 1099px). */
@@ -171,9 +191,10 @@
   }
 
   .result-table--desktop .cell-select-trigger {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: flex-start;
+    width: auto;
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
