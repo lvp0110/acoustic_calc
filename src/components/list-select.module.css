@@ -11,7 +11,7 @@
 .trigger {
   color: var(--surface-text);
   text-align: left;
-  padding: 0 20px 0 20px;
+  padding: 0 30px 0 20px;
   cursor: pointer;
   position: relative;
   /* index.css: button { height: 50px } — для длинной подписи нужна высота по содержимому */
@@ -30,7 +30,7 @@
 .trigger::after {
   content: "";
   position: absolute;
-  right: 12px;
+  right: 20px;
   top: 50%;
   width: 6px;
   height: 6px;

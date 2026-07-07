@@ -47,7 +47,7 @@
 .result-table-wrap {
   background-color: var(--surface);
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
   padding: 16px;
   /* hidden обрезал текст у краёв (border-radius + внутренний скролл); горизонтальный скролл задаём только ≥901px */
   overflow-x: visible;
@@ -110,7 +110,7 @@
   box-sizing: border-box;
   border-radius: 5px;
   font-size: 17px;
-  font-weight: 600;
+  font-weight: 500;
   font-family: inherit;
   line-height: 1.2;
   cursor: pointer;
@@ -140,7 +140,6 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
   background: #fff;
   color: #131314;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .result-export-btn--secondary:hover {
@@ -157,7 +156,7 @@
 a.result-export-btn--secondary,
 a.result-export-btn--secondary:visited {
   color: #131314;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 a.result-export-btn--secondary:hover {
@@ -530,7 +529,7 @@ a.result-export-btn--secondary:hover {
 /* Заголовки колонок (thead) визуально отделены от первой строки данных */
 @media (min-width: 901px) {
   .result-table--desktop thead th {
-    border-bottom: 2px solid #d8d8d8;
+    /* border-bottom: 2px solid #d8d8d8; */
   }
 }
 

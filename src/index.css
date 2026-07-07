@@ -530,6 +530,12 @@ select {
   appearance: textfield;
 }
 
+.calc-form__number-input {
+  border: none;
+  text-align: left;
+  padding-left: 12px;
+}
+
 /* Ряд «Сбросить» + «Расчёт»: узкая серая и широкая синяя, как в макете */
 .calc-form__actions {
   display: grid;
@@ -543,19 +549,29 @@ select {
 .calc-form__actions .calc-form__btn-reset,
 .calc-form__actions .calc-form__btn-submit {
   width: 100%;
-  font-weight: 600;
+  font-weight: 500;
+}
+
+@media (max-width: 900px) {
+  .calc-form__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .calc-form__actions .calc-form__btn-submit {
+    order: 1;
+  }
+
+  .calc-form__actions .calc-form__btn-reset {
+    order: 2;
+  }
 }
 
 .calc-form__btn-reset {
-  background-color: #f3f3f3;
-  border: 1px solid #e2e2e2;
+  /* background-color: #f3f3f3; */
+  /* border: 1px solid #e2e2e2; */
   color: #2a2a2a;
   cursor: pointer;
   box-shadow: none;
-}
-
-.calc-form__btn-reset:hover {
-  background-color: #ebebeb;
 }
 
 .calc-form__btn-submit:not(:disabled) {

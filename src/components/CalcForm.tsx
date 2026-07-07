@@ -48,10 +48,9 @@ function IconTabDimensions() {
   );
 }
 
-function getUnitOffsetFromCenter(value: string): string {
+function getUnitOffsetFromLeft(value: string): string {
   const chars = Math.max(value.trim().length, 1);
-  // Число остаётся по центру; единицы сдвигаем чуть правее конца введённого значения.
-  return `calc(50% + ${10 + chars * 4}px)`;
+  return `calc(12px + ${chars}ch + 4px)`;
 }
 
 export interface CalcFormResult {
@@ -269,7 +268,7 @@ export default function CalcForm({
                     aria-hidden
                     style={{
                       position: "absolute",
-                      left: getUnitOffsetFromCenter(area),
+                      left: getUnitOffsetFromLeft(area),
                       top: "50%",
                       transform: "translateY(-50%)",
                       color: "#666",
@@ -325,7 +324,7 @@ export default function CalcForm({
                       aria-hidden
                       style={{
                         position: "absolute",
-                        left: getUnitOffsetFromCenter(length),
+                        left: getUnitOffsetFromLeft(length),
                         top: "50%",
                         transform: "translateY(-50%)",
                         color: "#666",
@@ -353,7 +352,7 @@ export default function CalcForm({
                       aria-hidden
                       style={{
                         position: "absolute",
-                        left: getUnitOffsetFromCenter(height),
+                        left: getUnitOffsetFromLeft(height),
                         top: "50%",
                         transform: "translateY(-50%)",
                         color: "#666",
