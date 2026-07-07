@@ -117,7 +117,6 @@
   pointer-events: none;
 }
 
-.result-table .cell-select-wrap:focus-within .cell-select-trigger::after,
 .result-table .cell-select-wrap[data-open="true"] .cell-select-trigger::after {
   border-right-color: var(--color-index);
   border-bottom-color: var(--color-index);
