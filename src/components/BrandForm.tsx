@@ -32,6 +32,21 @@ const isEdgeOrPerforationImageField = (field: BrandParam) => {
   );
 };
 
+const capitalizeFirst = (text: string) =>
+  text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
+
+const getFieldDisplayName = (field: BrandParam) => {
+  if (isModelField(field)) return "Выбрать модель";
+  if (
+    isSizeField(field) ||
+    isColorSelectImageField(field) ||
+    isEdgeOrPerforationImageField(field)
+  ) {
+    return capitalizeFirst(field.name);
+  }
+  return field.name;
+};
+
 function groupFieldsForBrandForm(fields: BrandParam[]) {
   type Group =
     | { kind: "single"; field: BrandParam }
@@ -93,11 +108,11 @@ function BrandFormEdgePerfRow({
         <ListSelect
           key={field.code}
           id={field.code}
-          label={field.name}
+          label={getFieldDisplayName(field)}
           options={field.list}
           value={values[field.code] ?? ""}
           onChange={(value) => onFieldChange(field.code, value)}
-          placeholder={field.name}
+          placeholder={getFieldDisplayName(field)}
           dropdownAlignToRef={dropdownAlignToRef}
           selectedImageBelow
           selectedPreviewMinHeight={maxPreviewH > 0 ? maxPreviewH : undefined}
@@ -123,11 +138,11 @@ export default function BrandForm({
     <ListSelect
       key={field.code}
       id={field.code}
-      label={field.name}
+      label={getFieldDisplayName(field)}
       options={field.list}
       value={values[field.code] ?? ""}
       onChange={(value) => onFieldChange(field.code, value)}
-      placeholder={field.name}
+      placeholder={getFieldDisplayName(field)}
       style={isModelField(field) ? { gridColumn: "1 / -1" } : undefined}
       dropdownAlignToRef={dropdownAlignToRef}
       variant={isSizeField(field) || isModelField(field) ? "text" : "default"}
