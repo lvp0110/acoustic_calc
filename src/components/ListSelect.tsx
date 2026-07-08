@@ -283,7 +283,7 @@ export default function ListSelect({
         <button
           id={id}
           type="button"
-          className={`${styles.trigger} ${open ? styles.triggerOpen : ""}`}
+          className={`${styles.trigger} ${open ? styles.triggerOpen : ""} ${hasSelection ? styles.triggerSelected : ""}`}
           onClick={() => setOpen((prev) => !prev)}
         >
           {selectedLabel}

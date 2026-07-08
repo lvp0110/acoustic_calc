@@ -23,8 +23,13 @@
 }
 
 :global(.brand-form) .trigger {
+  color: #7b7e80;
   font-size: 17px;
   line-height: 28px;
+}
+
+:global(.brand-form) .triggerSelected {
+  color: #191919;
 }
 
 .trigger::after {
