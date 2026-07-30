@@ -77,11 +77,12 @@ jobs:
             # Tag current :latest as :prev for rollback.
             sudo docker tag "$IMAGE_NAME" "$IMAGE_PREV" 2>/dev/null || true
 
-            # Сборка с кэшем слоёв: npm ci / vite пересобираются только
-            # при изменении соответствующих файлов. Полный --no-cache не нужен —
-            # COPY package*.json + npm ci инвалидируется сам при смене lockfile.
+            tg "🧹 Очищаю старые образы..."
+            sudo docker image prune -f || true
+            sudo docker builder prune -af || true
+
             tg "🔨 Собираю Docker-образ..."
-            sudo DOCKER_BUILDKIT=1 docker build -t "$IMAGE_NAME" .
+            sudo docker build -t "$IMAGE_NAME" --no-cache .
 
             tg "♻️ Перезапускаю контейнер..."
             sudo docker stop "$CONTAINER_NAME" 2>/dev/null || true
@@ -108,10 +109,6 @@ jobs:
             done
 
             if [ "$HEALTHY" -eq 1 ]; then
-              # Удаляем только висячие (без тегов) образы; :latest и :prev не трогаем.
-              # Кэш билдера не чистим — иначе каждый деплой снова тянет npm с нуля.
-              sudo docker image prune -f || true
-
               # Контейнер уже обновлён и здоров — проблемы с nginx дальше
               # не роняют деплой, а только предупреждают в Telegram.
               NGINX_CONF="${REPO_DIR}/deploy/nginx/acoustic-calc.conf"
