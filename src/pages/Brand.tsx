@@ -19,6 +19,7 @@ import {
 } from "../api/get-base-url";
 import BrandDescription from "../components/BrandDescription";
 import { useMatchMedia } from "../utils/useMatchMedia";
+import { getSelectedEdgePerfDescriptions } from "../utils/brandParamFields";
 
 /** Синхронно с @media (max-width: 900px) в index.css */
 const NARROW_LAYOUT_MQ = "(max-width: 899px)";
@@ -236,8 +237,12 @@ export default function Brand() {
   }, [data, search]);
 
   const brandName = brandCategory?.Name ?? brandCode ?? "";
-  const descriptionContent =
-    selectedModel?.description || brandCategory?.Description?.trim() || undefined;
+  const descriptionContent = brandCategory?.Description?.trim() || undefined;
+  const modelDescriptionContent = selectedModel?.description;
+  const edgePerfDescriptions = useMemo(
+    () => getSelectedEdgePerfDescriptions(data, search),
+    [data, search],
+  );
 
   return (
     <div className="main-unit">
@@ -312,6 +317,8 @@ export default function Brand() {
                 brandName={brandName}
                 modelName={selectedModel?.name}
                 content={descriptionContent}
+                extraContent={modelDescriptionContent}
+                edgePerfDescriptions={edgePerfDescriptions}
               />
             )}
             {showCalcResult && calcResult && (

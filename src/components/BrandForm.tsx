@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState, type RefObject } from "react";
 import type { BrandParam } from "../api";
+import { isEdgeOrPerforationField } from "../utils/brandParamFields";
 import ListSelect from "./ListSelect";
 
 interface BrandFormProps {
@@ -19,19 +20,6 @@ const isColorSelectImageField = (field: BrandParam) =>
   field.type === "select_image" &&
   (field.code === "color" || field.name.toLowerCase().includes("цвет"));
 
-/** Кромки и перфорация: картинка только после выбора, под списком */
-const isEdgeOrPerforationImageField = (field: BrandParam) => {
-  if (field.type !== "select_image") return false;
-  const code = field.code.toLowerCase();
-  const name = field.name.toLowerCase();
-  return (
-    name.includes("кромк") ||
-    name.includes("перфорац") ||
-    code.includes("edge") ||
-    code.includes("perfor")
-  );
-};
-
 const capitalizeFirst = (text: string) =>
   text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
 
@@ -40,7 +28,7 @@ const getFieldDisplayName = (field: BrandParam) => {
   if (
     isSizeField(field) ||
     isColorSelectImageField(field) ||
-    isEdgeOrPerforationImageField(field)
+    isEdgeOrPerforationField(field)
   ) {
     return capitalizeFirst(field.name);
   }
@@ -56,9 +44,9 @@ function groupFieldsForBrandForm(fields: BrandParam[]) {
   let i = 0;
   while (i < fields.length) {
     const field = fields[i];
-    if (isEdgeOrPerforationImageField(field)) {
+    if (isEdgeOrPerforationField(field)) {
       const row: BrandParam[] = [];
-      while (i < fields.length && isEdgeOrPerforationImageField(fields[i])) {
+      while (i < fields.length && isEdgeOrPerforationField(fields[i])) {
         row.push(fields[i]);
         i++;
       }

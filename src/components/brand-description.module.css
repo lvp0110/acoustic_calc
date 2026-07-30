@@ -1,4 +1,11 @@
-.description {
+.blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.description,
+.content {
   font-size: 14px;
   line-height: 1.6;
   color: #333;
@@ -9,7 +16,6 @@
   box-shadow: none;
   padding: 16px;
   overflow: hidden;
-  margin-bottom: 8px;
 }
 
 .title {
@@ -21,15 +27,11 @@
 }
 
 .modelName {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 16px;
   font-weight: 500;
   line-height: 1.4;
   color: #444;
-}
-
-.content {
-  margin-top: 4px;
 }
 
 .placeholder {
@@ -39,29 +41,43 @@
   /* font-style: italic; */
 }
 
+.description p,
 .content p {
   margin: 0 0 0.75em;
 }
 
+.description p:last-child,
 .content p:last-child {
   margin-bottom: 0;
 }
 
+.description ul,
+.description ol,
 .content ul,
 .content ol {
   margin: 0 0 0.75em;
   padding-left: 1.5em;
 }
 
+.description li,
 .content li {
   margin-bottom: 0.25em;
 }
 
+.description a,
 .content a {
   color: inherit;
 }
 
+.description strong,
+.description b,
 .content strong,
 .content b {
   font-weight: 600;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #e8e8e8;
+  margin: 12px 0;
 }
