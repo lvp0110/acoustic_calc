@@ -9,7 +9,7 @@
 }
 
 .trigger {
-  color: var(--surface-text);
+  color: #7b7e80;
   text-align: left;
   padding: 0 30px 0 20px;
   cursor: pointer;
@@ -28,6 +28,7 @@
   line-height: 28px;
 }
 
+.triggerSelected,
 :global(.brand-form) .triggerSelected {
   color: #191919;
 }
