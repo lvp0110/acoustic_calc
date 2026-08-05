@@ -449,6 +449,12 @@
 }
 
 @media (max-width: 699px) {
+  /* Перебивает .brand-page-forms button { font-size: 15px } из index.css */
+  :global(.brand-page-forms) .mobileTitle {
+    font-size: 24px;
+    line-height: 1.2;
+  }
+
   :global(.brand-page-forms) .trigger,
   :global(.brand-page-forms) .optionText {
     font-size: 15px;

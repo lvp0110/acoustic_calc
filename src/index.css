@@ -263,13 +263,13 @@ body {
   }
 
   .brand-page-forms .calc-form__info-banner {
-    padding: 12px 14px;
-    gap: 10px;
+    padding: 16px 18px;
+    gap: 14px;
   }
 
   .brand-page-forms .calc-form__info-banner-text {
-    font-size: 14px;
-    line-height: 20px;
+    font-size: 12px;
+    line-height: 16px;
   }
 
   .calc-table-block {
@@ -365,8 +365,8 @@ body {
   }
 
   .brand-page-forms .calc-form__info-banner-text {
-    font-size: 13px;
-    line-height: 22px;
+    font-size: 12px;
+    line-height: 16px;
   }
 }
 a {
@@ -448,6 +448,13 @@ select {
   font-weight: 400;
   line-height: 22px;
   color: #1a1a1a;
+}
+
+@media (max-width: 1099px) {
+  .calc-form__info-banner-text {
+    font-size: 12px;
+    line-height: 16px;
+  }
 }
 
 /* Вкладки: площадь / размеры — нижняя синяя полоса у активной, иконки слева */

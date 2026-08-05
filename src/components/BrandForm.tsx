@@ -24,7 +24,7 @@ const capitalizeFirst = (text: string) =>
   text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
 
 const getFieldDisplayName = (field: BrandParam) => {
-  if (isModelField(field)) return "Выбрать модель";
+  if (isModelField(field)) return "Выбор модели";
   if (
     isSizeField(field) ||
     isColorSelectImageField(field) ||

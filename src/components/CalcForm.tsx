@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { SurfaceType } from "../api";
 import ListSelect from "./ListSelect";
 
@@ -90,6 +90,7 @@ export default function CalcForm({
   const [height, setHeight] = useState(
     values?.height ? String(values.height) : "",
   );
+  const formRef = useRef<HTMLFormElement | null>(null);
 
   const valuesSignature = values
     ? `${values.surface}|${values.mode}|${values.area ?? ""}|${values.length ?? ""}|${values.height ?? ""}`
@@ -152,6 +153,19 @@ export default function CalcForm({
     onReset?.();
   };
 
+  const handleSurfaceChange = (code: string) => {
+    setSurface(code);
+    if (!code) return;
+    // После раскрытия формы поднимаем окно так, чтобы низ brand-page-layout был виден
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const layout = formRef.current?.closest(".brand-page-layout");
+        if (!(layout instanceof HTMLElement)) return;
+        layout.scrollIntoView({ behavior: "smooth", block: "end" });
+      });
+    });
+  };
+
   /** Enter в числовых полях дублирует «Применить» (в т.ч. где не срабатывает неявный submit формы). */
   const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
     if (e.key !== "Enter") return;
@@ -163,6 +177,7 @@ export default function CalcForm({
 
   return (
     <form
+      ref={formRef}
       onKeyDown={handleFormKeyDown}
       onSubmit={(e) => {
         e.preventDefault();
@@ -182,7 +197,7 @@ export default function CalcForm({
           label="Тип поверхности"
           options={surfaceOptions}
           value={surface}
-          onChange={setSurface}
+          onChange={handleSurfaceChange}
           placeholder="Выберите поверхность"
           variant="text"
           dropdownAlignToRef={dropdownAlignToRef}
