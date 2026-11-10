@@ -40,5 +40,5 @@ remote '
 '
 ok "production-конфигурация корректна"
 
-"$SCRIPT_DIR/deploy-frontend.sh"
+bash "$SCRIPT_DIR/deploy-frontend.sh"
 ok "bootstrap frontend завершён"
