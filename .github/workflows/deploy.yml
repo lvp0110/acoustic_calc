@@ -1,156 +1,101 @@
-name: Deploy
+name: Prod deploy
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      rev:
+        description: "Ревизия для deploy (по умолчанию SHA текущего запуска)"
+        type: string
+        required: false
+        default: ""
 
 permissions:
   contents: read
 
 concurrency:
-  group: deploy
+  group: acoustic-calc-prod-deploy
   cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DEPLOY_REV_OVERRIDE: ${{ github.event.inputs.rev }}
+
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Validate frontend
+        run: |
+          npm ci
+          npm run lint
+          npm run build
+
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          : "${DEPLOY_SSH_KEY:?DEPLOY_SSH_KEY secret is required}"
+          : "${DEPLOY_KNOWN_HOSTS:?DEPLOY_KNOWN_HOSTS secret is required}"
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Write deploy configuration
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_JUMP_HOST: ${{ secrets.DEPLOY_JUMP_HOST }}
+          DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
+          DEPLOY_DOMAIN: ${{ secrets.DEPLOY_DOMAIN }}
+        run: |
+          : "${DEPLOY_HOST:?DEPLOY_HOST secret is required}"
+          : "${DEPLOY_JUMP_HOST:?DEPLOY_JUMP_HOST secret is required}"
+          : "${DEPLOY_DIR:?DEPLOY_DIR secret is required}"
+          : "${DEPLOY_DOMAIN:?DEPLOY_DOMAIN secret is required}"
+          REV="${DEPLOY_REV_OVERRIDE:-$GITHUB_SHA}"
+          cat > deploy/.env.deploy <<EOF
+          DEPLOY_HOST=$DEPLOY_HOST
+          DEPLOY_JUMP_HOST=$DEPLOY_JUMP_HOST
+          DEPLOY_DIR=$DEPLOY_DIR
+          DEPLOY_DOMAIN=$DEPLOY_DOMAIN
+          DEPLOY_REMOTE=origin
+          DEPLOY_REV=$REV
+          EOF
+          chmod 600 deploy/.env.deploy
+
       - name: Notify Telegram (start)
         env:
           TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
+          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then exit 0; fi
           MSG=$'🚀 <b>Деплой acoustic-calc начат</b>\n'
-          MSG+="<b>Repo:</b> ${GITHUB_REPOSITORY}"$'\n'
-          MSG+="<b>Branch:</b> ${GITHUB_REF_NAME}"$'\n'
           MSG+="<b>Commit:</b> <code>${GITHUB_SHA:0:7}</code>"$'\n'
           MSG+="<b>Author:</b> ${GITHUB_ACTOR}"$'\n'
           MSG+="<a href=\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\">Run #${GITHUB_RUN_NUMBER}</a>"
-          curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
-            -d chat_id="${TG_CHAT}" \
-            -d parse_mode=HTML \
-            -d disable_web_page_preview=true \
-            --data-urlencode text="$MSG" > /dev/null
+          curl -fsS -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            -d chat_id="$TG_CHAT" -d parse_mode=HTML \
+            -d disable_web_page_preview=true --data-urlencode text="$MSG" > /dev/null
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          command_timeout: 30m
-          envs: TG_TOKEN,TG_CHAT,COMMIT_SHA,DEPLOY_PATH,BASE_URL,HOST_PORT,GITHUB_REPOSITORY
-          script: |
-            set -e
+      - name: Rollout frontend
+        run: bash deploy/deploy-frontend.sh
 
-            # Таймауты обязательны: если с сервера нет доступа к
-            # api.telegram.org (пакеты фильтруются, а не отбиваются RST),
-            # curl без --connect-timeout досиживает полный бюджет
-            # SYN-ретрансмитов ядра — ~127 с на каждый вызов. Шесть
-            # уведомлений превращали минутный деплой в 14-минутный,
-            # и молча: "-s ... || true" не оставляет следов в логе.
-            tg() {
-              curl -s --connect-timeout 3 --max-time 5 \
-                -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
-                -d chat_id="${TG_CHAT}" \
-                -d parse_mode=HTML \
-                --data-urlencode text="$1" > /dev/null \
-                || echo "⚠️ Telegram-уведомление не отправлено (таймаут): $1"
-            }
-
-            # DEPLOY_PATH может содержать "~" — раскрываем сами: тильда
-            # внутри переменной bash'ем не разворачивается, а после cd
-            # относительный путь начинает указывать не туда.
-            REPO_DIR="${DEPLOY_PATH/#\~/$HOME}"
-            REPO_URL="https://github.com/${GITHUB_REPOSITORY}.git"
-            CONTAINER_NAME="acoustic-calc"
-            IMAGE_NAME="acoustic-calc:latest"
-            IMAGE_PREV="acoustic-calc:prev"
-            HOST_PORT="${HOST_PORT:-3003}"
-            CONTAINER_PORT="3000"
-
-            # Bootstrap: clone if missing.
-            if [ ! -d "$REPO_DIR/.git" ]; then
-              tg "📦 Первый запуск: клонирую в <code>${REPO_DIR}</code>..."
-              mkdir -p "$(dirname "$REPO_DIR")"
-              git clone "$REPO_URL" "$REPO_DIR"
-            fi
-
-            tg "📥 Получаю новый код (commit <code>${COMMIT_SHA:0:7}</code>)..."
-            cd "$REPO_DIR"
-            git fetch origin main
-            git reset --hard origin/main
-
-            # Tag current :latest as :prev for rollback.
-            sudo docker tag "$IMAGE_NAME" "$IMAGE_PREV" 2>/dev/null || true
-
-            tg "🧹 Очищаю старые образы..."
-            sudo docker image prune -f || true
-            sudo docker builder prune -af || true
-
-            tg "🔨 Собираю Docker-образ..."
-            sudo docker build -t "$IMAGE_NAME" --no-cache .
-
-            tg "♻️ Перезапускаю контейнер..."
-            sudo docker stop "$CONTAINER_NAME" 2>/dev/null || true
-            sudo docker rm "$CONTAINER_NAME" 2>/dev/null || true
-
-            sudo docker run -d \
-              --name "$CONTAINER_NAME" \
-              --restart unless-stopped \
-              -p 127.0.0.1:${HOST_PORT}:${CONTAINER_PORT} \
-              -e HTTP_PORT=${CONTAINER_PORT} \
-              -e BASE_URL="${BASE_URL}" \
-              "$IMAGE_NAME"
-
-            tg "🩺 Проверяю health check и API proxy..."
-            HEALTHY=0
-            for i in 1 2 3 4 5; do
-              if curl -sf "http://127.0.0.1:${HOST_PORT}/__health" > /dev/null 2>&1 \
-                && curl -sf "http://127.0.0.1:${HOST_PORT}/api/v1/AcousticCategories" \
-                  | grep -q '"code"[[:space:]]*:[[:space:]]*200'; then
-                HEALTHY=1
-                break
-              fi
-              sleep 3
-            done
-
-            if [ "$HEALTHY" -eq 1 ]; then
-              # Контейнер уже обновлён и здоров — проблемы с nginx дальше
-              # не роняют деплой, а только предупреждают в Telegram.
-              NGINX_CONF="${REPO_DIR}/deploy/nginx/acoustic-calc.conf"
-              if [ ! -f "$NGINX_CONF" ]; then
-                tg "⚠️ nginx-конфиг не найден: <code>${NGINX_CONF}</code>"
-              elif sudo -n "${REPO_DIR}/deploy/scripts/reload-nginx.sh" "$REPO_DIR"; then
-                tg "🌐 nginx обновлён"
-              else
-                tg "⚠️ nginx НЕ обновлён: нет NOPASSWD-sudo на reload-nginx.sh — см. deploy/README.md, раздел 4"
-              fi
-              exit 0
-            fi
-
-            tg "⚠️ Health check не прошёл, откатываюсь на :prev..."
-            sudo docker stop "$CONTAINER_NAME" 2>/dev/null || true
-            sudo docker rm "$CONTAINER_NAME" 2>/dev/null || true
-
-            if sudo docker image inspect "$IMAGE_PREV" > /dev/null 2>&1; then
-              sudo docker run -d \
-                --name "$CONTAINER_NAME" \
-                --restart unless-stopped \
-                -p 127.0.0.1:${HOST_PORT}:${CONTAINER_PORT} \
-                -e HTTP_PORT=${CONTAINER_PORT} \
-                -e BASE_URL="${BASE_URL}" \
-                "$IMAGE_PREV"
-            fi
-            exit 1
-        env:
-          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
-          COMMIT_SHA: ${{ github.sha }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-          BASE_URL: ${{ secrets.BASE_URL }}
-          HOST_PORT: ${{ secrets.HOST_PORT }}
+      - name: Smoke test
+        run: bash deploy/deploy-status.sh
 
       - name: Notify Telegram (success)
         if: success()
@@ -159,15 +104,13 @@ jobs:
           TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
           DEPLOY_DOMAIN: ${{ secrets.DEPLOY_DOMAIN }}
         run: |
-          MSG=$'✅ <b>Деплой acoustic-calc успешно завершён</b>\n'
+          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then exit 0; fi
+          MSG=$'✅ <b>Деплой acoustic-calc завершён</b>\n'
           MSG+="<b>Commit:</b> <code>${GITHUB_SHA:0:7}</code>"$'\n'
-          MSG+="<b>Author:</b> ${GITHUB_ACTOR}"$'\n'
-          if [ -n "$DEPLOY_DOMAIN" ]; then
-            MSG+="<a href=\"https://${DEPLOY_DOMAIN}\">https://${DEPLOY_DOMAIN}</a>"
-          fi
-          curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
-            -d chat_id="${TG_CHAT}" -d parse_mode=HTML -d disable_web_page_preview=true \
-            --data-urlencode text="$MSG" > /dev/null
+          MSG+="<a href=\"https://${DEPLOY_DOMAIN}\">https://${DEPLOY_DOMAIN}</a>"
+          curl -fsS -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            -d chat_id="$TG_CHAT" -d parse_mode=HTML \
+            -d disable_web_page_preview=true --data-urlencode text="$MSG" > /dev/null
 
       - name: Notify Telegram (failure)
         if: failure()
@@ -175,10 +118,10 @@ jobs:
           TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
+          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then exit 0; fi
           MSG=$'❌ <b>Деплой acoustic-calc провален</b>\n'
           MSG+="<b>Commit:</b> <code>${GITHUB_SHA:0:7}</code>"$'\n'
-          MSG+="<b>Author:</b> ${GITHUB_ACTOR}"$'\n'
           MSG+="<a href=\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\">Логи Run #${GITHUB_RUN_NUMBER}</a>"
-          curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
-            -d chat_id="${TG_CHAT}" -d parse_mode=HTML -d disable_web_page_preview=true \
-            --data-urlencode text="$MSG" > /dev/null
+          curl -sS -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            -d chat_id="$TG_CHAT" -d parse_mode=HTML \
+            -d disable_web_page_preview=true --data-urlencode text="$MSG" > /dev/null

@@ -99,20 +99,31 @@ src/
 
 ## 🌐 Деплой
 
-Проект автоматически деплоится на GitHub Pages при каждом push в ветку `main`.
+Production frontend запускается в Docker на `prodfront` и доступен только во
+внутренней сети на порту `3010`. Публичный HTTPS завершается на `gateway-01`.
+Адрес приложения: `https://acousticcalc.constrtodo.ru`.
 
-Сайт доступен по адресу: https://lvp0110.github.io/acoustic_calc/
+Браузер обращается к same-origin пути `/api`. Node-сервер frontend проксирует
+эти запросы на внутренний ConstrTodo backend, заданный переменной `BASE_URL` в
+серверном `.env.prod`.
 
-### Настройка Production API URL
+Первоначальное разворачивание:
 
-Для работы приложения на GitHub Pages необходимо настроить URL production API сервера:
+```bash
+cp deploy/.env.deploy.example deploy/.env.deploy
+# заполнить deploy/.env.deploy
+make deploy-bootstrap
+```
 
-1. Перейдите в настройки репозитория: **Settings** → **Secrets and variables** → **Actions**
-2. Нажмите **New repository secret**
-3. Создайте секрет с именем `VITE_API_URL` и значением - URL вашего production API (например: `https://api.example.com`)
-4. После следующего push в `main`, GitHub Actions автоматически использует этот URL при сборке
+Последующие ручные обновления:
 
-**Важно:** Если секрет не настроен, приложение будет пытаться обращаться к `http://localhost:3005`, что вызовет ошибки CORS на GitHub Pages.
+```bash
+make deploy-frontend
+make deploy-status
+```
+
+После слияния инфраструктурной ветки в `main` деплой запускается автоматически
+через GitHub Actions. Подробности находятся в `deploy/README.md`.
 
 ### Локальная разработка
 

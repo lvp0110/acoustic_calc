@@ -1,4 +1,3 @@
-import { Fragment } from "react";
 import ReactMarkdown from "react-markdown";
 import styles from "./brand-description.module.css";
 
@@ -14,15 +13,8 @@ interface BrandDescriptionProps {
 export default function BrandDescription({
   brandName,
   modelName,
-  content,
   extraContent,
-  edgePerfDescriptions = [],
 }: BrandDescriptionProps) {
-  const contentDescriptions = [
-    ...(content?.trim() ? [content.trim()] : []),
-    ...edgePerfDescriptions,
-  ];
-
   return (
     <div className={styles.blocks}>
       <div

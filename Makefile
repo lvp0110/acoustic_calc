@@ -1,38 +1,31 @@
-IMAGE     ?= acoustic-calc
-CNAME     ?= acoustic-calc
-HOST_PORT ?= 3003
-BASE_URL  ?= https://dev3.constrtodo.ru:3005
+.PHONY: help install build lint clean deploy-bootstrap deploy-frontend deploy-status deploy-logs
 
-.PHONY: build run stop rm restart logs shell clean help
+.DEFAULT_GOAL := help
 
-help:                ## Показать список команд
+help: ## Показать список команд
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-build:               ## Собрать Docker-образ
-	docker build -t $(IMAGE) .
+install: ## Установить зависимости
+	npm ci
 
-run:                 ## Запустить контейнер (loopback-only, TLS на host nginx)
-	docker run -d --name $(CNAME) \
-		--restart unless-stopped \
-		-p 127.0.0.1:$(HOST_PORT):3000 \
-		-e HTTP_PORT=3000 \
-		-e BASE_URL=$(BASE_URL) \
-		$(IMAGE)
+build: ## Собрать production frontend
+	npm run build
 
-stop:                ## Остановить контейнер
-	docker stop $(CNAME)
+lint: ## Запустить проверку кода
+	npm run lint
 
-rm:                  ## Удалить контейнер
-	docker rm $(CNAME)
+clean: ## Удалить локальные артефакты
+	rm -rf dist
 
-restart: stop rm run ## Перезапустить контейнер
+deploy-bootstrap: ## Первый checkout и запуск на prodfront
+	bash deploy/bootstrap.sh
 
-logs:                ## Следить за логами контейнера
-	docker logs -f $(CNAME)
+deploy-frontend: ## Выложить frontend; REV=<sha|remote-branch>
+	bash deploy/deploy-frontend.sh
 
-shell:               ## Открыть shell внутри контейнера
-	docker exec -it $(CNAME) sh
+deploy-status: ## Проверить контейнер и публичный /__health
+	bash deploy/deploy-status.sh
 
-clean: stop rm       ## Остановить, удалить контейнер и образ
-	docker rmi $(IMAGE)
+deploy-logs: ## Production-логи; TAIL=200 FOLLOW=1
+	bash deploy/deploy-logs.sh
