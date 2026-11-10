@@ -10,6 +10,8 @@
     "verbatimModuleSyntax": true,
     "noEmit": true,
 
+    "allowJs": true,
+
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

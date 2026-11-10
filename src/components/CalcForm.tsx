@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { SurfaceType } from "../api";
 import ListSelect from "./ListSelect";
 
@@ -48,6 +48,11 @@ function IconTabDimensions() {
   );
 }
 
+function getUnitOffsetFromLeft(value: string): string {
+  const chars = Math.max(value.trim().length, 1);
+  return `calc(12px + ${chars}ch + 4px)`;
+}
+
 export interface CalcFormResult {
   surface: string;
   mode: InputMode;
@@ -85,6 +90,7 @@ export default function CalcForm({
   const [height, setHeight] = useState(
     values?.height ? String(values.height) : "",
   );
+  const formRef = useRef<HTMLFormElement | null>(null);
 
   const valuesSignature = values
     ? `${values.surface}|${values.mode}|${values.area ?? ""}|${values.length ?? ""}|${values.height ?? ""}`
@@ -147,6 +153,19 @@ export default function CalcForm({
     onReset?.();
   };
 
+  const handleSurfaceChange = (code: string) => {
+    setSurface(code);
+    if (!code) return;
+    // После раскрытия формы поднимаем окно так, чтобы низ brand-page-layout был виден
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const layout = formRef.current?.closest(".brand-page-layout");
+        if (!(layout instanceof HTMLElement)) return;
+        layout.scrollIntoView({ behavior: "smooth", block: "end" });
+      });
+    });
+  };
+
   /** Enter в числовых полях дублирует «Применить» (в т.ч. где не срабатывает неявный submit формы). */
   const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
     if (e.key !== "Enter") return;
@@ -158,6 +177,7 @@ export default function CalcForm({
 
   return (
     <form
+      ref={formRef}
       onKeyDown={handleFormKeyDown}
       onSubmit={(e) => {
         e.preventDefault();
@@ -177,7 +197,7 @@ export default function CalcForm({
           label="Тип поверхности"
           options={surfaceOptions}
           value={surface}
-          onChange={setSurface}
+          onChange={handleSurfaceChange}
           placeholder="Выберите поверхность"
           variant="text"
           dropdownAlignToRef={dropdownAlignToRef}
@@ -246,16 +266,34 @@ export default function CalcForm({
                 width: "100%",
               }}
             >
-              <input
-                id="area"
-                type="number"
-                min="0"
-                step="0.01"
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
-                placeholder="Площадь, м²"
-                style={{ width: "100%", boxSizing: "border-box" }}
-              />
+              <div style={{ position: "relative", width: "100%" }}>
+                <input
+                  id="area"
+                  type="number"
+                  className="calc-form__number-input"
+                  min="0"
+                  step="0.01"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  placeholder="Площадь, м²"
+                  style={{ width: "100%", boxSizing: "border-box" }}
+                />
+                {area.trim() !== "" ? (
+                  <span
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      left: getUnitOffsetFromLeft(area),
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      color: "#666",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    м²
+                  </span>
+                ) : null}
+              </div>
               <div className="calc-form__actions">
                 <button
                   type="button"
@@ -284,24 +322,62 @@ export default function CalcForm({
                   alignItems: "start",
                 }}
               >
-                <input
-                  id="width"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={length}
-                  onChange={(e) => setLength(e.target.value)}
-                  placeholder="ширина, мм"
-                />
-                <input
-                  id="height"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={height}
-                  onChange={(e) => setHeight(e.target.value)}
-                  placeholder="высота, мм"
-                />
+                <div style={{ position: "relative", width: "100%" }}>
+                  <input
+                    id="width"
+                    type="number"
+                    className="calc-form__number-input"
+                    min="0"
+                    step="0.01"
+                    value={length}
+                    onChange={(e) => setLength(e.target.value)}
+                    placeholder="ширина, мм"
+                    style={{ width: "100%", boxSizing: "border-box" }}
+                  />
+                  {length.trim() !== "" ? (
+                    <span
+                      aria-hidden
+                      style={{
+                        position: "absolute",
+                        left: getUnitOffsetFromLeft(length),
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "#666",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      мм
+                    </span>
+                  ) : null}
+                </div>
+                <div style={{ position: "relative", width: "100%" }}>
+                  <input
+                    id="height"
+                    type="number"
+                    className="calc-form__number-input"
+                    min="0"
+                    step="0.01"
+                    value={height}
+                    onChange={(e) => setHeight(e.target.value)}
+                    placeholder="высота, мм"
+                    style={{ width: "100%", boxSizing: "border-box" }}
+                  />
+                  {height.trim() !== "" ? (
+                    <span
+                      aria-hidden
+                      style={{
+                        position: "absolute",
+                        left: getUnitOffsetFromLeft(height),
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "#666",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      мм
+                    </span>
+                  ) : null}
+                </div>
               </div>
               <div
                 className="calc-form__actions"

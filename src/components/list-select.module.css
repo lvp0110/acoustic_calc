@@ -9,9 +9,9 @@
 }
 
 .trigger {
-  color: var(--surface-text);
+  color: #7b7e80;
   text-align: left;
-  padding: 0 20px 0 20px;
+  padding: 0 30px 0 20px;
   cursor: pointer;
   position: relative;
   /* index.css: button { height: 50px } — для длинной подписи нужна высота по содержимому */
@@ -23,14 +23,20 @@
 }
 
 :global(.brand-form) .trigger {
+  color: #7b7e80;
   font-size: 17px;
   line-height: 28px;
+}
+
+.triggerSelected,
+:global(.brand-form) .triggerSelected {
+  color: #191919;
 }
 
 .trigger::after {
   content: "";
   position: absolute;
-  right: 12px;
+  right: 20px;
   top: 50%;
   width: 6px;
   height: 6px;
@@ -334,23 +340,23 @@
   }
 
   .selectedPreviewCard {
-    flex: 0 0 142px;
+    flex: 0 0 80px;
     flex-shrink: 0;
     min-height: 142px;
   }
 
   .selectedPreview {
-    max-height: 100%;
+    max-height: 130%;
   }
 }
 
 @media (min-width: 1100px) {
   /*
-   * Как в макете: вся колонка 236px = карточка с картинкой + отступ + одна строка подписи.
+   * Вся колонка 150px = карточка с картинкой + отступ + одна строка подписи.
    * Отступ между карточкой и текстом — gap; карточка растягивается на оставшуюся высоту.
    */
   .selectedPreviewWrap {
-    height: 236px;
+    height: 150px;
     gap: 10px;
   }
 
@@ -443,6 +449,12 @@
 }
 
 @media (max-width: 699px) {
+  /* Перебивает .brand-page-forms button { font-size: 15px } из index.css */
+  :global(.brand-page-forms) .mobileTitle {
+    font-size: 24px;
+    line-height: 1.2;
+  }
+
   :global(.brand-page-forms) .trigger,
   :global(.brand-page-forms) .optionText {
     font-size: 15px;
