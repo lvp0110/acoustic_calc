@@ -674,7 +674,7 @@ button {
 }
 
 .brands-list {
-  width: max-content;
+  width: auto;
   max-width: 100%;
   padding-left: 0;
   list-style-position: inside;
