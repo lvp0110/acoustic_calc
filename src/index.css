@@ -665,7 +665,18 @@ button {
 }
 
 .brands-header h2 {
-  margin-left: 30px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 10px 10px 10px;
+  font-weight: 500;
+}
+
+.brands-header__icon {
+  display: block;
+  width: 1.7em;
+  height: 1.7em;
+  flex: none;
 }
 
 .brands-list,
@@ -677,15 +688,34 @@ button {
   width: auto;
   max-width: 100%;
   padding-left: 0;
-  list-style-position: inside;
+  list-style: none;
 }
 
 .brands-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-top: 4px;
   padding: 10px 20px;
   background-color: rgba(255, 255, 255, 0.45);
   backdrop-filter: blur(1px);
   -webkit-backdrop-filter: blur(1px);
+}
+
+.brands-list li::before {
+  content: "";
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  background: radial-gradient(
+    circle at center,
+    currentColor 0 1.75px,
+    transparent 1.75px 4px,
+    currentColor 4px 5.25px,
+    transparent 5.25px 7.5px,
+    currentColor 7.5px 8.75px,
+    transparent 8.75px
+  );
 }
 
 input {
