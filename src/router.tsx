@@ -4,6 +4,7 @@ import {
   createRoute,
   createRouter,
   Outlet,
+  useRouterState,
 } from "@tanstack/react-router";
 import Index from "./pages/Index";
 import Brand from "./pages/Brand";
@@ -17,12 +18,21 @@ export const queryClient = new QueryClient({
   },
 });
 
-const rootRoute = createRootRoute({
-  component: () => (
+function RootLayout() {
+  const isHome = useRouterState({
+    select: (state) => state.location.pathname === "/",
+  });
+
+  return (
     <QueryClientProvider client={queryClient}>
+      {isHome ? <div className="home-bg" aria-hidden="true" /> : null}
       <Outlet />
     </QueryClientProvider>
-  ),
+  );
+}
+
+const rootRoute = createRootRoute({
+  component: RootLayout,
 });
 
 const indexRoute = createRoute({

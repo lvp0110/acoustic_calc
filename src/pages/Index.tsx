@@ -7,25 +7,25 @@ export default function Home() {
     queryFn: () => getAcousticCategories().then((res) => res.data.data),
   });
 
-  if (isLoading) return <p>Загрузка...</p>;
+  if (isLoading) return <p className="home-page">Загрузка...</p>;
   if (error)
     return (
-      <p>
+      <p className="home-page">
         Ошибка:{" "}
         {error instanceof Error ? error.message : String(error)}
       </p>
     );
 
   return (
-    <div>
+    <div className="home-page">
       <div className="brands-header">
-        <h1>Бренды</h1>
+        <h2>Калькулятор акустики</h2>
       </div>
-      <ul>
+      <ul className="brands-list">
         {data?.map((cat) => (
           <li key={cat.ShortName}>
             <Link to="/$brandCode" params={{ brandCode: cat.ShortName }}>
-              <strong>{cat.Name}</strong> ({cat.ShortName})
+              <strong>{cat.Name}</strong>
             </Link>
           </li>
         ))}

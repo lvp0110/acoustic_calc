@@ -121,6 +121,11 @@ html {
   min-width: 320px;
 }
 
+#root {
+  position: relative;
+  z-index: 0;
+}
+
 body {
   position: relative;
   background-color: var(--bg);
@@ -132,6 +137,18 @@ body {
   height: auto !important;
   min-height: 100%;
   font-family: "DIN Pro", "Helvetica", sans-serif;
+}
+
+.home-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url("/body-bg.jpg?v=2");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .main-unit {
@@ -630,11 +647,45 @@ button {
   box-sizing: border-box;
 }
 
+.home-page {
+  color: #356873cc;
+  text-shadow: -2px -4px 15px #fff, -5px -1px 10px #fff;
+}
+
 .brands-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  border-bottom: #61a2ab 1px solid;
+  color: #356873cc;
+  background-color: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.brands-header h2 {
+  margin-left: 30px;
+}
+
+.brands-list,
+.brands-list a {
+  color: #356873cc;
+}
+
+.brands-list {
+  width: max-content;
+  max-width: 100%;
+  padding-left: 0;
+  list-style-position: inside;
+}
+
+.brands-list li {
+  margin-top: 4px;
+  padding: 10px 20px;
+  background-color: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
 }
 
 input {
