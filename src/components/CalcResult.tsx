@@ -12,6 +12,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import ReactMarkdown from "react-markdown";
+import { metrikaReachGoal } from "../utils/metrika";
 import "./CalcResult.css";
 
 interface CalcResultProps {
@@ -131,6 +132,7 @@ export default function CalcResult({
         note: "",
         pageUrl: window.location.href,
       });
+      metrikaReachGoal("kp_submit");
       setKpSubmitOk(true);
       setKpName("");
       setKpCity("");
