@@ -1,35 +1,13 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   createRootRoute,
   createRoute,
   createRouter,
-  Outlet,
-  useRouterState,
 } from "@tanstack/react-router";
 import Index from "./pages/Index";
 import Brand from "./pages/Brand";
+import { RootLayout } from "./RootLayout";
 
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
-function RootLayout() {
-  const isHome = useRouterState({
-    select: (state) => state.location.pathname === "/",
-  });
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      {isHome ? <div className="home-bg" aria-hidden="true" /> : null}
-      <Outlet />
-    </QueryClientProvider>
-  );
-}
+export { queryClient } from "./queryClient";
 
 const rootRoute = createRootRoute({
   component: RootLayout,
